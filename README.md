@@ -8,7 +8,7 @@ Materials are organized by module under `/modules`. Each folder contains rendere
 
 ## Usage
 
-The student-facing landing page is available at the link provided in your course syllabus. Navigate from there — do not rely on the folder structure in this repository directly.
+The student-facing landing page is available at the link provided in your course syllabus. Navigate from there. Do not rely on the folder structure in this repository directly.
 
 ## Versioning
 
