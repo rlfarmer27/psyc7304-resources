@@ -72,19 +72,6 @@ format:
     df-print: kable
     html-math-method: mathjax
     embed-resources: false
-  pdf:
-    documentclass: scrbook
-    papersize: letter
-    fontsize: 11pt
-    geometry:
-      - top=1in
-      - bottom=1in
-      - left=1.25in
-      - right=1.25in
-    toc: true
-    number-sections: true
-    colorlinks: true
-    fig-align: center
 
 execute:
   echo: false

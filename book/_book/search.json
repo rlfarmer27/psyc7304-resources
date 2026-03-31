@@ -1,5 +1,153 @@
 [
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Measurement Theory and Psychometrics",
+    "section": "",
+    "text": "Preface\nThis book is a supplementary resource for PSYC 7304/8304: Measurement Theory and Psychometrics at the University of Memphis. It is not a replacement for the primary readings from the peer-reviewed literature assigned in the course — it is a conceptual guide and practical companion to those readings.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#what-this-book-is",
+    "href": "index.html#what-this-book-is",
+    "title": "Measurement Theory and Psychometrics",
+    "section": "What This Book Is",
+    "text": "What This Book Is\nEach chapter walks through the logic of a major topic in psychometrics, with R-based worked examples using simulated datasets. The emphasis is on interpretation: understanding what analyses mean, what they assume, and what they cannot tell you. Where full R code is provided, it can be expanded by clicking the code block. Students who want to replicate analyses can do so; students who want to follow the conceptual argument without running code can read the output as presented.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#what-this-book-is-not",
+    "href": "index.html#what-this-book-is-not",
+    "title": "Measurement Theory and Psychometrics",
+    "section": "What This Book Is Not",
+    "text": "What This Book Is Not\nThis is not a comprehensive psychometrics textbook. It does not replace Furr, Borsboom, or the Standards. It does not provide exhaustive coverage of every method or every debate in the field. It is designed to give you enough conceptual grounding to read primary sources critically and to evaluate measurement evidence in published research and test manuals.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#a-note-on-content-development",
+    "href": "index.html#a-note-on-content-development",
+    "title": "Measurement Theory and Psychometrics",
+    "section": "A Note on Content Development",
+    "text": "A Note on Content Development\nSome material in this book was developed with the assistance of AI tools, including Claude (Anthropic). All content has been reviewed, revised, and approved by the course instructor. Students are encouraged to approach these materials with the same critical eye they would apply to any published resource.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#how-to-use-this-book",
+    "href": "index.html#how-to-use-this-book",
+    "title": "Measurement Theory and Psychometrics",
+    "section": "How to Use This Book",
+    "text": "How to Use This Book\nRead chapters in order if you are following the course — the sequencing is deliberate. Each chapter builds on concepts introduced earlier. If you are using the book as a reference after the fact, the chapter summaries and key concept callouts are designed to be readable on their own.\nCode blocks are collapsed by default. Click to expand them if you want to see the full R code behind a figure or table.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#license",
+    "href": "index.html#license",
+    "title": "Measurement Theory and Psychometrics",
+    "section": "License",
+    "text": "License\nThis work is licensed under the Mozilla Public License 2.0.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "chapters/01_philosophy.html",
+    "href": "chapters/01_philosophy.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Foundations",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>01_philosophy.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02_ethics_data.html",
+    "href": "chapters/02_ethics_data.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Foundations",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>02_ethics_data.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/03_ctt_latent_variables.html",
+    "href": "chapters/03_ctt_latent_variables.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Classical Measurement Theory",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>03_ctt_latent_variables.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/04_validity.html",
+    "href": "chapters/04_validity.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Classical Measurement Theory",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>04_validity.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/05_reliability.html",
+    "href": "chapters/05_reliability.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Classical Measurement Theory",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>05_reliability.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/06_efa.html",
+    "href": "chapters/06_efa.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Factor Analytic Methods",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>06_efa.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/07_cfa_part1.html",
+    "href": "chapters/07_cfa_part1.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Factor Analytic Methods",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>07_cfa_part1.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/08_cfa_part2.html",
+    "href": "chapters/08_cfa_part2.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Factor Analytic Methods",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>08_cfa_part2.html</span>"
+    ]
+  },
+  {
     "objectID": "chapters/chapter_bias_fairness.html",
     "href": "chapters/chapter_bias_fairness.html",
     "title": "9  Do Scores Mean the Same for Everyone?",
@@ -121,14 +269,57 @@
     ]
   },
   {
-    "objectID": "chapters/chapter_bias_fairness.html#references",
-    "href": "chapters/chapter_bias_fairness.html#references",
-    "title": "9  Do Scores Mean the Same for Everyone?",
-    "section": "9.12 References",
-    "text": "9.12 References\n\n\nCheung, G. W., & Rensvold, R. B. (1999). Testing factorial\ninvariance across groups: A reconceptualization and proposed new method.\nJournal of Management, 25(1), 1–27. https://doi.org/10.1177/014920639902500101\n\n\nHolland, P. W., & Thayer, D. T. (1986). Differential item\nperformance and the Mantel-Haenszel procedure.\n129–145.\n\n\nKane, M. T. (1992). An argument-based approach to validity.\nPsychological Bulletin, 112(3), 527–535. https://doi.org/10.1037/0033-2909.112.3.527\n\n\nMagis, D., Béland, S., Tuerlinckx, F., & De Boeck, P. (2010). A\ngeneral framework and an R package for the detection of\ndichotomous differential item functioning. Behavior Research\nMethods, 42(3), 847–862. https://doi.org/10.3758/BRM.42.3.847\n\n\nSwaminathan, H., & Rogers, H. J. (1990). Detecting differential item\nfunctioning using logistic regression procedures. Journal of\nEducational Measurement, 27(4), 361–370. https://doi.org/10.1111/j.1745-3984.1990.tb00754.x",
+    "objectID": "chapters/10_diagnostic_accuracy.html",
+    "href": "chapters/10_diagnostic_accuracy.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
     "crumbs": [
       "Applied Measurement Topics",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Do Scores Mean the Same for Everyone?</span>"
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>10_diagnostic_accuracy.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/11_scale_development.html",
+    "href": "chapters/11_scale_development.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Applied Measurement Topics",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>11_scale_development.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/12_questionable_practices.html",
+    "href": "chapters/12_questionable_practices.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Evaluation and Integration",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>12_questionable_practices.html</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/13_integration.html",
+    "href": "chapters/13_integration.html",
+    "title": "",
+    "section": "",
+    "text": "Code",
+    "crumbs": [
+      "Evaluation and Integration",
+      "<span class='chapter-number'>13</span>  <span class='chapter-title'>13_integration.html</span>"
+    ]
+  },
+  {
+    "objectID": "references.html",
+    "href": "references.html",
+    "title": "References",
+    "section": "",
+    "text": "Cheung, G. W., & Rensvold, R. B. (1999). Testing factorial\ninvariance across groups: A reconceptualization and proposed new method.\nJournal of Management, 25(1), 1–27. https://doi.org/10.1177/014920639902500101\n\n\nHolland, P. W., & Thayer, D. T. (1986). Differential item\nperformance and the Mantel-Haenszel procedure.\n129–145.\n\n\nKane, M. T. (1992). An argument-based approach to validity.\nPsychological Bulletin, 112(3), 527–535. https://doi.org/10.1037/0033-2909.112.3.527\n\n\nMagis, D., Béland, S., Tuerlinckx, F., & De Boeck, P. (2010). A\ngeneral framework and an R package for the detection of\ndichotomous differential item functioning. Behavior Research\nMethods, 42(3), 847–862. https://doi.org/10.3758/BRM.42.3.847\n\n\nSwaminathan, H., & Rogers, H. J. (1990). Detecting differential item\nfunctioning using logistic regression procedures. Journal of\nEducational Measurement, 27(4), 361–370. https://doi.org/10.1111/j.1745-3984.1990.tb00754.x",
+    "crumbs": [
+      "References"
     ]
   }
 ]
