@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFA Lecture Script — PSYC 7304/8304</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:    #1a2744;
+  --slate:   #2e4066;
+  --gold:    #c9a84c;
+  --gold-lt: #f5e8c0;
+  --cream:   #faf8f3;
+  --paper:   #ffffff;
+  --muted:   #7a8599;
+  --border:  #e2ddd4;
+  --red:     #b83232;
+  --green:   #1a6e42;
+  --blue:    #1a4fa0;
+  --sidebar: 260px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  color: var(--navy);
+  background: var(--cream);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  width: var(--sidebar);
+  min-width: var(--sidebar);
+  background: var(--navy);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  padding: 0 0 2rem;
+  z-index: 100;
+}
+
+#sidebar-header {
+  padding: 1.4rem 1.2rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+#sidebar-header .course {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 0.4em;
+}
+
+#sidebar-header .title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.15em;
+  color: #e8edf5;
+  line-height: 1.3;
+}
+
+.section-group { margin-top: 0.6rem; }
+
+.section-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  padding: 0.7rem 1.2rem 0.3rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  padding: 0.42rem 1.2rem;
+  text-decoration: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 12.5px;
+  line-height: 1.35;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+}
+
+.nav-item:hover, .nav-item.active {
+  background: rgba(255,255,255,0.07);
+  color: #e8edf5;
+}
+
+.nav-item.active { border-left: 2px solid var(--gold); }
+
+.slide-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  opacity: 0.7;
+  min-width: 20px;
+  padding-top: 1px;
+}
+
+/* ── Main content ── */
+#main {
+  margin-left: var(--sidebar);
+  flex: 1;
+  max-width: 860px;
+  padding: 3rem 3.5rem 5rem;
+}
+
+/* ── Page header ── */
+.page-header {
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.page-header .kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 0.5em;
+}
+
+.page-header h1 {
+  font-family: 'Crimson Pro', serif;
+  font-size: 2.2em;
+  font-weight: 400;
+  color: var(--navy);
+  line-height: 1.15;
+  margin-bottom: 0.4em;
+}
+
+.page-header .sub {
+  color: var(--muted);
+  font-size: 0.93em;
+}
+
+/* ── Slide blocks ── */
+.slide-block {
+  margin-bottom: 3.5rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.slide-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1em;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.slide-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--paper);
+  background: var(--navy);
+  padding: 0.2em 0.6em;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.slide-tag.section-tag {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.slide-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.3em;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+/* ── Script body ── */
+.script-body {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.08em;
+  line-height: 1.75;
+  color: #2a3248;
+}
+
+.script-body p { margin-bottom: 0.9em; }
+
+.script-body p:last-child { margin-bottom: 0; }
+
+.script-body strong {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.script-body em { font-style: italic; }
+
+/* ── Key point boxes ── */
+.keypoints {
+  margin-top: 1.3rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.keypoints-header {
+  background: var(--navy);
+  color: var(--gold-lt);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.45em 0.9em;
+}
+
+.keypoints ul {
+  list-style: none;
+  padding: 0.7em 0.9em;
+}
+
+.keypoints li {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--slate);
+  padding: 0.3em 0 0.3em 1.1em;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.keypoints li:last-child { border-bottom: none; }
+
+.keypoints li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+  font-size: 11px;
+}
+
+/* ── Callout variations ── */
+.callout {
+  border-left: 3px solid var(--gold);
+  background: #fdf9ef;
+  padding: 0.65em 1em;
+  margin: 1rem 0;
+  border-radius: 0 5px 5px 0;
+  font-size: 0.9em;
+  line-height: 1.55;
+}
+
+.callout.warn {
+  border-left-color: var(--red);
+  background: #fdf0ef;
+}
+
+.callout.good {
+  border-left-color: var(--green);
+  background: #edf8f2;
+}
+
+.callout strong { font-weight: 600; }
+
+/* ── Inline code ── */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: #eee9de;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  color: var(--slate);
+}
+
+/* ── Formula display ── */
+.formula-box {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--slate);
+  border-radius: 0 5px 5px 0;
+  padding: 0.6em 1em;
+  margin: 0.8em 0;
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.05em;
+  font-style: italic;
+  color: var(--slate);
+}
+
+/* ── Divider between sections ── */
+.section-divider {
+  margin: 2.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.section-divider::before, .section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-divider span {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Transition cues ── */
+.transition-cue {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+
+/* ── Table of thresholds ── */
+.threshold-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 0.8em 0;
+}
+
+.threshold-table th {
+  background: var(--navy);
+  color: white;
+  padding: 0.4em 0.8em;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.threshold-table td {
+  padding: 0.35em 0.8em;
+  border-bottom: 1px solid var(--border);
+  color: var(--slate);
+}
+
+.threshold-table tr:last-child td { border-bottom: none; }
+.threshold-table tr:nth-child(even) td { background: #f8f6f1; }
+
+/* ── Print / scroll ── */
+@media print {
+  #sidebar { display: none; }
+  #main { margin-left: 0; max-width: 100%; padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <div class="course">PSYC 7304 / 8304</div>
+    <div class="title">CFA Lecture Script</div>
+  </div>
+
+  <div class="section-group">
+    <div class="section-label">Introduction</div>
+    <a class="nav-item" href="#s1"><span class="slide-num">01</span>EFA vs. CFA</a>
+    <a class="nav-item" href="#s2"><span class="slide-num">02</span>The CFA Model</a>
+    <a class="nav-item" href="#s3"><span class="slide-num">03</span>Estimation</a>
+    <a class="nav-item" href="#s4"><span class="slide-num">04</span>The Procedure</a>
+  </div>
+
+  <div class="section-group">
+    <div class="section-label">Evaluating Fit</div>
+    <a class="nav-item" href="#s5"><span class="slide-num">05</span>Chi-Square Test</a>
+    <a class="nav-item" href="#s6"><span class="slide-num">06</span>Absolute Fit Indices</a>
+    <a class="nav-item" href="#s7"><span class="slide-num">07</span>Relative Fit Indices</a>
+    <a class="nav-item" href="#s8"><span class="slide-num">08</span>The Hu & Bentler Problem</a>
+    <a class="nav-item" href="#s9"><span class="slide-num">09</span>AIC & BIC</a>
+    <a class="nav-item" href="#s10"><span class="slide-num">10</span>Local Fit & MIs</a>
+  </div>
+
+  <div class="section-group">
+    <div class="section-label">Reliability & Replicability</div>
+    <a class="nav-item" href="#s11"><span class="slide-num">11</span>Factor Loadings</a>
+    <a class="nav-item" href="#s12"><span class="slide-num">12</span>ω and ωₕ</a>
+    <a class="nav-item" href="#s13"><span class="slide-num">13</span>H and AVE</a>
+    <a class="nav-item" href="#s14"><span class="slide-num">14</span>H vs. ω Comparison</a>
+    <a class="nav-item" href="#s15"><span class="slide-num">15</span>Factor Determinacy</a>
+  </div>
+
+  <div class="section-group">
+    <div class="section-label">Synthesis</div>
+    <a class="nav-item" href="#s16"><span class="slide-num">16</span>What to Report</a>
+    <a class="nav-item" href="#s17"><span class="slide-num">17</span>Worked Example</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main id="main">
+
+  <div class="page-header">
+    <div class="kicker">Lecture Reference Script</div>
+    <h1>Confirmatory Factor Analysis</h1>
+    <div class="sub">PSYC 7304 / 8304 · Measurement Theory & Psychometrics · Spring 2026 &nbsp;·&nbsp; Arranged by slide</div>
+  </div>
+
+  <!-- ─── SECTION: INTRODUCTION ─── -->
+  <div class="section-divider"><span>Introduction</span></div>
+
+  <!-- SLIDE 1 -->
+  <div class="slide-block" id="s1">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 01</span>
+      <span class="slide-title">EFA vs. CFA: The Key Shift</span>
+    </div>
+    <div class="script-body">
+      <p>We spent several weeks on exploratory factor analysis — letting the data tell us how many factors exist and how items cluster. Now we're flipping the logic entirely. In CFA, you come to the data with a claim. You say: <em>I believe this scale measures three correlated factors, and I believe these specific items belong to each factor.</em> The model is fully specified before you run a single line of code, and then you ask whether the data are consistent with that claim.</p>
+
+      <p>The mechanism that makes this different from EFA isn't the software — it's the zero constraints. In EFA, every item is free to load on every factor; the rotation finds the cleanest solution the data support. In CFA, every loading that isn't hypothesized is <em>constrained to zero</em>. If Item 4 is supposed to load only on Factor 2, its loading on Factor 1 and Factor 3 are fixed at zero. Those zeros are testable claims. If the data say Item 4 actually has substantial shared variance with Factor 1, your model fit is going to suffer.</p>
+
+      <p>That's why CFA fit can be poor even when EFA recovers a clean-looking solution. EFA's flexibility absorbed the misfit. CFA exposes it. This is a feature, not a bug — it's how you find out whether your theory is actually right.</p>
+
+      <p>The appropriate sequencing in scale development is: EFA on one sample to discover structure, CFA on an independent sample to confirm it. Running both on the same sample and reporting the CFA as "confirmation" is a methodological problem — the CFA is just re-fitting a structure that was already extracted from those data.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>CFA tests a theory-specified structure; EFA discovers structure from data</li>
+        <li>All non-hypothesized cross-loadings are constrained to zero — these are testable claims</li>
+        <li>CFA can show poor fit even when EFA recovers a clean solution — the zeros expose misfit that EFA absorbed</li>
+        <li>Correct sequencing: EFA on Sample 1, CFA on an independent Sample 2</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: the mathematical structure of the CFA model and what each parameter means</div>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="slide-block" id="s2">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 02</span>
+      <span class="slide-title">The CFA Model</span>
+    </div>
+    <div class="script-body">
+      <p>The measurement model says: each observed indicator is a linear function of the latent factor plus unique variance. <em>y = λη + ε.</em> Three sets of parameters come out of this: the factor loadings λ, the factor variances and covariances Φ, and the residual variances θ.</p>
+
+      <p>Lambda is the regression coefficient of the indicator on the factor — in standardized form, it's a correlation. It tells you how strongly the item reflects the construct. Phi captures the variance of the latent variable itself, and in multifactor models, the covariances between factors — this is where you find out whether your factors are correlated or orthogonal. Theta is the residual — everything in the item that isn't explained by the common factor. This includes measurement error, yes, but also item-specific variance: a reliable quirk of that particular item that doesn't generalize to the broader construct.</p>
+
+      <p>Before you can estimate anything, the model has to be <em>identified</em> — meaning there's a unique solution. The problem is that the latent variable has no natural scale. If I multiply all the loadings by 2 and divide the factor variance by 4, the model-implied covariance matrix doesn't change. So we have to anchor the scale somehow. Two ways: fix one item's loading to 1.0, which is the marker variable approach and is what lavaan does by default; or fix the factor variance to 1.0, which produces standardized loadings directly. Neither is wrong — they produce equivalent models with different parameterizations.</p>
+
+      <p>Degrees of freedom are the number of observed variances and covariances — that's p times p+1, divided by 2 — minus the number of free parameters you're estimating. You need positive df to have an identified model and to compute fit statistics. A just-identified model with df = 0 fits perfectly by definition, which tells you nothing.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li><strong>λ (loading)</strong> — regression of indicator on factor; standardized = correlation with factor</li>
+        <li><strong>Φ (factor variance/covariance)</strong> — variance of the latent variable; covariance between factors in multifactor models</li>
+        <li><strong>θ (residual)</strong> — unique variance: error + item specificity</li>
+        <li>Identification requires fixing factor scale: marker variable (default) or fix factor variance = 1.0</li>
+        <li>df = p(p+1)/2 − q; you need df > 0 to test fit</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: how the model is estimated and what happens when assumptions are violated</div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide-block" id="s3">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 03</span>
+      <span class="slide-title">Estimation</span>
+    </div>
+    <div class="script-body">
+      <p>Default estimation in CFA is Maximum Likelihood. ML finds the parameter values that maximize the probability of observing the sample covariance matrix given the model. It's efficient, well-understood, and produces the chi-square statistic and fit indices we'll spend the next several slides on.</p>
+
+      <p>ML has two key assumptions: multivariate normality and continuous indicators. In psychology, both are routinely violated. Likert scales with five response options are not continuous — they're ordinal. And psychological variables frequently show skewness, kurtosis, or ceiling and floor effects. When you use ML on non-normal or ordinal data, chi-square is inflated, standard errors are biased, and your fit indices are distorted in ways that tend to make adequate models look worse than they are.</p>
+
+      <p>There are principled alternatives. For continuous data that violates normality, MLR — sometimes called Robust ML or Satorra-Bentler — applies a scaling correction to the chi-square statistic and adjusts standard errors. The parameter estimates themselves don't change, just the inferential machinery. For ordinal data, WLSMV uses polychoric correlations as input and a weighted least squares estimator with a mean-and-variance correction. This is the appropriate default for Likert items with fewer than five or six categories, or any items showing distributional problems. FIML handles missing data by using all available information rather than dropping cases — it's preferable to listwise deletion when data are missing at random.</p>
+
+      <p>The practical implication: before you run your CFA, check your data. Examine univariate distributions, compute Mardia's multivariate kurtosis, and decide on an estimator intentionally rather than accepting ML by default. In lavaan, it's as simple as adding <code>estimator = "MLR"</code> or <code>estimator = "WLSMV"</code> to your <code>cfa()</code> call.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>ML is default — requires multivariate normality and continuous indicators</li>
+        <li>Violating ML assumptions inflates χ² and distorts fit indices</li>
+        <li><strong>MLR</strong> (Satorra-Bentler): use for non-normal continuous data — adjusts χ² and SEs</li>
+        <li><strong>WLSMV</strong>: use for ordinal indicators — uses polychoric correlations as input</li>
+        <li><strong>FIML</strong>: use for missing data — preferable to listwise deletion under MAR</li>
+        <li>Check your data distributions before choosing an estimator</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: the full workflow from specification to replication</div>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide-block" id="s4">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 04</span>
+      <span class="slide-title">The CFA Procedure</span>
+    </div>
+    <div class="script-body">
+      <p>The workflow is: specify, identify, estimate, evaluate fit, modify if justified, and replicate. Sounds linear. In practice it's iterative — but the iterative part needs to be handled carefully.</p>
+
+      <p>Specification is where your theory lives. You write out the factor structure: which items load on which factors, whether factors are correlated (almost always yes in psychology), whether any residuals should covary. Every decision at this stage is a theoretical claim. Identification follows automatically if you've set the factor scale and have at least three indicators per factor — check your df before running.</p>
+
+      <p>Estimation: run the model and first check for convergence. Non-convergence usually signals an identification problem — wrong number of factors, too few indicators, or near-perfect collinearity between items. Heywood cases — negative residual variances or standardized loadings above 1.0 — are another warning sign at this stage. These are model failures, not fit index failures. Fix the model before you interpret any output.</p>
+
+      <p>Evaluation is where most of the complexity lives — that's the next several slides. The key point for now: no single index is sufficient. You need a pattern of evidence across multiple indices.</p>
+
+      <p>The modification step is where things go wrong in the published literature. Modification indices — which we'll cover in detail — tell you what parameter changes would improve fit most. The temptation is to act on them. The problem is that doing so turns a confirmatory analysis into an exploratory one. Every freed parameter reduces degrees of freedom, improves fit in this sample, and capitalizes on chance. A modified model that isn't replicated in an independent sample is, at best, a hypothesis. If you do modify, you must label the model as exploratory or revised, document every change and its substantive rationale, and require replication before treating any conclusions as confirmatory.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Specify → Identify → Estimate → Evaluate → Modify (if justified) → Replicate</li>
+        <li>Non-convergence and Heywood cases are model failures — fix before interpreting fit</li>
+        <li>No single fit index is sufficient; evaluate a pattern across indices</li>
+        <li>MI-driven modifications are exploratory — they capitalize on chance and require replication</li>
+        <li>Modified models must be clearly labeled as revised/exploratory in write-ups</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: fit evaluation — starting with the chi-square test</div>
+  </div>
+
+  <!-- ─── SECTION: FIT EVALUATION ─── -->
+  <div class="section-divider"><span>Evaluating Model Fit</span></div>
+
+  <!-- SLIDE 5 -->
+  <div class="slide-block" id="s5">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 05</span>
+      <span class="slide-title">The Chi-Square Test</span>
+    </div>
+    <div class="script-body">
+      <p>Chi-square is the formal test of exact model fit. The null hypothesis is that the model-implied covariance matrix is equal to the population covariance matrix. A significant chi-square means you reject exact fit. A non-significant chi-square means you retain the null — the model is consistent with perfect fit in the population.</p>
+
+      <p>The problem should be immediately apparent to anyone who's spent time in this course thinking about hypothesis testing. The null hypothesis is that the model fits <em>perfectly</em>. No structural model of psychological data ever fits perfectly. We're always working with approximations. So we're testing a hypothesis we know in advance is false.</p>
+
+      <p>The simulation on the slide makes this concrete. The same model — identical misfit, same parameter values — goes from non-significant to significant as N crosses about 450. Nothing changed about the model or the data-generating process. The only thing that changed was how much power we had to detect the already-known imperfect fit. With N = 800, we'd reject a model that fits perfectly well for all practical purposes.</p>
+
+      <p>The reverse problem is real too. With N = 80, chi-square is so underpowered that it will fail to detect substantial misfit. Small samples give false confidence.</p>
+
+      <p>Why report chi-square at all if it's so problematic? Because the approximate fit indices — RMSEA, CFI, TLI — are derived from or compared against chi-square. You need to report it as the foundation. Some journals also require it as a disclosure. The chi-square-to-df ratio (normed chi-square) is sometimes cited as a rough heuristic — values below 2 or 3 are considered acceptable — but this has no rigorous theoretical basis and should be treated as a secondary observation, not a criterion.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>H₀: model-implied Σ = population Σ (exact fit) — a standard no real model meets</li>
+        <li>Large N → χ² nearly always significant, even for trivial misfit</li>
+        <li>Small N → χ² underpowered, may retain badly misspecified models</li>
+        <li>Always report χ²(df), p — it is the foundation of approximate fit indices</li>
+        <li>Never use χ² as the sole fit criterion</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: absolute fit indices — RMSEA and SRMR</div>
+  </div>
+
+  <!-- SLIDE 6 -->
+  <div class="slide-block" id="s6">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 06</span>
+      <span class="slide-title">Absolute Fit Indices: RMSEA & SRMR</span>
+    </div>
+    <div class="script-body">
+      <p>Absolute fit indices answer the question: how well does this model reproduce the observed covariances, in an absolute sense? No baseline model is involved — they're not comparing your model to anything else, just measuring the discrepancy between what your model implies and what the data show.</p>
+
+      <p>RMSEA is the Root Mean Square Error of Approximation. The formula is chi-square minus df, divided by df times N minus 1, all under a square root. The subtraction of df is important — it's a complexity penalty. A model that uses more parameters to achieve the same chi-square will have more df and therefore a lower RMSEA. This is why adding correlated residuals or cross-loadings always improves RMSEA — you're spending df to buy fit. The rough thresholds: below .05 is close fit, .05 to .08 is reasonable, .08 to .10 is mediocre, above .10 is poor. Hu and Bentler's more stringent recommendation was .06.</p>
+
+      <p>Always report the 90% confidence interval around RMSEA. A point estimate of .055 with a CI of .012 to .098 spans from close fit to poor — that's not useful information. The CI width depends on sample size and df, and a wide CI should make you humble about how much the point estimate tells you. The test of close fit (p-value for RMSEA ≤ .05) is also available in lavaan and worth reporting.</p>
+
+      <p>One important caveat: RMSEA is biased against simple models with few df. When you have a small model — say, a 4-item single-factor scale with df = 2 — RMSEA is systematically elevated even if the model fits well by other criteria. Don't over-rely on it in those situations.</p>
+
+      <p>SRMR is more intuitive. It's the average discrepancy between the observed correlations and the model-implied correlations, expressed as a standardized value. An SRMR of .07 means the model's implied correlations are off by about .07 on average across all item pairs. Below .08 is the Hu and Bentler threshold for acceptable fit. The diagnostic difference between RMSEA and SRMR: SRMR is more sensitive to misspecified factor loadings. If SRMR is large but RMSEA is acceptable, the problem is probably with your loading structure — some items aren't loading as cleanly as you specified — rather than with the overall factor structure.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Absolute fit: how well does the model reproduce the observed covariance matrix?</li>
+        <li><strong>RMSEA</strong>: badness-of-fit per df — penalizes complexity; ≤.05 close, .05–.08 reasonable, >.10 poor</li>
+        <li>Always report RMSEA 90% CI — a wide interval is uninformative regardless of point estimate</li>
+        <li>RMSEA biased upward for simple models (few df, small N) — don't over-rely on it</li>
+        <li><strong>SRMR</strong>: mean residual correlation; ≤.08 acceptable (Hu & Bentler)</li>
+        <li>Large SRMR + acceptable RMSEA → suspect loading misspecification specifically</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: relative fit indices — CFI and TLI</div>
+  </div>
+
+  <!-- SLIDE 7 -->
+  <div class="slide-block" id="s7">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 07</span>
+      <span class="slide-title">Relative (Incremental) Fit Indices: CFI & TLI</span>
+    </div>
+    <div class="script-body">
+      <p>Relative fit indices don't evaluate your model in isolation — they compare it to a null model. The null model is the worst-case baseline: it assumes all your indicators are completely uncorrelated with each other. That's a model that says your scale items have nothing in common. Obviously wrong, but it gives us a floor. The question relative indices ask is: how much of the gap between this floor and perfect fit does your model close?</p>
+
+      <p>CFI, the Comparative Fit Index, does this by comparing the non-centrality parameters of your model and the null model. Values range from 0 to 1, with higher being better. The Hu and Bentler threshold is .95, though .90 was the standard in older literature and you'll still see it in published work. CFI is relatively robust to sample size, which is part of why it became the dominant index. It does not penalize for model complexity — a more parameter-heavy model will always have equal or better CFI than a constrained version, all else being equal.</p>
+
+      <p>TLI — the Tucker-Lewis Index, also called the Non-Normed Fit Index — addresses that problem. It divides chi-square by degrees of freedom before comparing the target model to the null model. A more complex model that uses extra parameters without proportionate improvement gets penalized. TLI can theoretically exceed 1.0 when the target model fits better than expected by chance — in practice, round anything above 1.0 to 1.0. Same threshold as CFI: .95.</p>
+
+      <p>In practice, both should be reported. If CFI and TLI diverge meaningfully — say CFI = .96 and TLI = .91 — that's a signal that your model is using extra parameters without earning proportionate fit improvement. That's worth investigating before you conclude the model fits well.</p>
+
+      <p>The chart on the slide shows both indices declining as chi-square increases. They track closely together most of the time; the divergence becomes more visible as model complexity increases.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Relative fit: how much better is my model than the null (all indicators uncorrelated)?</li>
+        <li><strong>CFI</strong>: compares non-centrality of target vs. null model; ≥.95 (Hu & Bentler); robust to N; no complexity penalty</li>
+        <li><strong>TLI</strong>: like CFI but penalizes for complexity; ≥.95; can exceed 1.0 (round to 1.0)</li>
+        <li>Prefer TLI when comparing models of different complexity</li>
+        <li>CFI–TLI divergence signals that extra parameters aren't earning their keep</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: why the cutoffs themselves are a problem</div>
+  </div>
+
+  <!-- SLIDE 8 -->
+  <div class="slide-block" id="s8">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 08</span>
+      <span class="slide-title">The Hu & Bentler Problem</span>
+    </div>
+    <div class="script-body">
+      <p>Here's something worth sitting with: the .95/.06/.08 cutoffs that you see cited in virtually every CFA paper published in the last 25 years come from a single simulation study, conducted under specific conditions. Hu and Bentler's 1999 paper tested continuous data, ML estimation, N = 250, and relatively simple structures — three to four factors with about four indicators each, all correctly specified. Under those specific conditions, those cutoffs had reasonable Type I and Type II error rates.</p>
+
+      <p>That's it. That's the empirical basis. One study, one set of conditions.</p>
+
+      <p>Since then, multiple methodologists have shown that the cutoffs don't generalize. Marsh, Hau, and Wen demonstrated that CFI cutoffs are sample-size dependent — a CFI of .93 at N = 150 with a complex model may indicate better fit than a CFI of .96 at N = 500 with a simple model, because the larger sample has more power to detect the misfit. McCallum and colleagues showed similar problems with RMSEA for simple models with few df. Under WLSMV estimation, the distributions of fit indices are different enough that ML-derived cutoffs shouldn't be applied at all without adjustment.</p>
+
+      <p>The field knows this. And yet the cutoffs persist as binary pass-fail criteria, because they're convenient and reviewers expect them. The right response isn't to abandon cutoffs — they convey useful information as heuristics — but to treat them as heuristics, not hard criteria. Report all indices. Describe the pattern. If a model has CFI = .93 with RMSEA = .045 and SRMR = .055, that's a coherent and mostly favorable picture, even if CFI is technically below .95. If a model has CFI = .97 but RMSEA = .09, something is wrong that the CFI is hiding.</p>
+
+      <p>The frontier of this problem is equivalence-testing approaches to fit evaluation — framing fit assessment as "is this model's misfit within a range I consider negligible?" rather than "does it exceed an arbitrary threshold?" These approaches require specifying a smallest effect size of interest for misfit, which most researchers haven't done. They're not yet standard practice, but they're where the field is heading.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>.95/.06/.08 cutoffs from one simulation study — continuous data, ML, N=250, simple structure</li>
+        <li>Cutoffs are N-dependent, complexity-dependent, and estimator-dependent</li>
+        <li>Do not apply ML-derived cutoffs to WLSMV solutions without adjustment</li>
+        <li>Use cutoffs as soft heuristics — report all indices and interpret the pattern</li>
+        <li>Equivalence-testing approaches are an emerging alternative but not yet standard</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: information criteria for model comparison</div>
+  </div>
+
+  <!-- SLIDE 9 -->
+  <div class="slide-block" id="s9">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 09</span>
+      <span class="slide-title">AIC & BIC</span>
+    </div>
+    <div class="script-body">
+      <p>AIC and BIC answer a different question than RMSEA and CFI. They don't ask whether your model fits in an absolute sense — they ask: of these competing models, which fits better relative to its complexity?</p>
+
+      <p>Both are penalized likelihood functions. AIC subtracts 2 times the degrees of freedom from chi-square. BIC subtracts the log of N times the degrees of freedom. That means BIC's penalty grows with sample size — in large samples, BIC becomes quite aggressive about penalizing model complexity, which is why BIC tends to favor more parsimonious solutions than AIC does. Lower values are better for both.</p>
+
+      <p>The critical word is <em>comparison</em>. Neither AIC nor BIC has an absolute threshold that indicates good fit. A model with BIC = 4,200 could be excellent or terrible — you only know when you compare it to a BIC of 4,450 for an alternative model. The difference of 250 in that case would be overwhelming evidence in favor of the first model. The rough interpretive heuristic from Raftery (1995): ΔBIC of 2–6 is positive evidence, 6–10 is strong, above 10 is very strong.</p>
+
+      <p>The practical use cases: when you're choosing between a one-factor and a two-factor solution, add AIC and BIC to your comparison alongside Δχ² and ΔCFI. For non-nested model comparisons — where the models aren't related by a simple parameter constraint — Δχ² isn't available, so AIC and BIC become especially important. BIC is generally preferred in confirmatory contexts because its stronger parsimony penalty aligns with the goals of confirmatory work.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>AIC and BIC are for model <em>comparison</em> — lower is better, no absolute threshold</li>
+        <li>BIC penalizes complexity more aggressively (especially at large N) → rewards parsimony</li>
+        <li>ΔBIC > 10 = very strong evidence for the lower-BIC model (Raftery, 1995)</li>
+        <li>Use AIC/BIC alongside Δχ² (nested) or alone when models are non-nested</li>
+        <li>BIC preferred in confirmatory contexts; AIC preferred when predictive accuracy is the goal</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: local fit — where exactly is the model going wrong?</div>
+  </div>
+
+  <!-- SLIDE 10 -->
+  <div class="slide-block" id="s10">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 10</span>
+      <span class="slide-title">Local Fit: Residuals & Modification Indices</span>
+    </div>
+    <div class="script-body">
+      <p>Global fit indices tell you whether the model fits overall. Local fit tells you <em>where</em> it doesn't. You examine local fit after you've evaluated global fit — and especially when global fit is borderline or poor.</p>
+
+      <p>The residual correlation matrix is your first diagnostic. It shows the discrepancy between every observed pairwise correlation and the correlation implied by your model. You want these close to zero. A residual correlation of .18 between Items 3 and 7 means your model-implied correlation between those two items is off by .18 — that's substantial. If a cluster of residuals is large among a specific subset of items, that often signals a missing subfactor, a method effect (all the items are negatively worded, for instance), or a sequencing artifact.</p>
+
+      <p>Modification indices — called MIs — are the second tool. Each MI is an estimate of how much chi-square would decrease if a particular constrained parameter were freed. The rule of thumb is MI > 10 as a signal worth investigating. You'll see large MIs on two types of parameters: cross-loadings (an item loading on a factor it isn't currently assigned to) and residual covariances (two items sharing variance beyond what the factor structure explains).</p>
+
+      <p>Large MI on a cross-loading: Item 5 wants to load on Factor 2, but you've constrained it to zero. Either your theory was wrong about that item's uniqueness to Factor 1, or the two factors are more similar than you thought, or the item wording is ambiguous. Large MI on a residual covariance: Items 11 and 12 share specific variance. Look at the items — they're probably worded similarly, both reverse-scored, adjacent in the questionnaire, or tap the same narrow facet.</p>
+
+      <p>Here's the trap: you see MI = 34 on the residual covariance between Items 11 and 12, you free it, chi-square drops 34 points, CFI goes to .97. You report a well-fitting model. But you just fit noise. That residual covariance is an artifact of your sample. In a replication sample, Items 11 and 12 may show no such relationship. The improvement does not replicate.</p>
+
+      <p>The defensible approach: before freeing any parameter, ask — is there a substantive, theory-grounded reason this parameter should be non-zero? If yes, free it and document the rationale. If the answer is "the MI was large," stop there. Clearly label the modified model as exploratory or revised. Report both the original model and the modified model. Require replication.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Residual correlations > |.10| indicate specific item pairs the model isn't explaining well</li>
+        <li>Clusters of large residuals suggest a missing subfactor or method effect</li>
+        <li>MI > 10 signals a constrained parameter worth investigating — not automatically freeing</li>
+        <li>Large MI on cross-loading: theory may be wrong about item assignment</li>
+        <li>Large MI on residual covariance: items share specific variance (wording, valence, position)</li>
+        <li>Only free parameters with substantive justification — MI-driven changes capitalize on chance</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: factor loadings and what they tell you about item quality</div>
+  </div>
+
+  <!-- ─── SECTION: RELIABILITY & REPLICABILITY ─── -->
+  <div class="section-divider"><span>Reliability & Factor Replicability</span></div>
+
+  <!-- SLIDE 11 -->
+  <div class="slide-block" id="s11">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 11</span>
+      <span class="slide-title">Factor Loadings & What They Tell You</span>
+    </div>
+    <div class="script-body">
+      <p>Once fit is established, you look at the loadings. A standardized factor loading is literally a correlation between the indicator and the latent factor. Squaring it gives you the communality — the proportion of the item's variance explained by the factor.</p>
+
+      <p>The rough hierarchy: loadings above .70 indicate strong indicators. The item shares more than half its variance with the factor. Loadings between .50 and .70 are acceptable — these are workable items that are clearly related to the construct. Loadings between .40 and .50 are weak but interpretable — you'd typically keep them in an established scale but scrutinize them in a new one. Below .40, the item shares less than 16% of its variance with the factor. That's a poor indicator. The question becomes whether to drop it, revise the wording, or reconsider whether it belongs to this construct at all.</p>
+
+      <p>The chart on the slide shows a 6-item example where the loadings descend from .82 to .31. Item 6 at .31 is below threshold. In practice, what you'd do next is look at the item content, examine the residual matrix for that item, check whether dropping it improves H and AVE, and make a substantive judgment. Dropping a bad item from a scale that already has 8 strong indicators is easy. Dropping it from a 4-item scale may leave you under-identified.</p>
+
+      <p>Heywood cases deserve a mention. If you see a standardized loading above 1.0 or a negative residual variance in your output, that's not a fit problem — it's a model failure. The most common causes: too few indicators per factor (you want at least three, ideally four or more), near-perfect collinearity between two indicators, or a structural misspecification where a factor isn't separable from another. Fix the model before you do anything else.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Standardized loading λ* = correlation between indicator and factor; λ*² = communality</li>
+        <li>≥.70 strong · .50–.70 acceptable · .40–.50 weak · &lt;.40 problematic</li>
+        <li>Below .40: item shares less than 16% variance with factor — consider revising or dropping</li>
+        <li>Heywood cases (λ* > 1.0 or negative θ) = model failure, not a fit issue — fix the model</li>
+        <li>Context matters: don't drop items mechanically — consider scale length and theoretical role</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: model-based reliability — omega and omega hierarchical</div>
+  </div>
+
+  <!-- SLIDE 12 -->
+  <div class="slide-block" id="s12">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 12</span>
+      <span class="slide-title">Model-Based Reliability: ω and ωₕ</span>
+    </div>
+    <div class="script-body">
+      <p>You've seen omega before in this course. Now we have a fitted CFA model, which means we can compute omega directly from the parameter estimates rather than from the covariance matrix. The formula reads the loadings and residual variances straight off the output: numerator is the squared sum of unstandardized loadings; denominator adds the sum of residual variances. The numerator is the true score variance attributable to the common factor; the denominator is total observed variance.</p>
+
+      <p>The key distinction from alpha: alpha assumes tau-equivalence — equal loadings across all indicators. Under that assumption, alpha equals omega. But tau-equivalence almost never holds empirically. When loadings differ — which they always do — alpha and omega diverge. The direction of divergence depends on the multidimensionality of the scale. For a strictly unidimensional scale with heterogeneous loadings, alpha underestimates omega. For a multidimensional scale, alpha can overestimate reliability by confounding common factor variance with specific factor variance. This is why we've moved toward omega as the preferred reliability estimate, and why CFA makes the computation principled rather than heuristic.</p>
+
+      <p>For multifactor scales, compute omega separately per factor using only the items assigned to that factor. Don't pool across factors — that conflates reliability of the subscale with reliability of the total score, which are different questions.</p>
+
+      <p>Omega hierarchical is the extension for multidimensional scales where someone plans to interpret a total score. The formula partitions variance into the general factor, specific factors, and residuals — it requires fitting a bifactor model first. The resulting ωₕ estimates how much of total score variance is attributable to the general factor alone. If ωₕ is high, the total score is primarily measuring one thing and can be interpreted as a unidimensional composite. If ωₕ is low — say, below .50 — the total score is reflecting multiple specific factors nearly as much as the general factor, and subscale scores will carry more interpretive meaning than the total.</p>
+
+      <p>A common example: a well-being scale might have omega of .91 and omega-hierarchical of .48. The scale is highly internally consistent, but the total score is not measuring one thing — it's measuring vitality, positive affect, social connection, and meaning, more or less equally. Reporting the total score as a single index of well-being obscures those distinctions. This is a validity argument embedded in a reliability estimate.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>ω computed directly from CFA parameters: (Σλ)² / [(Σλ)² + Σθ]</li>
+        <li>α assumes tau-equivalence; ω does not — ω is preferred when loadings are unequal (always)</li>
+        <li>Compute ω per factor for multifactor scales — not across the full scale</li>
+        <li><strong>ωₕ</strong> (omega hierarchical): proportion of total score variance from the general factor only — requires bifactor model</li>
+        <li>ωₕ &lt; .50: total score is not primarily unidimensional — interpret subscales instead</li>
+        <li>High ω + low ωₕ = reliable but multidimensional — the total score conflates distinct factors</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: factor replicability — H and AVE</div>
+  </div>
+
+  <!-- SLIDE 13 -->
+  <div class="slide-block" id="s13">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 13</span>
+      <span class="slide-title">Factor Replicability: H and AVE</span>
+    </div>
+    <div class="script-body">
+      <p>Omega tells you about the reliability of a composite score. H and AVE tell you about the quality of the factor itself — whether it's well-defined enough to be stable and replicable across samples.</p>
+
+      <p>H, the construct replicability index, was developed by Hancock and Mueller in 2001. The formula looks complex but the intuition is straightforward: it's a weighted function of how much information each indicator contributes to the factor, where stronger indicators contribute more. H ranges from 0 to 1. The practical threshold is H ≥ .70 as a minimum; ≥ .80 is preferable for a well-defined factor.</p>
+
+      <p>What H predicts is whether the factor will look the same in the next study. A high-H factor is being measured with multiple strong, specific indicators that together pin down the latent variable reliably. A low-H factor is being measured with weak or heterogeneous indicators — in a new sample, the factor may load differently, split into subfactors, or fail to emerge cleanly. This is the replicability crisis in miniature: factors that look fine by fit statistics but have low H are the ones that don't reproduce.</p>
+
+      <p>H is sensitive to both loading magnitude and indicator count. Three indicators at λ* = .75 will typically produce better H than six indicators at λ* = .40, even though the six-indicator solution might have better alpha. This is an argument against the practice of adding weak items to improve alpha — you're not actually improving factor quality, you're masking it.</p>
+
+      <p>AVE — Average Variance Extracted — is the mean communality across indicators. It answers: on average, what proportion of each indicator's variance does the factor capture? The threshold is .50, which means the factor should explain more of each indicator than the error terms do. Below .50, error dominates and the factor is poorly measured.</p>
+
+      <p>AVE has a second use in discriminant validity evaluation via the Fornell-Larcker criterion. If the squared correlation between two factors exceeds the AVE of either factor, those two factors share more variance with each other than with their own indicators. That's a discriminant validity problem — the factors may not be empirically separable. Check this for every pair of factors in your model.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li><strong>H</strong>: construct replicability — will this factor look the same in the next sample? ≥.70 minimum, ≥.80 preferred</li>
+        <li>H is sensitive to both loading magnitude and indicator count — 3 strong > 6 weak</li>
+        <li>Low H = factor may not replicate — a key predictor of the replication crisis at item level</li>
+        <li><strong>AVE</strong>: mean communality; ≥.50 means factor explains more variance than error</li>
+        <li>Fornell-Larcker: φ²₁₂ &gt; AVE₁ or AVE₂ = discriminant validity problem</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: comparison chart — how H, ω, and AVE behave across loading configurations</div>
+  </div>
+
+  <!-- SLIDE 14 -->
+  <div class="slide-block" id="s14">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 14</span>
+      <span class="slide-title">H vs. ω Comparison Chart</span>
+    </div>
+    <div class="script-body">
+      <p>This chart is the payoff for the last two slides. Four loading configurations are compared on all three indices: omega, H, and AVE. Let's walk through them.</p>
+
+      <p>Three strong indicators at λ* around .78: omega is high, H is high, AVE is high. This is the ideal scenario — few indicators, all of them strong. The factor is reliable, well-defined, and will replicate.</p>
+
+      <p>Six weak indicators at λ* around .40: this is the trap. Omega is around .80 — that looks acceptable. H is .55 — poorly defined. AVE is .16 — well below threshold. The scale produces consistent scores, but the factor it's measuring is fuzzy. In a replication sample, those six weak items may cluster differently, some may shift to other factors, and the solution may look nothing like the original. You'd never know this from alpha or omega alone.</p>
+
+      <p>Five strong indicators at λ* around .76: the best profile. High on all three. This is what you want to engineer when you're writing items — a smaller number of items that are strong, specific, and conceptually tight.</p>
+
+      <p>Six mixed indicators ranging from .31 to .82: this is the most realistic scenario and the most informative. Omega is respectable. H is moderate — pulled down by the weak indicators. AVE is borderline. The problem items are the low-loading ones at the bottom of the range. Dropping the two or three weakest items would improve H and AVE substantially while leaving omega roughly unchanged, because those items weren't contributing much true score variance anyway.</p>
+
+      <p>The general message: when you're evaluating or revising a scale, look at all three indices together. Omega tells you about composite score reliability. H tells you about factor stability. AVE tells you whether the factor is explaining its indicators or the other way around.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Six weak indicators can produce acceptable ω but poor H — reliable but unstable factor</li>
+        <li>Fewer strong indicators outperform many weak ones on H and AVE</li>
+        <li>Mixed loading profiles: dropping weak items often improves H and AVE with minimal ω cost</li>
+        <li>Evaluate ω, H, and AVE together — each reveals something the others miss</li>
+        <li>H &lt; .70 is a replication warning regardless of fit statistics or omega</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: factor determinacy — can we estimate individual latent scores?</div>
+  </div>
+
+  <!-- SLIDE 15 -->
+  <div class="slide-block" id="s15">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 15</span>
+      <span class="slide-title">Factor Determinacy</span>
+    </div>
+    <div class="script-body">
+      <p>Factor determinacy addresses a practical question that comes up a lot in applied work: can I save my factor scores and use them as variables in a subsequent analysis?</p>
+
+      <p>When you run CFA, you're modeling a latent variable — something that doesn't exist as a directly observed score. If you want to use that construct in a regression, you have two options. One: keep it latent and run a full SEM, where the factor is represented as a latent variable with all its measurement error explicitly modeled. Two: estimate factor scores — weighted composites of your indicators — save them as observed variables, and proceed with ordinary regression. Option two is convenient. It's also problematic if the factor is poorly determined.</p>
+
+      <p>Factor determinacy is the correlation between the true latent factor scores and the estimated factor scores. A value of .90 or above means your estimated scores are good proxies — the weighted composite is closely tracking the underlying construct. Below .80, the estimates are poor. Using them as predictors in regression attenuates your regression coefficients in exactly the same way that unreliable observed scores do — the attenuation formula applies. If FD = .74, your factor score estimates correlate .74 with the true latent variable, and the reliability of those scores is approximately .74² = .55. Any downstream analysis treats these as reliable observed variables when they aren't.</p>
+
+      <p>The practical guidance: if FD is high (≥ .90), saving factor scores for use in further analyses is defensible with appropriate caution. If FD is moderate or low, use a full SEM instead. Keep the latent variable in the model where its measurement properties are explicitly accounted for. In lavaan, <code>lavPredict()</code> gives you estimated factor scores; the determinacy itself requires examining the factor score coefficient matrix, but it's computable from the output.</p>
+
+      <p>Low FD is most common when indicators are few and weak — the same conditions that produce low H and low AVE. These three indices tend to co-vary because they all reflect the same underlying problem: a poorly measured latent variable.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>FD = correlation between true latent scores and estimated factor scores</li>
+        <li>FD ≥ .90: factor scores are good proxies · .80–.90: use with caution · &lt;.80: avoid</li>
+        <li>Low FD attenuates downstream regression coefficients — same problem as unreliable observed scores</li>
+        <li>If FD is low: use full SEM rather than saving factor scores for regression</li>
+        <li>FD, H, and AVE tend to co-vary — all reflect quality of the latent variable measurement</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: pulling it all together — what to report</div>
+  </div>
+
+  <!-- ─── SECTION: SYNTHESIS ─── -->
+  <div class="section-divider"><span>Synthesis</span></div>
+
+  <!-- SLIDE 16 -->
+  <div class="slide-block" id="s16">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 16</span>
+      <span class="slide-title">What to Report</span>
+    </div>
+    <div class="script-body">
+      <p>When you write up a CFA — in a thesis, a paper, a technical report — there's a minimum set of information that has to be there for the analysis to be reproducible and interpretable. Let me walk through it.</p>
+
+      <p>Start with the basics: your N, your estimator, and your software. These aren't formalities — they determine which fit index distributions apply, which cutoffs are appropriate, and what someone would need to replicate your analysis. If you used MLR because your data were non-normal, say so. If you used WLSMV because your indicators are ordinal, say so and note that you used polychoric correlations as input.</p>
+
+      <p>Then chi-square with df and p. RMSEA with its 90% confidence interval — not just the point estimate. CFI and TLI. SRMR. That's five pieces of information for fit, and all five belong in the text or a table.</p>
+
+      <p>Then the factor-level information. Standardized loadings for every indicator, with standard errors or confidence intervals. Omega per factor — not alpha alone. H and AVE per factor. These are what tell you whether the factor is actually well-measured, as distinct from whether the model fits.</p>
+
+      <p>For model comparisons — when you're comparing a 1-factor to a 2-factor solution, or a correlated-factors to a higher-order model — add delta chi-square with delta df if the models are nested, delta CFI (meaningful change is > .01), delta RMSEA (meaningful change is > .015), and AIC/BIC. ΔCFI > .01 in favor of the more constrained model is the standard in measurement invariance testing and applies broadly to nested model comparison.</p>
+
+      <p>The complete fit sentence on the slide is a template. It packs all the required information into one concise statement: chi-square, RMSEA with CI, CFI, TLI, SRMR, loading range, omega, H, AVE. Many published papers report only CFI and RMSEA. That's underreporting. You now know better than to do that.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Always report: N, estimator, software, χ²(df) p, RMSEA [90% CI], CFI, TLI, SRMR</li>
+        <li>Always report: standardized loadings with SEs or CIs, ω per factor, H per factor, AVE per factor</li>
+        <li>For model comparisons: Δχ²(Δdf) if nested, ΔCFI > .01 and ΔRMSEA > .015 as meaningful change thresholds</li>
+        <li>For non-nested comparisons: AIC and BIC differences (ΔBIC > 10 = very strong evidence)</li>
+        <li>Fit indices tell you about the model; loadings/ω/H/AVE tell you about the factor — report both</li>
+      </ul>
+    </div>
+    <div class="transition-cue">→ Next: worked example — walk through the full evaluation</div>
+  </div>
+
+  <!-- SLIDE 17 -->
+  <div class="slide-block" id="s17">
+    <div class="slide-header">
+      <span class="slide-tag">Slide 17</span>
+      <span class="slide-title">Worked Example</span>
+    </div>
+    <div class="script-body">
+      <p>The example is a 9-item Resilience scale with three factors — Personal Strength, Social Support, and Adaptability — each measured by three items. N = 320, ML estimation.</p>
+
+      <p>Start with global fit. Chi-square of 34.1 on 24 degrees of freedom, p = .080. Non-significant — we retain exact fit. That's a good start, though with N = 320 we'd expect decent power to detect real misfit, so this isn't a rubber stamp. RMSEA is .038 with a 90% CI of .000 to .062 — the upper bound is below .065, so even on the most pessimistic reading of the CI, fit is reasonable. CFI = .971 and TLI = .958, both above .95. SRMR = .044. Across all five indices, the pattern is consistently favorable. This model fits.</p>
+
+      <p>Now the factor-level indices. Personal Strength: ω = .84, H = .85, AVE = .58. All above their respective thresholds — strong factor, well-defined, should replicate. Social Support: ω = .79, H = .80, AVE = .51. A bit weaker but still acceptable across the board. Adaptability: ω = .76, H = .77, AVE = .49. Here's where the note in the table appears. H and ω are acceptable. But AVE is just below .50. The factor is explaining slightly less than half the variance in its indicators — error variance is marginally dominant.</p>
+
+      <p>What do you do with that? You don't panic and drop the Adaptability factor. You look at the item loadings. If one of the three Adaptability items is pulling down the average communality — say it's loading at .45 while the other two are at .72 and .68 — that item is a candidate for revision or replacement. You might also note it as a limitation: "AVE for Adaptability was marginally below the .50 threshold, driven by weaker loadings on item [x]; future research should examine item revisions to strengthen the factor definition."</p>
+
+      <p>The Fornell-Larcker check: you'd compute the squared correlation between each pair of factors and verify it doesn't exceed either factor's AVE. If Personal Strength and Social Support correlate .55, their squared correlation is .30 — well below .58 and .51. Discriminant validity is supported. If two factors correlated .80, φ² = .64, and that would exceed AVE for either factor — a problem.</p>
+
+      <p>That's the full workflow. Fit first, factor quality second, discriminant validity third. A sentence for each in your results section, a table for the full set of indices. This is what a well-reported CFA looks like.</p>
+    </div>
+    <div class="keypoints">
+      <div class="keypoints-header">Key Points</div>
+      <ul>
+        <li>Evaluate the pattern across all fit indices before drawing conclusions — one borderline value isn't disqualifying</li>
+        <li>AVE just below .50 = flag and investigate item loadings, not automatic model rejection</li>
+        <li>Fornell-Larcker: φ² between any factor pair should be less than both factors' AVE values</li>
+        <li>Write-up: fit sentence covering all five indices, plus factor-level table (loadings, ω, H, AVE)</li>
+        <li>Marginal values → limitation + recommendation, not discard</li>
+      </ul>
+    </div>
+
+    <div class="callout good" style="margin-top:1.5rem;">
+      <strong>End of lecture.</strong> Questions to prompt discussion: (1) What would you do if χ² was significant but all approximate fit indices looked good? (2) A colleague reports CFI = .96 and concludes good fit — what else do you ask for? (3) In what situation would you prefer ωₕ over ω as your primary reliability estimate?
+    </div>
+  </div>
+
+</main>
+
+<script>
+// Highlight active nav item on scroll
+const blocks = document.querySelectorAll('.slide-block');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+blocks.forEach(block => observer.observe(block));
+</script>
+</body>
+</html>

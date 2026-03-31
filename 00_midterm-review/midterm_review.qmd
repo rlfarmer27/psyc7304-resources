@@ -1,0 +1,865 @@
+---
+title: "Midterm Review & Targeted Follow-Up"
+subtitle: "PSYC 7304 / 8304 · Measurement Theory & Psychometrics · Spring 2026"
+format:
+  revealjs:
+    theme: simple
+    fontsize: 14px
+    slide-number: c/t
+    progress: true
+    controls: true
+    transition: fade
+    transition-speed: fast
+    margin: 0.06
+    width: 1100
+    height: 700
+    css: midterm_review.css
+    self-contained: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(ggplot2)
+
+# ── Exam data ──────────────────────────────────────────────────
+scores <- c(60, 61, 54, 63, 44, 59, 46, 62, 64, 52, 60, 63, 48, 63, 56)
+
+# Retakers: attempt 1 scores only
+retakers_att1 <- tibble(
+  student = paste0("S", c(2, 4, 6, 8, 10)),
+  att1    = c(54, 44, 46, 52, 48),
+  att2    = c(63, 59, 62, 64, 63)
+)
+
+# Item-level gap data (retakers, attempt 1 only)
+item_gaps <- tibble(
+  item    = c("03 IRR selection", "19 Convergent validity",
+              "21 Response processes", "01 CTE assumption",
+              "05 Spearman-Brown", "06 Test-retest interp.",
+              "15 KMO", "18 Standards definition",
+              "20 Discriminant validity", "22 Predictive validity",
+              "29 Consequences"),
+  pct     = c(60, 60, 60, 80, 80, 80, 80, 80, 80, 80, 80),
+  tier    = c("Priority", "Priority", "Priority",
+              rep("Secondary", 8))
+) |>
+  arrange(pct, item) |>
+  mutate(item = fct_inorder(item),
+         color = ifelse(tier == "Priority", "#c0392b", "#e8a020"))
+
+# Shared ggplot theme
+theme_deck <- function() {
+  theme_minimal(base_size = 12) +
+    theme(
+      panel.grid.minor  = element_blank(),
+      panel.grid.major.y = element_line(color = "#eeeeee"),
+      panel.grid.major.x = element_blank(),
+      axis.text         = element_text(color = "#555555"),
+      axis.title        = element_text(color = "#555555", size = 11),
+      plot.title        = element_blank(),
+      legend.position   = "none"
+    )
+}
+```
+
+# {.section-title}
+
+::: section-title-content
+**Part I: Exam Results**
+
+What the scores look like — and what the statistics can and can't tell us
+:::
+
+## Score Distribution
+
+:::: {.columns}
+
+::: {.column width="38%"}
+
+::: {.stat-grid}
+::: stat-card
+**Mean**  
+57.0  
+[89.1% · out of 64]{.muted}
+:::
+::: stat-card
+**Median**  
+60.0  
+[93.8%]{.muted}
+:::
+::: stat-card
+**SD**  
+6.69  
+[Range: 44–64]{.muted}
+:::
+::: stat-card
+**Skewness**  
+−0.87  
+[Negative tail]{.muted}
+:::
+:::
+
+::: {.callout-good}
+**Grade breakdown:** 9 A · 3 B · 2 C · 1 D · 0 F
+:::
+
+:::
+
+::: {.column width="62%"}
+```{r score-hist}
+#| fig-height: 3.8
+#| fig-width: 6
+
+tibble(score = scores) |>
+  ggplot(aes(x = score)) +
+  geom_histogram(binwidth = 5, boundary = 40,
+                 fill = "#1a2744", color = "white", linewidth = 0.4) +
+  scale_x_continuous(breaks = seq(40, 65, 5),
+                     labels = c("40","45","50","55","60","65")) +
+  scale_y_continuous(breaks = 0:8) +
+  labs(x = "Score (out of 64)", y = "Count") +
+  theme_deck()
+```
+:::
+
+::::
+
+::: notes
+The class performed very well overall — 9 of 15 earned an A. The negative skew (−0.87) confirms the ceiling effect: most scores cluster near the top, with a few students in the lower tail. Mean (57) < Median (60) is another sign of negative skew. The ceiling effect is important for understanding why reliability came out the way it did.
+:::
+
+## Exam Reliability: α = 0.25
+
+### Why a low alpha here is a measurement artifact, not a validity threat
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: callout-warn
+**25 of 30 items** had zero variance — everyone answered correctly. Items with no variance contribute *nothing* to alpha.
+:::
+
+$$\alpha = \frac{k}{k-1} \left[1 - \frac{\sum \sigma^2_i}{\sigma^2_X}\right]$$
+
+When $\sigma^2_i = 0$ for most items, the numerator collapses. The estimate is computed on near-zero variance — not interpretable as a reliability index here.
+
+::: callout
+The honest statement: *scores had insufficient variance to estimate reliability* — not that the exam is unreliable.
+:::
+
+:::
+
+::: {.column width="50%"}
+```{r alpha-sim}
+#| fig-height: 3.6
+#| fig-width: 5.2
+
+# Show contribution of each item to alpha numerator
+# 25 items with var=0, 5 items with real variance
+set.seed(42)
+item_vars <- c(rep(0, 25), c(0.267, 0.267, 0.267, 1.21, 0.96))
+tibble(
+  item    = 1:30,
+  var     = item_vars,
+  has_var = var > 0
+) |>
+  ggplot(aes(x = item, y = var, fill = has_var)) +
+  geom_col(width = 0.8) +
+  scale_fill_manual(values = c("FALSE" = "#dddddd", "TRUE" = "#1a2744")) +
+  annotate("text", x = 13, y = 0.5, label = "25 items: σ² = 0",
+           color = "#888888", size = 3.5, fontface = "italic") +
+  annotate("text", x = 27.5, y = 1.0, label = "5 items\nwith variance",
+           color = "#1a2744", size = 3.2, fontface = "bold", hjust = 0.5) +
+  labs(x = "Item", y = "Item variance") +
+  theme_deck()
+```
+
+[With a normal score distribution and same content, α would likely be 0.70–0.85.]{.muted style="font-size:0.82em;"}
+:::
+
+::::
+
+::: notes
+This is a teaching moment in itself — connect the exam result to course content. Alpha requires variance. When 25 items have SD = 0, they are constants, not variables, and cannot enter into any correlation or covariance. The formula is literally computing the ratio of ~2.8 to 44.7 — the item variance sum is tiny relative to total variance because most items contribute zero. If you dropped those 25 constant items and recomputed alpha on the 5 variable items, you'd get a more meaningful estimate. The chart makes the problem visible.
+:::
+
+## Standard Error of Measurement
+
+### What it means — and why our exam's SEM is inflated
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$\text{SEM} = SD_X \cdot \sqrt{1 - r_{XX}}$$
+
+SEM: *if the same person took this test many times, how much would their scores vary?*
+
+```{r sem-table}
+#| fig-height: 0.1
+tibble(
+  Scenario        = c("This exam", "Typical test", "Strong test"),
+  `r_xx`          = c(0.25, 0.85, 0.92),
+  SD              = c(6.69, 10, 10),
+  SEM             = round(c(6.69, 10, 10) * sqrt(1 - c(0.25, 0.85, 0.92)), 2),
+  `95% CI ±`      = round(1.96 * c(6.69, 10, 10) * sqrt(1 - c(0.25, 0.85, 0.92)), 1)
+) |>
+  knitr::kable(align = "lcccc")
+```
+
+::: callout-warn
+Our SEM of 5.79 is inflated by attenuated alpha — **not** evidence the test measures poorly.
+:::
+
+:::
+
+::: {.column width="50%"}
+```{r sem-sim}
+#| fig-height: 3.6
+#| fig-width: 5.2
+
+# Simulate observed score distributions for a student with true score = 70
+set.seed(99)
+n <- 3000
+
+sim_obs <- bind_rows(
+  tibble(obs = rnorm(n, 70, 10 * sqrt(1 - 0.92)), label = "r = 0.92  (SEM ≈ 2.8)"),
+  tibble(obs = rnorm(n, 70, 10 * sqrt(1 - 0.85)), label = "r = 0.85  (SEM ≈ 3.9)"),
+  tibble(obs = rnorm(n, 70, 6.69 * sqrt(1 - 0.25)), label = "r = 0.25  (SEM ≈ 5.8)")
+) |>
+  mutate(label = fct_inorder(label))
+
+ggplot(sim_obs, aes(x = obs, fill = label, color = label)) +
+  geom_density(alpha = 0.18, linewidth = 0.9) +
+  geom_vline(xintercept = 70, linetype = "dashed", color = "#555555", linewidth = 0.5) +
+  scale_fill_manual(values  = c("#1e7e4e", "#c9a84c", "#c0392b")) +
+  scale_color_manual(values = c("#1e7e4e", "#c9a84c", "#c0392b")) +
+  scale_x_continuous(limits = c(45, 95)) +
+  labs(x = "Observed score (true score = 70)", y = "Density",
+       fill = NULL, color = NULL) +
+  theme_deck() +
+  theme(legend.position = "top",
+        legend.text = element_text(size = 9),
+        legend.key.size = unit(0.5, "cm"))
+```
+
+[Simulated distributions of observed scores across 3,000 replications]{.muted style="font-size:0.8em;"}
+:::
+
+::::
+
+::: notes
+Walk through the formula: SEM is a joint function of the test's SD and its reliability. When reliability is suppressed by ceiling effects, SEM inflates — not because the test is noisy, but because the formula is misbehaving given untrustworthy inputs. The simulation shows what the score spread would look like for a student whose true score is exactly 70. Under r=0.92, most observed scores fall within ±6 points. Under r=0.25 (our exam), the CI is so wide it's nearly useless. The key message: don't report a 95% CI from this exam's SEM as if it's meaningful.
+:::
+
+## Where Knowledge Gaps Showed Up
+
+### Items below 100% on first attempt (retakers only, *n* = 5)
+
+:::: {.columns}
+
+::: {.column width="35%"}
+
+[Items at 100% (25 of 30) are not shown — no instructional target there.]{.muted style="font-size:0.85em;"}
+
+::: callout
+**Three items at 60%** — missed by 2 of 5 students — are the primary instructional targets today.
+:::
+
+<br>
+
+::: {.legend-row}
+[■]{style="color:#c0392b; font-size:1.2em;"} 60% — priority  
+[■]{style="color:#e8a020; font-size:1.2em;"} 80% — secondary
+:::
+
+:::
+
+::: {.column width="65%"}
+```{r item-gap-plot}
+#| fig-height: 4.2
+#| fig-width: 6.5
+
+item_gaps |>
+  ggplot(aes(x = pct, y = item, fill = color)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_vline(xintercept = 100, linetype = "dotted", color = "#aaaaaa") +
+  scale_fill_identity() +
+  scale_x_continuous(limits = c(0, 110), breaks = c(0, 25, 50, 75, 100),
+                     labels = c("0%","25%","50%","75%","100%")) +
+  labs(x = "% correct (Attempt 1)", y = NULL) +
+  theme_deck() +
+  theme(axis.text.y = element_text(size = 10))
+```
+:::
+
+::::
+
+::: notes
+This chart uses retakers' Attempt 1 scores only — before any resource lookup. These are the cleanest estimates of genuine knowledge gaps. The three red items (IRR selection, convergent validity, response processes) are what today's review covers in depth. The amber items each had exactly one miss — idiosyncratic rather than shared, so they get lighter treatment. The solid items (factor analysis, CTT definitions, measurement theory) need no time.
+:::
+
+# {.section-title}
+
+::: section-title-content
+**Part II: IRR Coefficient Selection**
+
+Which coefficient — and why it matters which one you choose
+:::
+
+## Inter-Rater Reliability: Choosing the Right Index
+
+```{r irr-table}
+tibble(
+  Coefficient     = c("% Agreement", "Cohen's κ", "Weighted κ",
+                      "**ICC**", "Spearman r"),
+  `Data type`     = c("Nominal", "Nominal/ordinal", "Ordinal",
+                      "**Continuous**", "Ordinal"),
+  Raters          = c("2+", "2", "2", "**2+**", "2"),
+  `What it captures` = c("Raw agreement only", "Agreement beyond chance",
+                          "Partial credit for near-misses",
+                          "**Consistency & absolute agreement**",
+                          "Rank order only"),
+  `Use when…`     = c("Quick check only", "Categorical, 2 raters",
+                      "Ordered categories, 2 raters",
+                      "**Continuous scores, 3+ raters ✓**",
+                      "Non-normal ordinal data")
+) |>
+  knitr::kable(escape = FALSE) |>
+  kableExtra::kable_styling(font_size = 13) |>
+  kableExtra::row_spec(4, bold = TRUE, background = "#fef3cd")
+```
+
+::: callout
+**The exam scenario:** 3 raters · continuous scores · 40 participants → **ICC** is the only appropriate choice
+:::
+
+::: notes
+The exam gave 3 raters independently scoring 40 participants on a continuous measure. This rules out kappa (categorical data), percent agreement (no chance correction), test-retest (temporal stability, not rater agreement), and Spearman r (ordinal, 2 raters). ICC is correct because it handles continuous data, handles 3+ raters, and partitions variance into participant, rater, and error components. The highlighted row is the target answer.
+:::
+
+## Choosing the Right ICC Model
+
+### After deciding ICC is appropriate — which flavor?
+
+:::: {.columns}
+
+::: {.column width="52%"}
+
+```{r icc-table}
+tibble(
+  Model       = c("ICC(1,1)", "ICC(1,k)", "**ICC(2,1)**",
+                  "**ICC(2,k)**", "ICC(3,1)", "ICC(3,k)"),
+  `Rater selection` = c("Random, different raters per subject",
+                        "Random, different raters per subject",
+                        "Random, same raters rate all",
+                        "Random, same raters rate all",
+                        "Fixed (these specific raters only)",
+                        "Fixed (these specific raters only)"),
+  `Score used` = c("Single", "Average", "Single ✓",
+                   "Average ✓", "Single", "Average")
+) |>
+  knitr::kable(escape = FALSE) |>
+  kableExtra::kable_styling(font_size = 12) |>
+  kableExtra::row_spec(3:4, bold = TRUE, background = "#edf8f2")
+```
+
+:::
+
+::: {.column width="48%"}
+
+::: callout-good
+**Most common in practice:** ICC(2,1) for single-rater reliability; ICC(2,k) for averaged-rater reliability
+:::
+
+**From the exam:**
+
+- ICC(2,1) = 0.71 → single rater: [adequate]{.tag-amber}  
+- ICC(2,3) = 0.88 → 3-rater average: [good]{.tag-green}
+
+The gain from averaging is predicted by Spearman-Brown — not magic, just variance reduction by averaging out rater-specific error.
+
+:::
+
+::::
+
+::: notes
+Students often freeze at the (model, unit) notation. Simplify it: model 1 = random raters, different set per subject (rare — imagine each participant evaluated by a randomly drawn group); model 2 = random raters, same set rates everyone (most common research setup); model 3 = these specific raters and we're not generalizing beyond them. Unit: 1 = single rater's score; k = mean of all k raters. In most school psychology and behavioral research contexts, ICC(2,1) is what you report, and you can project ICC(2,k) using Spearman-Brown if you plan to use averaged ratings.
+:::
+
+## Why Test-Retest ≠ IRR
+
+### The most common wrong answer on the IRR item
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.concept-card style="border-left: 4px solid #1a5fa8;"}
+**Test-Retest Reliability**
+
+One instrument · Two **time points** · Same participants
+
+*Is the score stable over time?*
+
+[Source of error: temporal instability of the construct]{.muted}
+:::
+
+<br>
+
+::: {.concept-card style="border-left: 4px solid #c9a84c;"}
+**Intraclass Correlation (ICC)**
+
+Multiple **raters** · One time point · Same participants
+
+*Do raters agree with each other?*
+
+[Source of error: rater inconsistency]{.muted}
+:::
+
+:::
+
+::: {.column width="50%"}
+
+::: scenario
+"Three trained raters independently code 50 children's classroom behaviors at the **same observation session**."
+:::
+
+No time dimension — all raters observe simultaneously. Test-retest doesn't apply.
+
+<br>
+
+::: scenario
+"A depression scale is administered, then **re-administered 6 weeks later**."
+:::
+
+No second rater — same instrument at two occasions. ICC doesn't apply.
+
+:::
+
+::::
+
+::: notes
+The conceptual lever: test-retest is about time, ICC is about raters. If you see "raters," think ICC. If you see "two occasions," think test-retest. Students conflate them because both produce 0–1 values that look like correlations. The distinguishing question is always: what is the source of disagreement you're trying to quantify? Rater differences → ICC. Temporal instability → test-retest. Put this question on the board and have students apply it to the two scenarios before revealing the answers.
+:::
+
+# {.section-title}
+
+::: section-title-content
+**Part III: Validity Evidence Categories**
+
+The five sources — and how to map scenarios to them
+:::
+
+## The Five Sources of Validity Evidence
+
+### *Standards for Educational and Psychological Testing* (2014)
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.evidence-grid}
+::: ev-box
+Test  
+Content
+:::
+::: ev-box
+Response  
+Processes
+:::
+::: ev-box
+Internal  
+Structure
+:::
+::: ev-box
+Relations to  
+Other Variables
+:::
+::: ev-box
+Consequences  
+of Testing
+:::
+:::
+
+**Test content** — Does the item domain match the construct domain? *(Expert review, blueprints, coverage)*
+
+**Response processes** — Are test-takers using the intended cognitive process? *(Think-aloud, process interviews)*
+
+**Internal structure** — Do items relate as theory predicts? *(Factor analysis, dimensionality)*
+
+:::
+
+::: {.column width="50%"}
+
+**Relations to other variables** — Does the score behave as expected externally? *(Convergent, discriminant, criterion)*
+
+**Consequences of testing** — What are intended and unintended effects of test use? *(Fairness, bias, social impact)*
+
+<br>
+
+::: callout
+Validity is **unified** — these are sources of evidence for a single interpretive argument, not five separate "types" to establish independently.
+:::
+
+:::
+
+::::
+
+::: notes
+The Standards reframe is essential: there are not "five types of validity." There is one validity concept — the degree to which evidence supports interpretations of test scores for intended uses — and five sources of evidence that can support or undermine that argument. This distinction matters for professional communication and for any scenario-matching exam item. Students who memorized "five types" will struggle on application items; students who understand the unified argument framing will not.
+:::
+
+## Convergent & Discriminant Validity Evidence
+
+### Both live under "Relations to Other Variables" — but work in opposite directions
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.concept-card style="border-top: 3px solid #1e7e4e;"}
+**Convergent validity evidence**
+
+Measures of the *same* construct should correlate *highly*
+
+::: scenario
+A new anxiety scale correlates *r* = 0.72 with an established anxiety scale.
+:::
+
+High *r* → measures converge → [convergent evidence]{.tag-green}
+:::
+
+:::
+
+::: {.column width="50%"}
+
+::: {.concept-card style="border-top: 3px solid #1a5fa8;"}
+**Discriminant validity evidence**
+
+Measures of *different* constructs should correlate *weakly*
+
+::: scenario
+A conscientiousness scale correlates *r* = 0.09 with a cognitive ability test.
+:::
+
+Low *r* → measures diverge → [discriminant evidence]{.tag-blue}
+:::
+
+:::
+
+::::
+
+<br>
+
+::: callout
+**MTMM logic (Campbell & Fiske, 1959):** You need both. Convergent evidence alone can't rule out that your measure is a proxy for a general factor (social desirability, *g*, acquiescence).
+:::
+
+::: notes
+The exam item on convergent was missed by 2 of 5 students. The common confusion is between convergent and "criterion validity" — they can overlap (a concurrent criterion study can provide convergent evidence) but are distinguished by inferential intent. Convergent = same construct, different method or instrument. Discriminant = different construct. Stress MTMM as the theoretical framework: a measure only has construct validity evidence if it both converges with what it should and diverges from what it shouldn't.
+:::
+
+## Response Processes vs. Consequences
+
+### The hardest distinction in the validity section
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.concept-card style="border-top: 3px solid #c9a84c;"}
+**Response Processes**
+
+Are examinees using the *intended cognitive process*?
+
+Focus: what happens **inside the test**, during item response
+
+::: scenario
+An observer notices test-takers appear confused by item wording and are misreading the stem.
+:::
+
+→ [Response processes]{.tag-amber}
+:::
+
+:::
+
+::: {.column width="50%"}
+
+::: {.concept-card style="border-top: 3px solid #2e4066;"}
+**Consequences of Testing**
+
+What are the *effects of using the test* in practice?
+
+Focus: what happens **after the test**, in real-world deployment
+
+::: scenario
+A depression screener identifies women as "at risk" more often than men despite similar diagnosis rates.
+:::
+
+→ [Consequences]{.tag-gray}
+:::
+
+:::
+
+::::
+
+::: callout-warn
+**Diagnostic question:** Is this about how the test is *taken* (→ processes) or how it is *used* (→ consequences)?
+:::
+
+::: notes
+This is the hardest item-level distinction in the validity section. Response processes = during test administration, about cognition and comprehension. Consequences = after and around test use, about social effects, fairness, differential impact. The "confused by wording" scenario is clearly response processes — the item probes whether the stimulus is being processed as intended. The "differential identification rates" scenario is consequences — the test is being used and producing disparate downstream outcomes. A good in-class check: ask students "is this about taking the test or using the test?" before revealing the answer.
+:::
+
+## Validity Mapping Practice
+
+### Assign each scenario to the correct source of evidence
+
+```{r validity-practice}
+tibble(
+  `#`      = 1:5,
+  Scenario = c(
+    "A factor analysis reveals a scale intended to measure 'executive functioning' actually loads on two distinct factors.",
+    "Think-aloud protocols show students are guessing on items they don't understand rather than applying reasoning.",
+    "A high-stakes reading test leads schools to narrow curriculum and eliminate arts programs.",
+    "A new ADHD rating scale correlates r = 0.65 with direct classroom observation of off-task behavior.",
+    "Subject-matter experts rate 85% of items as clearly aligned with the third-grade math curriculum."
+  ),
+  Source   = c(
+    "Internal structure",
+    "Response processes",
+    "Consequences of testing",
+    "Relations: convergent",
+    "Test content"
+  )
+) |>
+  knitr::kable() |>
+  kableExtra::kable_styling(font_size = 12) |>
+  kableExtra::column_spec(2, width = "55em") |>
+  kableExtra::column_spec(3, bold = TRUE, width = "15em")
+```
+
+::: notes
+Work through these with the class before revealing answers — cover the Source column and ask students to call out their answers. Scenario 3 (curriculum narrowing) is a good discussion prompt: is this "intended" or "unintended"? The Standards say both matter for consequences. Scenario 4 blends criterion and convergent — that's fine; they're not mutually exclusive, they describe the same correlation from different inferential angles. The table can be revealed row by row using Reveal's fragment feature if you want to add incremental=true to the chunk.
+:::
+
+# {.section-title}
+
+::: section-title-content
+**Part IV: CTT Quick Hits**
+
+Refreshing the items with single-student misses
+:::
+
+## CTT: The CTE Assumption
+
+### Why *X* = *T* + *E* requires that errors and true scores are uncorrelated
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$X = T + E$$
+
+**Core assumptions of CTT:**
+
+- $E(X) = T$ — expected observed score equals true score
+- $\rho(T, E) = 0$ — **true scores and errors are uncorrelated**
+- $\rho(E_i, E_j) = 0$ — errors across items are uncorrelated
+- $\rho(E, T') = 0$ — errors uncorrelated with true scores on other tests
+
+::: callout-warn
+If $\rho(T, E) \neq 0$, observed score variance cannot be cleanly partitioned into true and error components — reliability estimates are biased.
+:::
+
+:::
+
+::: {.column width="50%"}
+
+```{r cte-sim}
+#| fig-height: 3.8
+#| fig-width: 5
+
+# Show what happens when ρ(T,E) ≠ 0
+set.seed(7)
+T_scores <- seq(40, 90, length.out = 200) + rnorm(200, 0, 2)
+
+# Correlated errors: higher T → more positive error
+E_correlated   <- 0.4 * scale(T_scores)[,1] * 8 + rnorm(200, 0, 3)
+E_uncorrelated <- rnorm(200, 0, 5)
+
+bind_rows(
+  tibble(T = T_scores, E = E_correlated,   type = "ρ(T,E) ≠ 0  [biased]"),
+  tibble(T = T_scores, E = E_uncorrelated, type = "ρ(T,E) = 0  [CTT assumption]")
+) |>
+  ggplot(aes(x = T, y = E, color = type)) +
+  geom_point(alpha = 0.35, size = 1) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1) +
+  scale_color_manual(values = c("ρ(T,E) ≠ 0  [biased]" = "#c0392b",
+                                "ρ(T,E) = 0  [CTT assumption]" = "#1e7e4e")) +
+  labs(x = "True score (T)", y = "Error (E)", color = NULL) +
+  theme_deck() +
+  theme(legend.position = "top", legend.text = element_text(size = 9))
+```
+
+[Simulated data: N = 200. Red line shows systematic relationship between T and E — a violation of the CTT assumption.]{.muted style="font-size:0.8em;"}
+
+:::
+
+::::
+
+::: notes
+The exam item asked: what does CTT assume about the correlation between T and E? Zero. A common wrong answer was "the correlation is positive" — which would describe systematic bias (e.g., higher-ability students also benefit from better testing conditions, or test-savvy students get lucky more often). The simulation makes the violation visible: when errors slope upward with true scores, the scatterplot has a trend. Under CTT, the green line (flat, near-zero slope) is required. IRT was partly developed to relax CTT's stricter assumptions.
+:::
+
+## Spearman-Brown & Test-Retest Interpretation
+
+:::: {.columns}
+
+::: {.column width="52%"}
+
+### Spearman-Brown prophecy formula
+
+$$r'_{XX} = \frac{n \cdot r_{XX}}{1 + (n-1) \cdot r_{XX}}$$
+
+Doubling test length (*n* = 2) increases reliability — but with **diminishing returns**.
+
+```{r sb-plot}
+#| fig-height: 2.8
+#| fig-width: 5
+
+r_base <- seq(0.3, 0.95, by = 0.05)
+sb_double <- function(r) (2 * r) / (1 + r)
+
+tibble(r_orig = r_base, r_doubled = sb_double(r_base)) |>
+  pivot_longer(-r_orig) |>
+  mutate(name = recode(name,
+                       r_orig    = "Original r",
+                       r_doubled = "After doubling")) |>
+  ggplot(aes(x = r_orig, y = value, color = name, linetype = name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("Original r" = "#aaaaaa",
+                                "After doubling" = "#1a2744")) +
+  scale_linetype_manual(values = c("Original r" = "dashed",
+                                   "After doubling" = "solid")) +
+  scale_x_continuous(breaks = seq(0.3, 0.9, 0.1)) +
+  scale_y_continuous(limits = c(0.3, 1), breaks = seq(0.3, 1, 0.1)) +
+  labs(x = "Original reliability", y = "Reliability", color = NULL, linetype = NULL) +
+  theme_deck() +
+  theme(legend.position = "top", legend.text = element_text(size = 9))
+```
+
+:::
+
+::: {.column width="48%"}
+
+### Test-retest *r* = 0.52 over 3 months
+
+::: scenario
+A mood scale is administered and re-administered 3 months later. The researcher obtains *r* = 0.52. Is this acceptable?
+:::
+
+**It depends entirely on the construct:**
+
+- Mood is a *state* — expected to fluctuate. *r* = 0.52 may be appropriate.
+- General intelligence (*trait*) over 3 months → *r* = 0.52 would be concerning.
+
+::: callout-good
+Correct interpretation: *"This value could be appropriate if the construct is expected to change over time."*
+:::
+
+:::
+
+::::
+
+::: notes
+Spearman-Brown: the key phrase is "increases, but by less than double." The diminishing returns are built into the formula — at r=0.90, doubling gets you to ~0.947; the gap closes faster and faster as you approach 1.0. The chart makes this concrete. Test-retest: the trap is applying a fixed threshold (≥0.80) without considering whether the construct is a stable trait or a labile state. Mood, affect, pain, motivation — these are states, and lower test-retest is theoretically expected and does not imply poor reliability. This connects directly to Kane's argument-based validity framework: the appropriateness of a reliability estimate depends on the intended interpretation.
+:::
+
+## The Reliability Decision Framework
+
+### Which index — for which question — in which situation
+
+```{r reliability-framework}
+tibble(
+  `You want to know…`      = c(
+    "Are items internally consistent?",
+    "Is the construct stable over time?",
+    "Do raters agree on continuous scores?",
+    "Do two raters agree on categories?",
+    "What reliability gain from averaging raters?",
+    "How precise is a given score?"
+  ),
+  `Use…` = c("α or ω", "Test-retest r", "ICC(2,1) or ICC(2,k)",
+              "Cohen's κ", "Spearman-Brown / ICC(2,k)", "SEM"),
+  `Watch out for…` = c(
+    "Inflation if multidimensional — prefer ω",
+    "Construct changeability ≠ unreliability",
+    "Consistency vs. absolute agreement ICC differ",
+    "% agreement ignores chance; never alone",
+    "Assumes raters are exchangeable",
+    "Scale-dependent; compare within, not across tests"
+  )
+) |>
+  knitr::kable() |>
+  kableExtra::kable_styling(font_size = 12) |>
+  kableExtra::column_spec(1, width = "22em") |>
+  kableExtra::column_spec(2, bold = TRUE, width = "12em") |>
+  kableExtra::column_spec(3, width = "22em", color = "#666666")
+```
+
+::: callout
+Reliability is not a property of the test — it is a property of **scores in a particular sample under particular conditions**.
+:::
+
+::: notes
+The bottom callout is from Vacha-Haase & Thompson and is worth saying explicitly: "reliable tests" is technically a misnomer. Reliability estimates generalize only as far as the conditions that produced them — sample, administration conditions, score type. This connects back to the exam: α = 0.25 is a property of scores in this class on this exam, not of the exam instrument itself. That's not a dodge — it's accurate psychometric language, and it's what you want students using in their own research reports.
+:::
+
+## Summary & Looking Ahead
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**What the exam showed:**
+
+- Factor analysis & measurement theory: [solid]{.tag-green}
+- CTT definitions & SEM logic: [solid]{.tag-green}
+- IRR coefficient selection: [needs application practice]{.tag-amber}
+- Validity evidence mapping: [needs application practice]{.tag-amber}
+- Response processes vs. consequences: [priority gap]{.tag-red}
+
+::: callout
+Definitional knowledge ≠ application knowledge. The gaps are in *mapping scenarios to concepts*, not in knowing the definitions.
+:::
+
+:::
+
+::: {.column width="50%"}
+
+**The practitioner habits you're building:**
+
+- When reading a psychometric report → *Which source of evidence is being presented?*
+- When designing with raters → *Continuous or categorical? Same or different raters?* → ICC or κ?
+- When interpreting test-retest *r* → *What's the expected stability of this construct over this interval?*
+- When you see α → *Is ceiling/floor so severe that α is uninterpretable?*
+
+::: callout-good
+In the real world you'll have notes, texts, and colleagues. The skill being assessed is knowing which question to ask — not whether you memorized the answer.
+:::
+
+:::
+
+::::
+
+::: notes
+Close with the practical framing that mirrors your open-resource philosophy: the goal isn't to memorize definitions, it's to develop the habit of asking the right question in context. In practice they will always have access to references. What they won't have is someone telling them which question to ask or which framework applies. That's what the course is building — and what the scenario-based items were designed to probe. The final callout connects exam performance directly to professional identity formation, which is appropriate for a graduate methods course.
+:::

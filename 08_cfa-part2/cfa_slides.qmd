@@ -1,0 +1,1044 @@
+---
+title: "Confirmatory Factor Analysis"
+subtitle: "PSYC 7304 / 8304 · Measurement Theory & Psychometrics · Spring 2026"
+format:
+  revealjs:
+    theme: simple
+    fontsize: 16px
+    slide-number: c/t
+    progress: true
+    controls: true
+    transition: fade
+    transition-speed: fast
+    margin: 0.06
+    width: 1100
+    height: 700
+    css: cfa_slides.css
+    self-contained: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+# ── Shared ggplot theme ─────────────────────────────────────────
+theme_deck <- function(base = 12) {
+  theme_minimal(base_size = base) +
+    theme(
+      panel.grid.minor   = element_blank(),
+      panel.grid.major.y = element_line(color = "#eeeeee"),
+      panel.grid.major.x = element_blank(),
+      axis.text          = element_text(color = "#555555"),
+      axis.title         = element_text(color = "#555555", size = base - 1),
+      plot.title         = element_blank(),
+      legend.position    = "none"
+    )
+}
+
+# ── Colour palette ──────────────────────────────────────────────
+col_navy  <- "#1a2744"
+col_gold  <- "#c9a84c"
+col_red   <- "#c0392b"
+col_green <- "#1e7e4e"
+col_blue  <- "#1a5fa8"
+col_muted <- "#6b7a99"
+```
+
+# {.section-title}
+
+::: section-title-content
+**Confirmatory Factor Analysis**
+
+Model specification · Estimation · Fit evaluation · Reliability & replicability
+:::
+
+---
+
+## EFA vs. CFA: The Key Shift
+
+:::: {.columns}
+
+::: {.column width="48%"}
+
+::: concept-card
+**Exploratory Factor Analysis**
+
+- No prior structure imposed
+- Every indicator free to load on every factor
+- Data determine the solution
+- Goal: *discover* dimensionality
+- Appropriate early in scale development
+:::
+
+:::
+
+::: {.column width="48%"}
+
+::: concept-card
+**Confirmatory Factor Analysis**
+
+- Structure specified *a priori* from theory
+- Non-hypothesized cross-loadings **constrained to zero**
+- Model fit against data is evaluated
+- Goal: *test* a theoretically derived structure
+- Appropriate when you have a hypothesis to evaluate
+:::
+
+:::
+
+::::
+
+::: callout
+The zero constraint on unspecified loadings is CFA's core feature — and the source of both its inferential power and its fit sensitivity. Every zero you impose is a testable claim about the data.
+:::
+
+::: notes
+Open with the EFA/CFA distinction because students coming from the factor analysis unit will anchor on EFA. The critical conceptual shift: in EFA you ask "what structure is in the data?"; in CFA you ask "does this specified structure fit the data?" The zero constraints are the mechanism — if your theory says Item 3 only loads on Factor 2, CFA holds that claim fixed and tests whether the data are consistent with it. This is why CFA fit can be poor even when EFA recovers a clean solution: EFA's flexibility absorbs misfit that CFA exposes.
+:::
+
+---
+
+## The CFA Model
+
+:::: {.columns}
+
+::: {.column width="52%"}
+
+For each observed indicator *y*ᵢ:
+
+$$y_i = \lambda_i \eta + \varepsilon_i$$
+
+| Parameter | Symbol | Meaning |
+|-----------|--------|---------|
+| Factor loading | λ | Regression of indicator on factor |
+| Factor variance | Φ | Variance (and covariance) of latent variable(s) |
+| Residual variance | θ | Unique variance — error + item specificity |
+
+<br>
+
+**Identification** — the latent variable has no natural scale. Fix it one of two ways:
+
+- **Marker variable**: fix one loading per factor to 1.0
+- **Standardization**: fix factor variance to 1.0
+
+Degrees of freedom = *p*(*p*+1)/2 − *q*  
+where *p* = indicators, *q* = free parameters
+
+:::
+
+::: {.column width="48%"}
+
+```{r path-diagram}
+#| fig-height: 4.5
+#| fig-width: 4.5
+
+# Hand-drawn path diagram using annotate
+par(mar = c(0,0,0,0))
+
+df_nodes <- tibble(
+  label = c("η", "y₁", "y₂", "y₃", "y₄",
+            "ε₁", "ε₂", "ε₃", "ε₄"),
+  x     = c(2.5,  1,    1,    1,    1,    0, 0, 0, 0),
+  y     = c(3.5,  5,    3.8,  2.6,  1.4,  5, 3.8, 2.6, 1.4),
+  shape = c("circle","rect","rect","rect","rect",
+            "circle","circle","circle","circle")
+)
+
+ggplot() +
+  # Factor circle
+  annotate("point", x = 2.5, y = 3.5, size = 28, color = col_navy, alpha = 0.12) +
+  annotate("text",  x = 2.5, y = 3.5, label = "η", size = 7,
+           color = col_navy, fontface = "bold") +
+  # Indicator boxes
+  annotate("rect", xmin = 0.55, xmax = 1.45,
+           ymin  = c(4.7, 3.5, 2.3, 1.1),
+           ymax  = c(5.3, 4.1, 2.9, 1.7),
+           fill  = "white", color = col_navy, linewidth = 0.7) +
+  annotate("text", x = 1, y = c(5, 3.8, 2.6, 1.4),
+           label = c("y₁","y₂","y₃","y₄"), size = 5, color = col_navy) +
+  # Loading arrows η → y
+  annotate("segment",
+           x    = rep(2.2, 4), xend = rep(1.45, 4),
+           y    = c(4.1, 3.7, 3.3, 2.9),
+           yend = c(5.0, 3.8, 2.6, 1.4),
+           arrow = arrow(length = unit(0.18,"cm"), type = "closed"),
+           color = col_navy, linewidth = 0.7) +
+  # Lambda labels
+  annotate("text", x = 1.85, y = c(4.7, 3.8, 3.1, 2.3),
+           label = c("λ₁","λ₂","λ₃","λ₄"),
+           size = 4, color = col_gold, fontface = "bold") +
+  # Error circles and arrows
+  annotate("point", x = rep(-0.3, 4), y = c(5, 3.8, 2.6, 1.4),
+           size = 14, color = col_muted, alpha = 0.18) +
+  annotate("text", x = rep(-0.3, 4), y = c(5, 3.8, 2.6, 1.4),
+           label = c("ε₁","ε₂","ε₃","ε₄"), size = 4, color = col_muted) +
+  annotate("segment",
+           x = rep(0.55, 4), xend = rep(-0.02, 4),
+           y    = c(5, 3.8, 2.6, 1.4),
+           yend = c(5, 3.8, 2.6, 1.4),
+           arrow = arrow(length = unit(0.15,"cm"), type = "closed"),
+           color = col_muted, linewidth = 0.6) +
+  xlim(-0.8, 3.3) + ylim(0.8, 5.8) +
+  theme_void()
+```
+
+:::
+
+::::
+
+::: notes
+Walk through each parameter type. λ is the key output — it tells you how strongly each indicator reflects the latent construct. θ captures everything unique to that item: measurement error, item-specific variance, method effects. Φ in the single-factor case is just the factor variance; in multifactor models it includes covariances between factors. Identification: without fixing the scale, the model is not identified — infinitely many solutions fit equally well. Marker variable is most common in practice (lavaan default); standardization is useful when you want all loadings directly comparable. The df formula is important because fit indices use df directly.
+:::
+
+---
+
+## Estimation
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**Maximum Likelihood (ML)** — the default
+
+Finds parameter values that maximize the likelihood of observing the sample covariance matrix given the model.
+
+Assumes:
+- Multivariate normality
+- Continuous indicators
+- Adequate sample size (N ≥ ~200 as a rough floor)
+
+**When ML assumptions fail:**
+
+:::
+
+::: {.column width="50%"}
+
+```{r estimators}
+tibble(
+  Situation             = c("Non-normal continuous data",
+                             "Ordinal indicators (≥5 categories)",
+                             "Ordinal indicators (<5 categories)",
+                             "Missing data"),
+  Estimator             = c("MLR", "WLSMV", "WLSMV", "FIML with ML or MLR"),
+  Notes                 = c("Satorra-Bentler scaled χ²",
+                             "Polychoric correlations",
+                             "Treat as categorical",
+                             "Full information ML")
+) |>
+  kable(col.names = c("Situation", "Estimator", "Notes")) |>
+  kable_styling(font_size = 14) |>
+  column_spec(2, bold = TRUE, color = col_navy)
+```
+
+::: callout-warn
+Violating ML assumptions inflates χ² and distorts fit indices. Using ML on Likert data without checking is one of the most common errors in the applied CFA literature.
+:::
+
+:::
+
+::::
+
+::: notes
+ML is the workhorse but its assumptions are frequently violated in psychology. The most common issue: treating 5-point Likert items as continuous and using ML. If items have fewer than 5–6 categories or show ceiling/floor effects, polychoric correlations + WLSMV is more defensible. MLR (also called Robust ML or Satorra-Bentler) is a good practical choice for continuous data with mild non-normality — it adjusts the test statistic and SEs without changing the parameter estimates. FIML for missing data handles MAR missingness better than listwise deletion. In lavaan: estimator = "MLR", "WLSMV", or default "ML".
+:::
+
+---
+
+## The CFA Procedure
+
+```{r procedure}
+tibble(
+  Step   = 1:6,
+  Stage  = c("Specify", "Identify", "Estimate", "Evaluate fit",
+              "Modify", "Replicate"),
+  Action = c(
+    "Define indicators per factor; constrain non-hypothesized loadings to zero",
+    "Confirm df > 0; set factor scale (marker variable or standardize)",
+    "Run ML (or MLR / WLSMV); examine convergence and Heywood cases",
+    "Examine global fit (χ², RMSEA, CFI, TLI, SRMR) and local fit (residuals, MIs)",
+    "If fit is poor: inspect MIs and residuals for substantive misspecification",
+    "Treat any modified model as a new hypothesis requiring independent replication"
+  ),
+  Flag   = c("", "", "⚠ Non-convergence = identification problem",
+             "⚠ No single index is sufficient",
+             "⚠ MI-driven changes are exploratory — capitalize on chance",
+             "⚠ Modified models must not be reported as confirmatory")
+) |>
+  kable(col.names = c("#", "Stage", "Action", "Caution")) |>
+  kable_styling(font_size = 13) |>
+  column_spec(2, bold = TRUE) |>
+  column_spec(4, color = col_red, italic = TRUE) |>
+  row_spec(5, background = "#fdf9ef")
+```
+
+::: notes
+The procedure is linear in principle but iterative in practice. The modification step (row 5) is where things go wrong in the literature — researchers run MIs, free parameters to improve fit, and then report the modified model as if it were the original confirmatory model. This is specification searching and produces results that won't replicate. The replication requirement in step 6 is not optional — it's what separates legitimate model revision from data mining. In practice: if you make modifications, be explicit about what you changed and why (substantive justification, not just "the MI was large"), and clearly label the model as exploratory/revised in your write-up.
+:::
+
+# {.section-title}
+
+::: section-title-content
+**Evaluating Model Fit**
+
+Global fit · Absolute indices · Relative indices · Local fit
+:::
+
+---
+
+## The Chi-Square Test
+
+:::: {.columns}
+
+::: {.column width="52%"}
+
+**H₀:** The model-implied covariance matrix equals the population covariance matrix (exact fit)
+
+$$\chi^2 = (N-1) \cdot F_{ML}$$
+
+**Problems with χ² alone:**
+
+- With large *N*: detects trivially small, practically irrelevant misfit → almost always significant
+- With small *N*: underpowered to detect real misfit → falsely retained models
+- Tests *exact* fit — a standard no structural model ever truly meets
+
+::: callout-warn
+Never use χ² as the sole fit criterion. Always report it — it is the foundation of approximate fit indices — but interpret in context.
+:::
+
+:::
+
+::: {.column width="48%"}
+
+```{r chisq-sim}
+#| fig-height: 4.0
+#| fig-width: 4.8
+
+# Show how chi-square grows with N for the same model misfit
+set.seed(42)
+F_ml <- 0.04   # fixed population misfit
+
+tibble(
+  N      = seq(50, 1000, by = 10),
+  chisq  = (N - 1) * F_ml,
+  sig    = chisq > qchisq(0.95, df = 10)
+) |>
+  ggplot(aes(x = N, y = chisq, color = sig)) +
+  geom_line(linewidth = 1.1) +
+  geom_hline(yintercept = qchisq(0.95, df = 10),
+             linetype = "dashed", color = col_red, linewidth = 0.8) +
+  annotate("text", x = 750, y = qchisq(0.95, df = 10) + 1.5,
+           label = "p = .05 critical value (df = 10)",
+           size = 3.2, color = col_red) +
+  scale_color_manual(values = c("FALSE" = col_muted, "TRUE" = col_red)) +
+  labs(x = "Sample size (N)", y = "χ² value") +
+  theme_deck()
+```
+
+[Same model misfit (*F*~ML~ = 0.04), only *N* varies. χ² crosses significance around *N* = 450.]{.muted style="font-size:0.82em;"}
+
+:::
+
+::::
+
+::: notes
+The simulation makes the N-sensitivity point concrete: the exact same model with the exact same misfit goes from non-significant to significant as N crosses ~450 — nothing about the model changed. This is why χ² alone is useless as a practical fit criterion. However, it is still required reporting because CFI and RMSEA are derived from it. The χ²/df ratio (normed chi-square) is sometimes reported as a rough heuristic (< 2 or < 3 considered acceptable) but this has no strong theoretical basis — it's a workaround for the N problem, not a solution.
+:::
+
+---
+
+## Absolute Fit Indices
+
+Assess how well the model reproduces the observed covariances — **no reference to a baseline model**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**RMSEA** — Root Mean Square Error of Approximation
+
+$$\text{RMSEA} = \sqrt{\frac{\chi^2 - df}{df(N-1)}}$$
+
+Penalizes model complexity (larger *df* → smaller RMSEA for same misfit). Always report the **90% CI**.
+
+| Value | Interpretation |
+|-------|---------------|
+| ≤ .05 | Close fit |
+| .05–.08 | Reasonable |
+| .08–.10 | Mediocre |
+| > .10 | Poor |
+
+::: callout-warn
+RMSEA is biased against simple models with few df and small N. Do not over-rely on it for models with fewer than ~12 indicators.
+:::
+
+:::
+
+::: {.column width="50%"}
+
+**SRMR** — Standardized Root Mean Square Residual
+
+$$\text{SRMR} = \sqrt{\frac{2\sum_{i \geq j}(s_{ij} - \hat{\sigma}_{ij})^2}{p(p+1)}}$$
+
+Average discrepancy between observed and model-implied correlations. Directly interpretable as a mean residual correlation.
+
+| Value | Interpretation |
+|-------|---------------|
+| ≤ .05 | Excellent |
+| ≤ .08 | Acceptable |
+| > .10 | Poor |
+
+::: callout-good
+SRMR is especially sensitive to misspecified **factor loadings**. If SRMR is large but RMSEA is acceptable, suspect loading misspecification rather than structural misfit.
+:::
+
+:::
+
+::::
+
+::: notes
+RMSEA and SRMR capture different aspects of misfit. RMSEA penalizes parsimony — a more complex model (fewer df) is penalized relative to a simpler model with the same χ². This is why adding parameters always improves χ² but doesn't necessarily improve RMSEA. The 90% CI around RMSEA is as important as the point estimate — a wide CI spanning .04 to .11 is uninformative regardless of where the point estimate lands. SRMR is more intuitive: a value of .07 means the model-implied correlations are off by about .07 on average. The sensitivity difference matters diagnostically: RMSEA is more sensitive to structural misfit (wrong factor structure), SRMR is more sensitive to loading misspecification.
+:::
+
+---
+
+## Relative (Incremental) Fit Indices
+
+Compare the target model to a **null model** (all indicators uncorrelated — the worst-case baseline)
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**CFI** — Comparative Fit Index
+
+$$\text{CFI} = 1 - \frac{\max(\chi^2_t - df_t,\ 0)}{\max(\chi^2_0 - df_0,\ 0)}$$
+
+- Ranges 0–1 (values > 1 truncated to 1)
+- Relatively robust to sample size
+- Does **not** penalize model complexity
+
+**TLI** — Tucker-Lewis Index
+
+$$\text{TLI} = \frac{\chi^2_0/df_0 - \chi^2_t/df_t}{\chi^2_0/df_0 - 1}$$
+
+- Penalizes for model complexity — parsimonious models get a bonus
+- Can exceed 1.0; round to 1.0
+- Prefer TLI when comparing models of different complexity
+
+:::
+
+::: {.column width="50%"}
+
+```{r cfi-tli}
+#| fig-height: 3.5
+#| fig-width: 4.8
+
+# Simulate CFI / TLI behavior across a range of model fit
+set.seed(7)
+tibble(
+  chisq_t = seq(5, 120, by = 3),
+  df_t    = 20,
+  chisq_0 = 400,
+  df_0    = 36,
+  CFI     = 1 - pmax(chisq_t - df_t, 0) / pmax(chisq_0 - df_0, 0),
+  TLI     = (chisq_0/df_0 - chisq_t/df_t) / (chisq_0/df_0 - 1)
+) |>
+  pivot_longer(c(CFI, TLI)) |>
+  ggplot(aes(x = chisq_t, y = value, color = name)) +
+  geom_line(linewidth = 1.1) +
+  geom_hline(yintercept = 0.95, linetype = "dashed",
+             color = col_red, linewidth = 0.7) +
+  annotate("text", x = 90, y = 0.963,
+           label = ".95 threshold", size = 3.2, color = col_red) +
+  scale_color_manual(values = c(CFI = col_navy, TLI = col_gold)) +
+  scale_y_continuous(limits = c(0.6, 1.02)) +
+  labs(x = "Target model χ²", y = "Index value", color = NULL) +
+  theme_deck() +
+  theme(legend.position = "top")
+```
+
+| Index | Hu & Bentler threshold |
+|-------|----------------------|
+| CFI | ≥ .95 (≥ .90 older literature) |
+| TLI | ≥ .95 |
+
+:::
+
+::::
+
+::: notes
+The null model is an important conceptual anchor: it assumes all indicators are uncorrelated — the absolute worst-case structural model. Relative fit asks "how much of the gap between the null model and a perfect model does our model close?" CFI is the more commonly reported of the two. TLI's complexity penalty means that two models with identical χ² but different df will get different TLI values — the simpler (higher df) model wins. This matters when comparing a 1-factor to a 3-factor model. CFI will favor the 3-factor model just because it fits better; TLI will discount that improvement by the additional parameters used.
+:::
+
+---
+
+## The Hu & Bentler Problem
+
+### Why the .95/.06/.08 cutoffs are heuristics, not hard criteria
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+The widely-cited cutoffs come from **one simulation study** (Hu & Bentler, 1999) conducted under specific conditions:
+
+- Continuous indicators, ML estimation
+- N = 250
+- Simple structure (3–4 factors, ~4 indicators each)
+- Correctly specified models
+
+**What the cutoffs do not account for:**
+
+- Small N → RMSEA inflated, CFI unstable
+- Ordinal data / WLSMV → different distributions
+- Simple models (few df) → RMSEA biased upward
+- Complex models → CFI biased downward
+- Model misspecification type matters
+
+:::
+
+::: {.column width="45%"}
+
+::: callout-warn
+Marsh, Hau, & Wen (2004); McCallum et al. (2006); and others have shown the cutoffs are sample-size and complexity dependent. A CFI of .93 in a complex model at N = 150 may indicate better fit than CFI = .96 in a simple model at N = 500.
+:::
+
+::: callout
+**Current best practice:** Report all indices. Interpret the *pattern*. Use cutoffs as soft heuristics, not binary pass/fail criteria. The field is moving toward equivalence-testing approaches (SESOI-based fit) but these are not yet standard.
+:::
+
+:::
+
+::::
+
+::: notes
+This slide is important for inoculating students against the "checklist" approach to fit evaluation — the tendency to report CFI = .94 and call the model "acceptable" without thought. The Hu & Bentler paper itself notes the cutoffs are approximate. The equivalence-testing approach (Marcoulides & Yuan; Lakens et al.) frames fit evaluation as "is this model's fit within an acceptable range of perfect?" rather than "does it exceed an arbitrary threshold?" — but it requires specifying a smallest effect size of interest, which most researchers haven't done. For now: use all indices, report the pattern, and be explicit about any tension between indices.
+:::
+
+---
+
+## Information Criteria: AIC & BIC
+
+For **model comparison** — not absolute fit assessment
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+$$\text{AIC} = \chi^2 - 2 \cdot df$$
+$$\text{BIC} = \chi^2 - \ln(N) \cdot df$$
+
+- Lower = better (more parsimonious fit)
+- No absolute threshold — differences between models are what matter
+- AIC penalizes less → rewards fit
+- BIC penalizes more → rewards parsimony
+
+**ΔBIC interpretation (rough heuristics):**
+
+| ΔBIC | Evidence for better model |
+|------|--------------------------|
+| 0–2 | Weak |
+| 2–6 | Positive |
+| 6–10 | Strong |
+| > 10 | Very strong |
+
+:::
+
+::: {.column width="50%"}
+
+::: scenario
+**Example:** Comparing a 1-factor vs. 2-factor model of a 10-item scale (N = 300)
+
+| Model | χ²(df) | CFI | RMSEA | AIC | BIC |
+|-------|--------|-----|-------|-----|-----|
+| 1-factor | 87.4 (35) | .91 | .070 | 3,421 | 3,498 |
+| 2-factor | 44.2 (34) | .98 | .033 | 3,380 | 3,464 |
+
+ΔBIC = 34 → very strong evidence for 2-factor model  
+Δχ²(1) = 43.2, *p* < .001 → significant improvement  
+Also supported by CFI, RMSEA pattern
+:::
+
+::: callout
+Use AIC/BIC when comparing **nested or non-nested alternative models** — not as a substitute for absolute fit evaluation.
+:::
+
+:::
+
+::::
+
+::: notes
+AIC and BIC answer a different question than RMSEA/CFI: not "does this model fit?" but "which of these models fits better, given their complexity?" They're essential when you're choosing between a 1-factor and 2-factor solution, or comparing a correlated-factors model to a higher-order model. The ΔBIC table comes from Raftery (1995) and is widely cited, though like all heuristics it's approximate. BIC is generally preferred in psychology because it penalizes more heavily for parameters and tends to favor more parsimonious solutions. For nested models you can also use Δχ² (likelihood ratio test) — this is exact, not a heuristic.
+:::
+
+---
+
+## Local Fit: Residuals & Modification Indices
+
+After evaluating global fit — **where specifically** does the model misfit?
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**Residual correlations**
+
+Difference between observed and model-implied correlation for each indicator pair.
+
+- |residual| > .10 → the model is not explaining this pair well
+- Cluster of large residuals among specific items → may indicate a method factor or missing subfactor
+
+**Modification indices (MI)**
+
+Estimated Δχ² if a currently-constrained parameter were freed.
+
+- MI > 10 → investigate
+- Large MI on a cross-loading → that item may belong to (or share variance with) another factor
+- Large MI on a residual covariance → those two items share specific variance the model doesn't capture (e.g., similar wording, same reverse-scored)
+
+:::
+
+::: {.column width="50%"}
+
+::: callout-warn
+**The specification search problem**
+
+Acting on MIs without substantive justification produces overfit models. Each freed parameter:
+
+- Reduces df
+- Improves fit in *this* sample
+- Capitalizes on chance
+- Will not replicate
+
+:::
+
+::: callout
+**The defensible approach:**
+1. Is there a *substantive* reason this parameter should be non-zero?
+2. Was it overlooked in the original theory, or is it a genuine surprise?
+3. If freed: label the model as revised/exploratory
+4. Require replication in an independent sample
+:::
+
+:::
+
+::::
+
+::: notes
+Local fit is where you do detective work after a disappointing global fit. The residual correlation matrix is your first stop — it shows exactly which item pairs the model is getting wrong. If Items 3 and 7 have a residual correlation of .22, the model-implied correlation between them is off by .22 — that's a lot. Modification indices tell you what would help. A large MI on the cross-loading of Item 3 onto Factor 2 means freeing that loading would improve fit substantially. But the question is: does that make sense theoretically? If Item 3 is "I feel anxious in social situations" and Factor 2 is Social Avoidance, there's a defensible argument. If there's no theoretical rationale, freeing that parameter is just fitting noise.
+:::
+
+# {.section-title}
+
+::: section-title-content
+**Reliability & Factor Replicability**
+
+Model-based reliability · ω and ωₕ · H · AVE · Factor determinacy
+:::
+
+---
+
+## Factor Loadings & What They Tell You
+
+:::: {.columns}
+
+::: {.column width="52%"}
+
+Standardized loadings (λ*) are correlations between the indicator and the latent factor.
+
+| λ* | Interpretation |
+|----|---------------|
+| ≥ .70 | Strong — indicator is a good marker |
+| .50–.70 | Acceptable |
+| .40–.50 | Weak but interpretable |
+| < .40 | Problematic — consider revising or dropping |
+
+<br>
+
+**Heywood cases** — standardized loading > 1.0 or residual variance < 0 — indicate identification problems, near-multicollinearity, or too few indicators per factor. Not a fit index issue; a model specification issue.
+
+:::
+
+::: {.column width="48%"}
+
+```{r loading-plot}
+#| fig-height: 4.0
+#| fig-width: 4.5
+
+# Example factor loadings for a 6-item scale
+set.seed(3)
+tibble(
+  item    = paste0("Item ", 1:6),
+  loading = c(0.82, 0.74, 0.61, 0.55, 0.43, 0.31),
+  quality = case_when(
+    loading >= 0.70 ~ "Strong",
+    loading >= 0.50 ~ "Acceptable",
+    loading >= 0.40 ~ "Weak",
+    TRUE            ~ "Problematic"
+  ) |> factor(levels = c("Strong","Acceptable","Weak","Problematic"))
+) |>
+  ggplot(aes(x = fct_rev(item), y = loading, fill = quality)) +
+  geom_col(width = 0.65, show.legend = TRUE) +
+  geom_hline(yintercept = c(0.40, 0.50, 0.70),
+             linetype = c("dashed","dotted","solid"),
+             color = c(col_red, col_gold, col_green), linewidth = 0.7) +
+  scale_fill_manual(values = c(
+    Strong      = col_navy,
+    Acceptable  = col_blue,
+    Weak        = col_gold,
+    Problematic = col_red
+  )) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .2)) +
+  coord_flip() +
+  labs(x = NULL, y = "Standardized loading (λ*)", fill = NULL) +
+  theme_deck() +
+  theme(legend.position = "top", legend.text = element_text(size = 9),
+        legend.key.size = unit(0.4, "cm"))
+```
+
+:::
+
+::::
+
+::: notes
+Loadings below .40 suggest the indicator shares less than 16% of its variance with the factor (λ² = communality). Item 6 in the example (.31) is below threshold — in practice you'd examine whether to drop it, revise the item wording, or consider whether it's tapping a different facet. The thresholds are heuristics, not bright lines. Context matters: in an early-stage scale with few items, you might retain a .38 loading; in a well-developed scale with 8 strong indicators, dropping a .35-loading item is easy to justify. Heywood cases are a warning sign — if a residual variance is negative, the model is producing an impossible solution. Usually means too few indicators (≥3 per factor recommended), near-perfect collinearity between indicators, or a bad starting model.
+:::
+
+---
+
+## Model-Based Reliability: ω and ωₕ
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**McDonald's ω (omega)**
+
+$$\omega = \frac{(\sum \lambda_i)^2}{(\sum \lambda_i)^2 + \sum \theta_i}$$
+
+Proportion of total score variance due to the common factor. Does **not** assume tau-equivalence (equal loadings) — unlike α.
+
+::: callout
+α is a special case of ω when all loadings are equal. When loadings differ (almost always), α and ω diverge. Prefer ω.
+:::
+
+<br>
+
+**α vs. ω comparison (simulated 6-item scale):**
+
+```{r alpha-omega}
+# Compute alpha and omega for the example scale
+lambdas <- c(0.82, 0.74, 0.61, 0.55, 0.43, 0.31)
+thetas  <- 1 - lambdas^2
+
+omega <- sum(lambdas)^2 / (sum(lambdas)^2 + sum(thetas))
+
+# Alpha via covariance matrix
+sigma <- outer(lambdas, lambdas)
+diag(sigma) <- 1
+k    <- length(lambdas)
+alpha_val <- (k / (k - 1)) * (1 - k / sum(sigma))
+
+cat(sprintf("α = %.3f   ω = %.3f", alpha_val, omega))
+```
+
+:::
+
+::: {.column width="50%"}
+
+**ωₕ (omega hierarchical)**
+
+Relevant for multidimensional scales where a *total score* is used.
+
+$$\omega_h = \frac{(\sum \lambda_g)^2}{(\sum \lambda_g)^2 + \sum \lambda_s^2 + \sum \theta_i}$$
+
+where λ_g = general factor loadings, λ_s = specific factor loadings (from a bifactor model).
+
+**Interpretation:**
+
+- ωₕ = proportion of total score variance attributable to the *general factor only*
+- High ω + low ωₕ → the scale is reliable, but the total score is not unidimensional
+- If ωₕ < .50, interpret subscale scores rather than the total
+
+::: scenario
+*Example:* A 20-item well-being scale has ω = .91, ωₕ = .48. The scale is internally consistent, but total scores reflect multiple specific factors nearly as much as the general factor. Total scores may obscure meaningful subscale differences.
+:::
+
+:::
+
+::::
+
+::: notes
+This slide connects back to the earlier reliability unit. The alpha-omega comparison in the code: for this 6-item example with unequal loadings (.82 down to .31), alpha underestimates omega. The more heterogeneous the loadings, the larger the discrepancy. For the omega formula: use unstandardized loadings in practice (lavaan provides these). For standardized solutions, λ² = 1 - θ, so the formula reduces to a function of communalities. Omega hierarchical requires fitting a bifactor model first — a general factor loading all items plus group-specific factors. This is increasingly common for multidimensional well-being, psychopathology, and intelligence scales. The ωₕ < .50 rule of thumb comes from Rodriguez, Reise, & Haviland (2016).
+:::
+
+---
+
+## Factor Replicability: H and AVE
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**H — Construct Replicability Index** (Hancock & Mueller, 2001)
+
+$$H = \frac{1}{1 + \frac{1}{\displaystyle\sum_i \frac{\lambda_i^{*2}}{1 - \lambda_i^{*2}}}}$$
+
+Probability that the latent factor will be recovered similarly across studies. Higher H = more stable, replicable factor.
+
+| H | Interpretation |
+|---|---------------|
+| ≥ .80 | Well-defined, likely to replicate |
+| .70–.80 | Acceptable |
+| < .70 | Poorly defined — factor may be unstable |
+
+H is sensitive to both the **number of indicators** and their **loadings**. A factor with 3 strong indicators (λ* ≥ .70) outperforms one with 6 weak indicators (λ* ≈ .35).
+
+:::
+
+::: {.column width="50%"}
+
+**AVE — Average Variance Extracted** (Fornell & Larcker, 1981)
+
+$$\text{AVE} = \frac{\sum \lambda_i^{*2}}{n}$$
+
+Average communality across indicators — the proportion of indicator variance the factor captures.
+
+| AVE | Interpretation |
+|-----|---------------|
+| ≥ .50 | Factor explains more variance than error |
+| < .50 | Error variance dominates |
+
+**Discriminant validity via Fornell-Larcker:**
+
+AVE for each factor should exceed the *squared* inter-factor correlation. If φ²₁₂ > AVE₁ **or** AVE₂, the two factors share more with each other than with their own indicators — discriminant validity is questionable.
+
+:::
+
+::::
+
+::: notes
+H is the index students are least likely to have seen. The practical implication: a well-specified CFA with good global fit can still have a poorly defined factor if the loadings are weak. H integrates both loading magnitude and the number of indicators into a single index of how confidently the latent variable is being measured. Factors with H < .70 may look different in replication samples because they're weakly anchored. AVE is more commonly reported in structural models (SEM with multiple constructs). The Fornell-Larcker criterion for discriminant validity is widely used but has a known limitation: it's insensitive to method factors and can give false positives when the constructs are highly correlated. The HTMT (Heterotrait-Monotrait ratio) is a more sensitive alternative but is not covered here.
+:::
+
+---
+
+## Factor Replicability: H vs. ω
+
+### They answer different questions — both matter
+
+```{r h-omega-compare}
+#| fig-height: 3.6
+#| fig-width: 9.5
+
+# Simulate H and omega across different loading configurations
+set.seed(11)
+
+configs <- bind_rows(
+  # Few strong loadings
+  tibble(config = "3 strong indicators\n(λ* = .80, .78, .76)",
+         lambdas = list(c(0.80, 0.78, 0.76))),
+  # Many weak loadings
+  tibble(config = "6 weak indicators\n(λ* = .38–.42)",
+         lambdas = list(c(0.42, 0.40, 0.39, 0.38, 0.40, 0.41))),
+  # Ideal: several strong
+  tibble(config = "5 strong indicators\n(λ* = .72–.82)",
+         lambdas = list(c(0.82, 0.78, 0.75, 0.74, 0.72))),
+  # Mixed
+  tibble(config = "6 mixed indicators\n(λ* = .31–.82)",
+         lambdas = list(c(0.82, 0.74, 0.61, 0.55, 0.43, 0.31)))
+) |>
+  mutate(
+    omega = map_dbl(lambdas, function(l) {
+      th <- 1 - l^2
+      sum(l)^2 / (sum(l)^2 + sum(th))
+    }),
+    H = map_dbl(lambdas, function(l) {
+      1 / (1 + 1 / sum(l^2 / (1 - l^2)))
+    }),
+    AVE = map_dbl(lambdas, function(l) mean(l^2))
+  ) |>
+  select(config, omega, H, AVE) |>
+  pivot_longer(c(omega, H, AVE), names_to = "index", values_to = "value") |>
+  mutate(index = factor(index, levels = c("omega","H","AVE"),
+                        labels = c("ω (omega)","H","AVE")))
+
+ggplot(configs, aes(x = config, y = value, fill = index)) +
+  geom_col(position = "dodge", width = 0.65) +
+  geom_hline(yintercept = c(0.50, 0.70, 0.80),
+             linetype = "dashed", color = col_muted, linewidth = 0.5) +
+  scale_fill_manual(values = c(col_navy, col_gold, col_blue)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .2)) +
+  labs(x = NULL, y = "Index value", fill = NULL) +
+  theme_deck(base = 11) +
+  theme(legend.position = "top",
+        axis.text.x = element_text(size = 9.5))
+```
+
+[Dashed lines at .50 (AVE threshold), .70 (H minimum), and .80 (H preferred). Note: 6 weak indicators can produce acceptable ω but poor H — the scale is consistent but the factor won't replicate.]{.muted style="font-size:0.82em;"}
+
+::: notes
+This chart is the key pedagogical payoff of the replicability section. The "6 weak indicators" scenario is instructive: omega of ~.80 (looks acceptable) but H of ~.55 (poorly defined factor). What this means practically: if you run CFA on a new sample, the factor may look quite different — items may load differently, the factor may split. The "6 mixed indicators" profile (λ* from .31 to .82) illustrates the problem of keeping weak items: they drag down H and AVE without contributing much to the factor. The comparison reinforces the recommendation to prefer fewer, stronger indicators over many weak ones.
+:::
+
+---
+
+## Factor Determinacy (FD)
+
+**How well can we estimate individuals' latent factor scores?**
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+Factor determinacy is the correlation between the true latent factor scores and the estimated factor scores (the weighted composites you'd save for use in subsequent analyses):
+
+$$FD = \sqrt{\lambda' \Sigma^{-1} \lambda}$$
+
+where Σ is the model-implied indicator covariance matrix.
+
+| FD | Interpretation |
+|----|---------------|
+| ≥ .90 | Factor scores are good proxies for the latent variable |
+| .80–.90 | Acceptable with caution |
+| < .80 | Factor score estimates are poor — avoid using them as observed variables |
+
+::: callout-warn
+Low FD means saving factor scores and treating them as observed variables in subsequent analyses introduces substantial error. Use latent variable SEM instead.
+:::
+
+:::
+
+::: {.column width="45%"}
+
+::: scenario
+**Example:** A researcher runs CFA on a 4-item stress scale (all loadings ≈ .45) and saves the factor scores to use as a predictor in a regression.
+
+*N* = 180, FD = .74
+
+The factor score estimates correlate only .74 with the true latent variable. Using them as a predictor in regression attenuates regression coefficients — the same problem as using an unreliable observed score.
+
+The fix: keep the latent variable in the model and run SEM rather than a two-step regression on factor scores.
+:::
+
+:::
+
+::::
+
+::: notes
+Factor determinacy is the least commonly reported of the replicability indices, but it's practically important for any researcher who plans to save factor scores for use in further analyses — which is common in applied work. The problem is conceptually identical to measurement error attenuation: if your factor score estimates correlate only .74 with the true latent variable, that's like using a predictor with reliability of .74² = .55. Any downstream regression or correlation will be attenuated. The solution is to keep everything in a single SEM rather than the two-step "extract scores then regress" approach. In lavaan, FD can be obtained via lavPredict() but the determinacy itself requires examining the factor score coefficient matrix.
+:::
+
+# {.section-title}
+
+::: section-title-content
+**Putting It Together**
+
+The full reporting checklist
+:::
+
+---
+
+## What to Report
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+**Minimum required reporting:**
+
+```{r reporting-table}
+tibble(
+  What                  = c("Sample & estimator",
+                             "Chi-square",
+                             "RMSEA",
+                             "CFI",
+                             "TLI",
+                             "SRMR",
+                             "Factor loadings",
+                             "Reliability",
+                             "Replicability"),
+  Report                = c("N, estimator (ML / MLR / WLSMV), software",
+                             "χ²(df), p",
+                             "RMSEA, 90% CI",
+                             "CFI",
+                             "TLI",
+                             "SRMR",
+                             "Standardized λ* with SE or 95% CI",
+                             "ω per factor (not α alone)",
+                             "H and AVE per factor")
+) |>
+  kable(col.names = c("Element","Report as")) |>
+  kable_styling(font_size = 13) |>
+  column_spec(1, bold = TRUE)
+```
+
+:::
+
+::: {.column width="50%"}
+
+**For model comparisons, add:**
+
+- Δχ²(Δdf) for nested models
+- ΔCFI (meaningful change: > .01)
+- ΔRMSEA (meaningful change: > .015)
+- ΔBIC for non-nested models
+
+**A complete fit sentence looks like:**
+
+::: scenario
+"Model fit was acceptable: χ²(43) = 61.2, *p* = .031; RMSEA = .048 [90% CI: .018, .072]; CFI = .963; TLI = .951; SRMR = .052. Standardized loadings ranged from .54 to .81. Factor reliability was ω = .87; H = .83; AVE = .52."
+:::
+
+::: callout
+Fit indices tell you about the model. Loadings, ω, H, and AVE tell you about the *factor*. Report both.
+:::
+
+:::
+
+::::
+
+::: notes
+The complete fit sentence is a template students should commit to. Note it includes all required elements in one concise statement: chi-square with df and p, RMSEA with CI, CFI, TLI, SRMR, loading range, omega, H, and AVE. Many published papers report only CFI and RMSEA — this is underreporting. The ΔCFI > .01 and ΔRMSEA > .015 thresholds for meaningful change come from Cheung & Rensvold (2002) and are widely used in measurement invariance testing, but apply to any comparative model evaluation. The distinction between fit indices (tell you about the model) and loadings/reliability indices (tell you about the factor quality) is a conceptual point worth stating explicitly — a model with acceptable fit can still have poorly defined factors.
+:::
+
+---
+
+## Putting It All Together: A Worked Example
+
+**Scenario:** CFA of a 9-item Resilience scale, 3 factors (Personal Strength, Social Support, Adaptability), 3 items each. *N* = 320, ML estimation.
+
+```{r worked-example}
+tibble(
+  Index   = c("χ²(df)", "RMSEA [90% CI]", "CFI", "TLI", "SRMR",
+              "ω (Personal Str.)", "ω (Social Supp.)", "ω (Adaptability)",
+              "H (Personal Str.)", "H (Social Supp.)", "H (Adaptability)",
+              "AVE (Personal Str.)", "AVE (Social Supp.)", "AVE (Adaptability)"),
+  Value   = c("34.1 (24)", ".038 [.000, .062]", ".971", ".958", ".044",
+              ".84", ".79", ".76",
+              ".85", ".80", ".77",
+              ".58", ".51", ".49"),
+  Verdict = c("p = .080 — acceptable",
+              "Close fit",
+              "Excellent",
+              "Excellent",
+              "Excellent",
+              "Good", "Good", "Acceptable",
+              "Well-defined", "Well-defined", "Acceptable",
+              "AVE ≥ .50 ✓", "AVE ≥ .50 ✓",
+              "Just below threshold — examine loadings")
+) |>
+  kable(col.names = c("Index","Value","Interpretation")) |>
+  kable_styling(font_size = 13) |>
+  row_spec(14, background = "#fdf9ef") |>
+  column_spec(3, color = col_muted, italic = TRUE)
+```
+
+::: notes
+Walk through the example systematically. The chi-square is non-significant (p = .080) — acceptable with this N. RMSEA close fit, CFI and TLI both excellent, SRMR excellent. The factor-level indices tell a slightly more nuanced story: Adaptability has acceptable omega (.76) and H (.77), but AVE just below .50 (.49). This doesn't tank the model, but it's worth noting — the three Adaptability indicators have somewhat higher error variance relative to their factor loadings. In practice you'd examine those three loadings and consider whether one is weak enough to drag down the AVE. The "examine loadings" note in the Verdict column is the right response — not panic, but investigation.
+:::

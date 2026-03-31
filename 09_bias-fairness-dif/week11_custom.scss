@@ -1,0 +1,251 @@
+/*-- scss:defaults --*/
+
+// ── Fonts ─────────────────────────────────────────────────────────────────────
+$font-family-sans-serif: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+$font-family-monospace:  'Source Code Pro', 'Courier New', monospace;
+$presentation-font-size-root: 28px;
+
+// ── Colors ────────────────────────────────────────────────────────────────────
+$body-color:     #222222;
+$body-bg:        #ffffff;
+$link-color:     #2E4057;
+$selection-bg:   #D9E1F2;
+
+$heading-font:        'Inter', 'Helvetica Neue', Arial, sans-serif;
+$heading-color:       #2E4057;
+$heading-font-weight: 600;
+
+$primary:  #2E4057;
+$accent:   #E07B39;
+$success:  #3A7D44;
+$warning:  #C7A020;
+
+/*-- scss:rules --*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Code+Pro&display=swap');
+
+.reveal {
+  font-family: $font-family-sans-serif;
+  color: $body-color;
+  font-size: 28px !important;
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal .slides section {
+  padding: 0.5em 0.8em;
+  font-size: 0.92em;
+}
+
+.reveal h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: $heading-color;
+  line-height: 1.15;
+  margin-bottom: 0.4em;
+  border-bottom: 3px solid $accent;
+  padding-bottom: 0.15em;
+}
+
+.reveal h2 {
+  font-size: 1.25em;
+  font-weight: 600;
+  color: $heading-color;
+  margin-bottom: 0.5em;
+  border-bottom: 2px solid #D9E1F2;
+  padding-bottom: 0.1em;
+}
+
+.reveal h3 {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: $heading-color;
+  margin-bottom: 0.3em;
+}
+
+.section-slide h1,
+.section-slide h2 {
+  color: #ffffff !important;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.reveal p {
+  margin-bottom: 0.5em;
+  line-height: 1.55;
+}
+
+.reveal ul,
+.reveal ol {
+  margin-left: 1.2em;
+  line-height: 1.6;
+}
+
+.reveal li {
+  margin-bottom: 0.25em;
+}
+
+.reveal strong {
+  color: $primary;
+  font-weight: 600;
+}
+
+.reveal .callout {
+  border-radius: 4px;
+  padding: 0.55em 0.8em;
+  margin: 0.6em 0;
+  font-size: 0.88em;
+  line-height: 1.5;
+}
+
+.reveal .callout-note {
+  background-color: #EEF2F7;
+  border-left: 4px solid $primary;
+}
+
+.reveal .callout-important {
+  background-color: #FCE4D6;
+  border-left: 4px solid #C0392B;
+}
+
+.reveal .callout-warning {
+  background-color: #FFF8E1;
+  border-left: 4px solid $warning;
+}
+
+.reveal .callout-tip {
+  background-color: #E2EFDA;
+  border-left: 4px solid $success;
+}
+
+.reveal .callout .callout-title-container {
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reveal table {
+  font-size: 0.78em;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.4em 0;
+}
+
+.reveal table th {
+  background-color: $primary;
+  color: #ffffff;
+  padding: 0.4em 0.6em;
+  font-weight: 600;
+  text-align: left;
+}
+
+.reveal table td {
+  padding: 0.35em 0.6em;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.reveal table tr:nth-child(even) td {
+  background-color: #F8F8F8;
+}
+
+.reveal .columns {
+  display: flex;
+  gap: 1.5em;
+  align-items: flex-start;
+}
+
+.reveal .column {
+  flex: 1;
+}
+
+.reveal code {
+  font-family: $font-family-monospace;
+  font-size: 0.85em;
+  background: #F4F4F4;
+  border: 1px solid #DDD;
+  border-radius: 3px;
+  padding: 0.05em 0.3em;
+  color: #333;
+}
+
+.reveal pre {
+  background: #F4F4F4;
+  border: 1px solid #DDD;
+  border-left: 4px solid $primary;
+  border-radius: 3px;
+  padding: 0.6em 0.8em;
+  overflow-x: auto;
+  box-shadow: none;
+}
+
+.reveal pre code {
+  font-size: 0.75em;
+  line-height: 1.45;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.reveal .slide-number {
+  font-size: 0.55em;
+  color: #aaaaaa;
+  bottom: 10px;
+  right: 14px;
+}
+
+.reveal .progress {
+  height: 3px;
+  color: $accent;
+}
+
+.hl-blue   { color: $primary; font-weight: 600; }
+.hl-orange { color: $accent;  font-weight: 600; }
+.hl-green  { color: $success; font-weight: 600; }
+.hl-red    { color: #C0392B;  font-weight: 600; }
+
+@media print {
+  .reveal .slides section {
+    page-break-after: always;
+  }
+}
+
+// ── Overflow prevention ───────────────────────────────────────────────────────
+.reveal .slides section {
+  overflow: hidden;
+}
+
+// ── Tighter spacing for denser slides ────────────────────────────────────────
+.reveal .callout {
+  padding: 0.4em 0.7em;
+  margin: 0.4em 0;
+  font-size: 0.82em;
+}
+
+.reveal ul, .reveal ol {
+  margin-left: 1.0em;
+  line-height: 1.45;
+}
+
+.reveal li {
+  margin-bottom: 0.15em;
+}
+
+.reveal p {
+  margin-bottom: 0.35em;
+  line-height: 1.45;
+}
+
+// ── Slightly smaller h2 to give body more room ────────────────────────────────
+.reveal h2 {
+  font-size: 1.15em;
+  margin-bottom: 0.35em;
+}
+
+// ── Table row height reduction ────────────────────────────────────────────────
+.reveal table td,
+.reveal table th {
+  padding: 0.28em 0.5em;
+}

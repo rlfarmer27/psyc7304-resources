@@ -1,0 +1,207 @@
+/* ── cfa_slides.css ──────────────────────────────────────────────
+   Companion stylesheet for cfa_slides.qmd
+   Place in the same directory as the .qmd before rendering.
+   ─────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Root variables ── */
+:root {
+  --navy:   #1a2744;
+  --slate:  #2e4066;
+  --gold:   #c9a84c;
+  --gold-lt:#f0d98a;
+  --cream:  #faf8f3;
+  --muted:  #6b7a99;
+  --red:    #c0392b;
+  --green:  #1e7e4e;
+  --blue:   #1a5fa8;
+  --border: #ddd8cc;
+}
+
+/* ── Base ── */
+.reveal {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--navy);
+  background-color: var(--cream);
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: 'Lora', serif;
+  color: var(--navy);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.reveal h2 {
+  font-size: 1.25em;
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 0.2em;
+  margin-bottom: 0.45em;
+}
+
+.reveal h3 {
+  font-size: 0.95em;
+  color: var(--slate);
+  font-style: italic;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: 0.4em;
+}
+
+.reveal p, .reveal li {
+  line-height: 1.6;
+}
+
+.reveal ul {
+  margin-left: 1.2em;
+}
+
+.reveal li {
+  margin-bottom: 0.3em;
+}
+
+.reveal code {
+  font-family: 'DM Mono', monospace;
+  background: #eee9de;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  color: var(--slate);
+  font-size: 0.88em;
+}
+
+/* ── Section title slides ── */
+.section-title {
+  background-color: var(--navy) !important;
+}
+
+.section-title-content {
+  color: #c8d0e0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05em;
+  line-height: 1.7;
+}
+
+.section-title-content strong {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 1.5em;
+  color: var(--gold-lt);
+  margin-bottom: 0.3em;
+}
+
+/* ── Callout boxes ── */
+.callout {
+  border-left: 4px solid var(--gold);
+  background: #fdf9ef;
+  padding: 0.5em 0.85em;
+  border-radius: 0 5px 5px 0;
+  font-size: 0.88em;
+  margin: 0.5em 0;
+  line-height: 1.5;
+}
+
+.callout-warn {
+  border-left: 4px solid var(--red);
+  background: #fdf0ef;
+  padding: 0.5em 0.85em;
+  border-radius: 0 5px 5px 0;
+  font-size: 0.88em;
+  margin: 0.5em 0;
+  line-height: 1.5;
+}
+
+.callout-good {
+  border-left: 4px solid var(--green);
+  background: #edf8f2;
+  padding: 0.5em 0.85em;
+  border-radius: 0 5px 5px 0;
+  font-size: 0.88em;
+  margin: 0.5em 0;
+  line-height: 1.5;
+}
+
+/* ── Concept cards ── */
+.concept-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75em 1em;
+  margin-bottom: 0.5em;
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+
+/* ── Scenario quote blocks ── */
+.scenario {
+  background: white;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--slate);
+  border-radius: 0 0 5px 5px;
+  padding: 0.6em 0.9em;
+  font-size: 0.87em;
+  font-style: italic;
+  color: var(--slate);
+  margin: 0.4em 0;
+  line-height: 1.5;
+}
+
+/* ── Tags / pills ── */
+.tag-red    { background: #fde8e8; color: var(--red);   font-size: 0.82em; padding: 0.1em 0.55em; border-radius: 20px; display: inline-block; }
+.tag-amber  { background: #fef3cd; color: #8a6000;      font-size: 0.82em; padding: 0.1em 0.55em; border-radius: 20px; display: inline-block; }
+.tag-green  { background: #e2f4ec; color: var(--green); font-size: 0.82em; padding: 0.1em 0.55em; border-radius: 20px; display: inline-block; }
+.tag-blue   { background: #e8f0fb; color: var(--blue);  font-size: 0.82em; padding: 0.1em 0.55em; border-radius: 20px; display: inline-block; }
+.tag-gray   { background: #eee9de; color: var(--slate); font-size: 0.82em; padding: 0.1em 0.55em; border-radius: 20px; display: inline-block; }
+
+/* ── Muted helper ── */
+.muted { color: var(--muted); }
+
+/* ── Tables ── */
+.reveal table {
+  font-size: 0.85em;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.4em 0;
+}
+
+.reveal table th {
+  background: var(--navy);
+  color: white;
+  font-weight: 500;
+  padding: 0.38em 0.65em;
+  text-align: left;
+  font-size: 0.9em;
+}
+
+.reveal table td {
+  padding: 0.32em 0.65em;
+  border-bottom: 1px solid var(--border);
+}
+
+.reveal table tr:nth-child(even) td {
+  background: #f5f3ee;
+}
+
+/* ── Progress bar & slide number ── */
+.reveal .progress {
+  background: var(--border);
+  height: 3px;
+}
+
+.reveal .progress span {
+  background: var(--gold);
+}
+
+.reveal .slide-number {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+}
+
+/* ── kableExtra overrides ── */
+.kable-table thead tr th,
+table.dataTable thead tr th {
+  background-color: var(--navy) !important;
+  color: white !important;
+}
