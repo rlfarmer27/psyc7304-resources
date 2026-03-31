@@ -1,0 +1,93 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Measurement Theory and Psychometrics"
+  subtitle: "A Practical Introduction"
+  author: "Ryan Farmer, PhD"
+  date: today
+  date-format: "YYYY"
+
+  sidebar:
+    style: docked
+    background: light
+
+  chapters:
+    - index.qmd
+    - part: "Foundations"
+      chapters:
+        - chapters/01_philosophy.qmd
+        - chapters/02_ethics_data.qmd
+    - part: "Classical Measurement Theory"
+      chapters:
+        - chapters/03_ctt_latent_variables.qmd
+        - chapters/04_validity.qmd
+        - chapters/05_reliability.qmd
+    - part: "Factor Analytic Methods"
+      chapters:
+        - chapters/06_efa.qmd
+        - chapters/07_cfa_part1.qmd
+        - chapters/08_cfa_part2.qmd
+    - part: "Applied Measurement Topics"
+      chapters:
+        - chapters/chapter_bias_fairness.qmd
+        - chapters/10_diagnostic_accuracy.qmd
+        - chapters/11_scale_development.qmd
+    - part: "Evaluation and Integration"
+      chapters:
+        - chapters/12_questionable_practices.qmd
+        - chapters/13_integration.qmd
+    - references.qmd
+
+  page-footer:
+    left: |
+      *Measurement Theory and Psychometrics* by Ryan Farmer, PhD
+    right:
+      - icon: github
+        href: https://github.com/rlfarmer27/psyc7304-resources
+
+  repo-url: https://github.com/rlfarmer27/psyc7304-resources
+  repo-subdir: book
+  repo-actions: [issue]
+
+bibliography: references.bib
+reference-location: block
+csl: apa.csl
+
+format:
+  html:
+    theme:
+      light: [flatly, custom.scss]
+    code-fold: true
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    number-depth: 2
+    fig-align: center
+    fig-width: 8
+    fig-height: 4.5
+    out-width: "85%"
+    df-print: kable
+    html-math-method: mathjax
+    embed-resources: false
+  pdf:
+    documentclass: scrbook
+    papersize: letter
+    fontsize: 11pt
+    geometry:
+      - top=1in
+      - bottom=1in
+      - left=1.25in
+      - right=1.25in
+    toc: true
+    number-sections: true
+    colorlinks: true
+    fig-align: center
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true

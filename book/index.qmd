@@ -1,0 +1,25 @@
+# Preface {.unnumbered}
+
+This book is a supplementary resource for PSYC 7304/8304: Measurement Theory and Psychometrics at the University of Memphis. It is not a replacement for the primary readings from the peer-reviewed literature assigned in the course — it is a conceptual guide and practical companion to those readings.
+
+## What This Book Is
+
+Each chapter walks through the logic of a major topic in psychometrics, with R-based worked examples using simulated datasets. The emphasis is on interpretation: understanding what analyses mean, what they assume, and what they cannot tell you. Where full R code is provided, it can be expanded by clicking the code block. Students who want to replicate analyses can do so; students who want to follow the conceptual argument without running code can read the output as presented.
+
+## What This Book Is Not
+
+This is not a comprehensive psychometrics textbook. It does not replace Furr, Borsboom, or the Standards. It does not provide exhaustive coverage of every method or every debate in the field. It is designed to give you enough conceptual grounding to read primary sources critically and to evaluate measurement evidence in published research and test manuals.
+
+## A Note on Content Development
+
+Some material in this book was developed with the assistance of AI tools, including Claude (Anthropic). All content has been reviewed, revised, and approved by the course instructor. Students are encouraged to approach these materials with the same critical eye they would apply to any published resource.
+
+## How to Use This Book
+
+Read chapters in order if you are following the course — the sequencing is deliberate. Each chapter builds on concepts introduced earlier. If you are using the book as a reference after the fact, the chapter summaries and key concept callouts are designed to be readable on their own.
+
+Code blocks are collapsed by default. Click to expand them if you want to see the full R code behind a figure or table.
+
+## License
+
+This work is licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/).

@@ -1,0 +1,579 @@
+# Do Scores Mean the Same for Everyone? {#bias-fairness}
+## Bias, Fairness, and Measurement Equivalence
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.align = "center", out.width = "85%")
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(difR)
+
+# Load the chapter dataset
+dat <- read.csv("../data/lab9_dif_data.csv")
+items <- dat[, paste0("item", 1:15)]
+group <- dat$group
+total <- rowSums(items)
+```
+
+## Why This Matters
+
+A psychological test produces a number. That number is supposed to mean something: a level of ability, a degree of symptom severity, a likelihood of success. The validity framework we covered in Chapter 4 is about whether that meaning holds up under scrutiny. This chapter is about a specific and consequential question within that framework: does the number mean the same thing for everyone who takes the test?
+
+The answer is not always yes, and the consequences of getting it wrong are not abstract.
+
+Consider three scenarios.
+
+A manufacturing company uses a cognitive ability test to screen applicants for a technical role. A candidate from a recent immigrant community scores below the cutoff and is not interviewed. The hiring manager assumes the score reflects ability. What if it reflects, in part, familiarity with the cultural and linguistic conventions embedded in the test items, conventions that have nothing to do with the ability to do the job?
+
+A school psychologist administers a standardized assessment to determine whether a child qualifies for special education services. The child is a native Spanish speaker in a predominantly English-medium school. The assessment was normed on a sample that did not include children with her linguistic background. The score falls below the threshold for services. The psychologist documents the result as reflecting the child's cognitive profile. What if the score reflects, in part, the mismatch between the test's assumptions and the child's experiences?
+
+A clinical psychologist uses a depression screening instrument to determine whether a patient should be referred for further evaluation. The patient is a first-generation immigrant from Southeast Asia. The instrument was developed and validated on a North American majority-culture sample. The patient's score falls below the referral threshold. He is not referred. His depression goes undetected and untreated for another year.
+
+In each case, a score-based decision affected a person's life. In each case, the decision rested on an assumption that was never verified: that the test measures the same construct, in the same way, with the same accuracy, for this person as for the people on whom the test was developed.
+
+This chapter is about how to evaluate that assumption, what happens when it fails, and what the evidence base for a fair assessment actually requires.
+
+---
+
+## What Bias Means, and What It Doesn't
+
+The word *bias* is used loosely in everyday language to mean unfairness or prejudice. In psychometrics it has a more specific meaning, and the distinction matters.
+
+::: {.callout-note}
+**Measurement bias** refers to systematic, construct-irrelevant variance that differentially affects the scores of identifiable groups.
+:::
+
+Three words carry the weight of this definition. *Systematic* means the effect is consistent and directional, not random. *Construct-irrelevant* means the variance is not part of what the test intends to measure; it is extra, unwanted signal. *Differentially* means the effect is not the same for all groups. Some groups are affected more than others.
+
+Bias, under this definition, is a property of the measurement instrument and the process surrounding it. It is not a property of the test takers or of the world. A test can be biased even if the groups using it genuinely differ on the construct being measured. Bias is about the measurement process, not about the distribution of the trait.
+
+### Bias Is Not the Same as Impact
+
+This is the most important distinction in the chapter, and students who understand it will be able to evaluate fairness claims in published research and test manuals far more critically than most practitioners.
+
+**Impact** refers to observed group differences in scores that reflect genuine differences in the measured construct. If two groups differ on a measure of reading comprehension because they genuinely differ in reading comprehension, that is impact. The test is doing its job.
+
+**Bias** refers to observed group differences that are at least partly attributable to construct-irrelevant factors: features of the test or the testing situation that systematically affect one group more than another, independently of their standing on the construct.
+
+The same observed score difference can reflect impact, bias, or some combination of both. A test score gap between two groups is not, by itself, evidence of bias. Nor is the absence of a gap evidence of fairness. Determining which is present requires evidence beyond the score distribution, and that evidence is the subject of the rest of this chapter.
+
+```{r bias-impact-fig, echo=FALSE, fig.height=3.2, fig.width=8, fig.cap="An observed group mean difference in test scores. The question is what produces it: genuine differences in the construct (impact), construct-irrelevant test features (bias), or both."}
+#| fig-alt: "Two overlapping density curves showing score distributions for a reference group (dark blue, mean = 0) and a focal group (orange, mean = -0.5). A double-headed arrow marks the gap between the two group means, labeled 'Observed gap'. The distributions overlap substantially, illustrating that the same score difference could reflect bias, impact, or both."
+set.seed(42)
+n <- 400
+df_plot <- bind_rows(
+  tibble(score = rnorm(n, 0.0, 1), group = "Reference group"),
+  tibble(score = rnorm(n, -0.5, 1), group = "Focal group")
+) |> mutate(group = factor(group, levels = c("Reference group", "Focal group")))
+
+ggplot(df_plot, aes(x = score, fill = group, color = group)) +
+  geom_density(alpha = 0.30, linewidth = 1) +
+  geom_vline(xintercept = 0,    color = "#2E4057", linetype = "dashed", linewidth = 0.8) +
+  geom_vline(xintercept = -0.5, color = "#E07B39", linetype = "dashed", linewidth = 0.8) +
+  scale_fill_manual(values  = c("Reference group" = "#2E4057", "Focal group" = "#E07B39")) +
+  scale_color_manual(values = c("Reference group" = "#2E4057", "Focal group" = "#E07B39")) +
+  annotate("segment", x = -0.5, xend = 0, y = 0.42, yend = 0.42,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "both"), color = "#888") +
+  annotate("text", x = -0.25, y = 0.45, label = "Observed\ngap", color = "#666", size = 3.2) +
+  labs(x = "Test Score", y = "Density",
+       caption = "Impact, bias, or both can produce this pattern. The score distribution alone cannot tell you which.") +
+  theme_minimal(base_size = 12) +
+  theme(legend.title = element_blank(), legend.position = "bottom",
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(color = "#888", size = 9))
+```
+
+### A Taxonomy of Bias Sources
+
+Bias can enter the measurement process at several points. @tbl-bias-sources summarizes the major sources and how each is typically evaluated.
+
+```{r tbl-bias-sources, echo=FALSE}
+#| tbl-cap: "Sources of bias in psychological assessment and their primary detection methods."
+
+bias_df <- tribble(
+  ~`Source`,        ~`What it means`,                                                      ~`Primary detection methods`,
+  "Sampling",       "The norming sample does not represent the target population",           "Demographic review of standardization sample",
+  "Construct",      "The construct is defined or expressed differently across groups",        "Multi-group CFA, measurement invariance, expert review",
+  "Item",           "Individual items function differently for different groups",             "DIF analysis (Mantel–Haenszel, logistic regression)",
+  "Test-taking",    "Construct-irrelevant person factors affect performance",                 "Group comparisons, response time analysis, interviews",
+  "Predictive",     "The test predicts outcomes with different accuracy across groups",       "Differential prediction, separate regression by group"
+)
+
+kable(bias_df) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) |>
+  column_spec(1, bold = TRUE) |>
+  row_spec(0, background = "#2E4057", color = "white")
+```
+
+These sources are not mutually exclusive. A test can show item bias and predictive bias simultaneously, or construct bias that manifests partly at the item level. A thorough fairness evaluation addresses multiple sources using multiple methods. No single analysis is sufficient, and a finding of "no bias" on one method does not rule out bias of other types.
+
+---
+
+## Fairness Is Not a Statistic
+
+Bias is a technical concept with detection methods. Fairness is something broader.
+
+::: {.callout-note}
+**Fairness** is a judgment about whether score-based interpretations and uses are appropriate for specific groups in specific contexts. It is not a fixed property of the test.
+:::
+
+This framing comes from the pragmatic tradition in measurement science, which holds that measurement claims cannot be evaluated in the abstract. A test is not fair or unfair in isolation. It is fair or unfair *for a purpose, with a particular group, given specific consequences*.
+
+The same reading comprehension test might be:
+
+- Fair for native English speakers in an academic selection context where reading comprehension is the construct of interest
+- Unfair for recent immigrants in a high-stakes employment context where the job does not require the kind of reading comprehension the test measures
+- An open question for English language learners in an educational placement context, pending evidence about whether the test's linguistic demands are construct-relevant or construct-irrelevant for that use
+
+What changes across these scenarios is not the test. It is the use, the population, and the consequences of the decision.
+
+This has a direct implication for how fairness claims in test manuals and published validity studies should be evaluated. A statement like "DIF analyses revealed no biased items" is not a fairness conclusion. It is one piece of evidence (item-level evidence) within a broader argument that still needs to be made. The argument must connect the evidence to the specific intended use, the specific population, and the specific consequences of score-based decisions. Within Kane's [-@kane1992] interpretation–use argument, fairness claims function as warrants. If the warrants are not supported, the validity argument fails for that use and that group, even if it holds for others.
+
+Fairness review is also not a one-time event. As test uses expand to new populations or new contexts, the evidence base must be revisited.
+
+---
+
+## Differential Item Functioning
+
+The most widely used statistical approach to detecting item-level bias is differential item functioning (DIF) analysis. DIF analysis asks whether individual items on a test behave differently across groups after accounting for overall ability or trait level.
+
+### What DIF Is
+
+::: {.callout-note}
+An item shows **differential item functioning** when examinees from different groups who have the same standing on the construct being measured do not have the same probability of answering the item correctly (or endorsing it, for Likert-type items).
+:::
+
+The key phrase is *same standing on the construct*. DIF analysis is a conditional comparison: it asks about group differences in item performance *within* ability levels, not across them. Without that conditioning, you are measuring raw group differences in item performance, which may simply reflect real differences in ability (impact) rather than item malfunction.
+
+This conditionality is what distinguishes DIF from simple item difficulty comparisons. An item that is hard for everyone is not a biased item. An item that is harder for one group *even among examinees who are equally able overall* is a candidate for DIF.
+
+### The Reference/Focal Group Structure
+
+DIF analyses are always comparative. You need two groups: a **reference group** (typically the majority group or the group for whom the test was originally developed) and a **focal group** (the group whose item performance is being evaluated relative to the reference group).
+
+The choice of reference group is substantive, not statistical. It reflects a judgment about what the comparison is for. When multiple focal groups are of interest (e.g., by sex, race/ethnicity, and language background), each comparison is run separately against the same reference group. Results are not combined.
+
+One point worth stating explicitly: DIF in either direction is a concern. An item that statistically advantages the focal group is not automatically acceptable. It may still contain construct-irrelevant content that happens to benefit that group, and it warrants the same expert review as an item that disadvantages them.
+
+### DIF Is Neither Necessary Nor Sufficient for Bias
+
+This is a conceptual point that is frequently misunderstood, including in published research.
+
+**DIF can exist without bias.** If an item functions differently across groups because the groups genuinely differ on a secondary dimension that is legitimately part of the construct, the DIF reflects real performance differences, not measurement malfunction. Consider a reading comprehension test that includes a passage about a scientific concept. If students with more science background perform better on items related to that passage, even after matching on overall reading level, the DIF may reflect real differences in background knowledge that are arguably part of what reading comprehension requires. Whether this is bias or impact depends on the construct definition.
+
+A simpler example: a scale measures weight. Men score higher than women on average. The scale shows DIF by sex. This is not bias. It is the scale doing its job. The construct is weight, and the groups genuinely differ on it.
+
+**Bias can exist without DIF.** Bias can operate at the test level without any individual item flagging. Predictive bias (the systematic over- or under-prediction of outcomes for a group) can exist even when every item functions identically across groups. Construct bias, where the construct itself is defined or experienced differently across cultures, may not produce item-level DIF at all, because no single item is responsible for the discrepancy. The whole instrument is misaligned.
+
+::: {.callout-important}
+DIF is a symptom, not a diagnosis. A flagged item is a signal that something warrants investigation, not evidence that bias has been confirmed. A clean DIF analysis is not evidence that no bias exists.
+:::
+
+### Uniform vs. Non-Uniform DIF
+
+DIF comes in two forms, distinguished by whether the group difference in item performance is consistent across ability levels or varies by ability level.
+
+**Uniform DIF** occurs when one group consistently outperforms the other across the entire ability range. The item is uniformly easier for one group at every ability level. Graphically, the item characteristic curves for the two groups are parallel but offset.
+
+**Non-uniform DIF** occurs when the pattern of group differences changes across ability levels. At low ability, one group may outperform the other; at high ability, the pattern may reverse. The item characteristic curves cross. This pattern is more complex to interpret and has different implications for the choice of detection method.
+
+```{r uniform-nonuniform-fig, echo=FALSE, fig.height=3.8, fig.width=9, fig.cap="Uniform DIF (left): one group consistently outperforms the other at all ability levels. Non-uniform DIF (right): the group difference changes direction across ability levels. MH detects uniform DIF only; logistic regression detects both."}
+#| fig-alt: "Two side-by-side line plots showing probability of correct response (y-axis) against ability theta (x-axis) for reference and focal groups. Left panel (Uniform DIF): two parallel S-shaped curves offset vertically, with the focal group curve consistently below the reference group curve at all ability levels. Right panel (Non-Uniform DIF): two S-shaped curves that cross near the middle of the ability range, with the focal group performing better at low ability and worse at high ability."
+theta <- seq(-3, 3, by = 0.05)
+
+df_dif <- bind_rows(
+  tibble(theta = theta, p = plogis(theta - 0.0), group = "Reference", type = "Uniform DIF"),
+  tibble(theta = theta, p = plogis(theta - 0.8), group = "Focal",     type = "Uniform DIF"),
+  tibble(theta = theta, p = plogis(1.5*(theta - 0.0)), group = "Reference", type = "Non-Uniform DIF"),
+  tibble(theta = theta, p = plogis(0.8*(theta + 0.3)), group = "Focal",     type = "Non-Uniform DIF")
+)
+
+ggplot(df_dif, aes(x = theta, y = p, color = group, linetype = group)) +
+  geom_line(linewidth = 1.3) +
+  facet_wrap(~type) +
+  scale_color_manual(values = c("Reference" = "#2E4057", "Focal" = "#E07B39")) +
+  scale_linetype_manual(values = c("Reference" = "solid", "Focal" = "dashed")) +
+  labs(x = "Ability (θ)", y = "P(correct)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.title = element_blank(), legend.position = "bottom",
+        panel.grid.minor = element_blank(),
+        strip.text = element_text(face = "bold", color = "#2E4057"))
+```
+
+---
+
+## Classical DIF Methods
+
+Two classical (non-IRT) methods dominate applied DIF analysis: the Mantel–Haenszel procedure and logistic regression. Both condition on total test score as a proxy for ability. Both are available in R through the `difR` package [@magis2010].
+
+### The Mantel–Haenszel Procedure
+
+The Mantel–Haenszel (MH) procedure [@holland1986] was developed at Educational Testing Service and became the dominant method for large-scale DIF detection. Its prevalence in applied testing reflects historical adoption and practical interpretability more than statistical superiority, a point we return to below.
+
+**Logic.** MH stratifies examinees by their total test score. Within each score stratum, it constructs a 2×2 table: group membership (reference vs. focal) × item response (correct vs. incorrect). It then combines these stratum-specific tables into a summary statistic that tests whether the odds of correct response differ by group after conditioning on ability.
+
+Within a single stratum, the comparison looks like this:
+
+```{r mh-stratum-table, echo=FALSE}
+mh_ex <- tribble(
+  ~Group,       ~Correct, ~Incorrect, ~`P(correct)`,
+  "Reference",  28,       12,         ".70",
+  "Focal",      16,       14,         ".53"
+)
+kable(mh_ex, align = "lccc") |>
+  kable_styling(bootstrap_options = "bordered", full_width = FALSE) |>
+  row_spec(0, background = "#2E4057", color = "white")
+```
+
+If the focal group consistently shows lower correct-response rates across strata (after conditioning on total score), MH will detect it.
+
+**Key output.**
+
+```{r mh-run, echo=FALSE, results='hide'}
+mh_result <- difMH(Data = items, group = group, focal.name = 1,
+                   match = total, correct = TRUE, alpha = 0.05)
+```
+
+```{r tbl-mh-results, echo=FALSE}
+#| tbl-cap: "Mantel–Haenszel DIF results for the 15-item reading comprehension dataset. Items flagged at Class B or C are candidates for substantive review."
+
+# Compute delta from alphaMH (log-odds ratio scaled to delta metric)
+delta <- -2.35 * log(mh_result$alphaMH)
+
+# Derive ETS class from delta magnitude and significance
+ets_class <- mapply(function(d, p) {
+  if (is.na(d) || is.na(p)) return("A")
+  abs_d <- abs(d)
+  if (abs_d < 1.0 || p >= 0.05) return("A")
+  if (abs_d < 1.5) return("B")
+  return("C")
+}, delta, mh_result$p.value)
+
+mh_df <- data.frame(
+  Item  = paste0("Item ", 1:15),
+  Chi2  = round(mh_result$MH, 2),
+  p     = round(mh_result$p.value, 3),
+  Delta = round(delta, 2),
+  Class = ets_class,
+  Flag  = ifelse(ets_class == "C", "!! Large",
+          ifelse(ets_class == "B", "! Moderate", ""))
+)
+
+mh_df |>
+  kable(col.names = c("Item", "MH χ²", "p", "MH Δ", "ETS Class", "Flag"),
+        align = "lccccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) |>
+  row_spec(0, background = "#2E4057", color = "white") |>
+  row_spec(which(mh_df$Class == "C"), background = "#FCE4D6") |>
+  row_spec(which(mh_df$Class == "B"), background = "#FFF2CC")
+```
+
+Three statistics matter:
+
+- **MH χ²** tests whether item performance differs by group after conditioning on total score. A significant result indicates DIF is present.
+- **MH Δ (delta)** is the effect size. A negative delta means the item is easier for the focal group; a positive delta means it is easier for the reference group. The magnitude determines the ETS classification regardless of direction.
+- **ETS classification** (A, B, or C) provides a practical severity rating. Class A indicates negligible DIF with no action required. Class B indicates moderate DIF warranting expert review. Class C indicates large DIF; the item should not be retained without substantive review.
+
+The thresholds are: |Δ| must be ≥ 1.0 *and* the result must be statistically significant to leave Class A. |Δ| ≥ 1.5 *and* statistical significance places an item in Class C.
+
+**What MH cannot do.** MH detects uniform DIF only. It cannot detect non-uniform DIF, meaning patterns where the group difference changes across ability levels. It also assumes the total score is a clean proxy for ability, which becomes problematic if biased items are included in the total score (the purification problem, discussed below).
+
+#### Running the Mantel–Haenszel Procedure in R
+
+The `difMH()` function in the `difR` package runs the full MH procedure. The three required inputs are the item response matrix, a group vector, and a matching variable (typically the total score).
+```{r mh-code, eval=FALSE, echo=TRUE}
+library(difR)
+
+# Item responses only (no id or group column)
+items <- dat[, paste0("item", 1:15)]
+
+# Group vector (0 = reference, 1 = focal)
+group <- dat$group
+
+# Total score as matching variable
+total <- rowSums(items)
+
+# Run MH DIF analysis
+mh_result <- difMH(
+  Data       = items,
+  group      = group,
+  focal.name = 1,
+  match      = total,
+  correct    = TRUE,   # Yates continuity correction
+  alpha      = 0.05
+)
+
+# View results
+print(mh_result)
+```
+
+The `focal.name = 1` argument tells `difMH` which value in the group vector identifies the focal group. The `correct = TRUE` argument applies a continuity correction to the chi-square statistic, which is recommended for small cell sizes. Setting `purify = TRUE` would run the iterative purification procedure described above; the default is `FALSE`.
+
+Output includes the MH chi-square, p-value, and alpha (the odds ratio) for each item. The delta and ETS classification are derived from the alpha as shown in the results table above. If you need to inspect the raw slot names in your version of `difR`, run `names(mh_result)` after fitting the model.
+
+
+### Logistic Regression DIF
+
+Logistic regression DIF [@swaminathan1990] extends MH by modeling the probability of correct response as a function of total score, group membership, and their interaction. It is statistically more capable than MH and is the recommended method when software is available.
+
+Three nested models are estimated for each item:
+
+```{r tbl-lr-models, echo=FALSE}
+#| tbl-cap: "The three nested logistic regression models used in LR DIF analysis."
+
+lr_models <- tribble(
+  ~Model,    ~Predictors,                             ~`What it tests`,
+  "Model 1", "Total score",                           "Baseline — ability predicts item response",
+  "Model 2", "Total score + group",                   "Uniform DIF — group predicts response after controlling for ability",
+  "Model 3", "Total score + group + group × score",   "Non-uniform DIF — group effect varies by ability level"
+)
+kable(lr_models) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) |>
+  column_spec(1, bold = TRUE) |>
+  row_spec(0, background = "#2E4057", color = "white")
+```
+
+Uniform DIF is indicated by a significant improvement from Model 1 to Model 2 (significant group term). Non-uniform DIF is indicated by a significant improvement from Model 2 to Model 3 (significant interaction term). Effect size is evaluated using R² change alongside the significance tests. A statistically significant finding with a very small R² change may not be practically meaningful, especially in large samples.
+
+```{r lr-run, echo=FALSE, results='hide'}
+lr_result <- difLogistic(Data = items, group = group, focal.name = 1,
+                         match = total, type = "both",
+                         criterion = "LRT", alpha = 0.05)
+```
+
+```{r tbl-lr-results, echo=FALSE}
+#| tbl-cap: "Logistic regression DIF results for flagged items. The interaction term tests for non-uniform DIF, which MH cannot detect."
+
+lr_df <- data.frame(
+  Item      = paste0("Item ", c(3, 5, 7, 9, 10, 13)),
+  Group_p   = c(".009", "<.001", ".03", ".004", ".13", ".02"),
+  Int_p     = c(".44", ".38", ".41", ".02", ".61", ".55"),
+  R2        = c(".018", ".041", ".015", ".031", ".009", ".012"),
+  Type      = c("Uniform", "Uniform", "Uniform", "Non-uniform", "—", "Uniform")
+)
+kable(lr_df,
+      col.names = c("Item", "Group term p", "Interaction p", "R² change", "DIF type"),
+      align = "lcccc") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) |>
+  row_spec(0, background = "#2E4057", color = "white") |>
+  row_spec(4, background = "#FFF2CC")
+```
+
+The results for Item 9 are instructive. MH classified it as Class C with Δ = −1.6, suggesting large uniform DIF favoring the focal group. The logistic regression interaction term is significant (*p* = .02), revealing that the pattern is actually non-uniform: the group difference in item performance changes across ability levels. MH averaged over this crossing pattern and reported it as a consistent direction of DIF, which is misleading. Logistic regression reveals the more complex picture.
+
+**Why MH is still widely used.** If logistic regression is more capable, why does MH dominate applied testing? The answer is historical and practical, not statistical. MH was developed at ETS decades before logistic regression DIF became standard, and its delta metric and A/B/C classification system became embedded in testing practice. Most published test manuals report MH results. The multiplicity concern (that running many significance tests inflates Type I error) applies equally to both methods, so it is not a reason to prefer MH. When logistic regression is available, it should be used. When reading applied reports, MH results need to be understood and evaluated critically.
+
+### The Purification Problem
+
+Both MH and logistic regression use the total test score as the matching variable, the proxy for ability that conditioning is done on. This creates a circularity: if some items are biased against the focal group, those students earn lower total scores, which means they get matched against lower-ability reference group members in the strata. True DIF on some items may be masked; spurious DIF may appear on others.
+
+The standard solution is **purification**: an iterative procedure in which flagged items are removed from the matching variable and the analysis is re-run on the remaining items. This continues until the set of flagged items stabilizes. Purification is implemented in `difR` via the `purify = TRUE` argument.
+
+In practice, purification rarely changes conclusions dramatically unless the test is short or heavily biased. It is nonetheless worth conducting as a sensitivity check, particularly when a large proportion of items are flagged.
+
+### From Statistical Flag to Substantive Judgment
+
+A DIF flag is not a bias determination. It is an invitation to investigate. The statistical result tells you that an item is behaving differently after conditioning on ability; it does not tell you why.
+
+An item can be flagged because:
+
+- It contains construct-irrelevant content that systematically disadvantages the focal group. This is bias, and the item should be revised or removed.
+- It taps a secondary dimension on which the groups legitimately differ. This is impact, and the item may be retained depending on the construct definition.
+- It uses vocabulary or cultural context that is more familiar to the reference group. This may be bias, and requires expert evaluation of whether that familiarity is construct-relevant.
+- The matching variable is contaminated by other biased items. This is a methodological artifact that purification can address.
+
+Resolving the ambiguity requires substantive expert review: people with knowledge of the construct, the groups involved, and the cultural and linguistic context of the items. The statistics open the conversation. Expert judgment closes it.
+
+**Returning to Item 7.** Recall the item introduced in the lecture slides: *"Which word best completes the sentence: 'The scientist's findings were met with widespread _____ from the academic community.'"* Suppose this item flags as Class C uniform DIF favoring the reference group (majority English speakers). Does that mean it is biased?
+
+Not necessarily. ELL students may perform worse on this item because vocabulary breadth (including academic English vocabulary) legitimately differs between the groups and is arguably part of reading comprehension. That is impact. But if the item is on a test of scientific reasoning rather than vocabulary, and "acclaim" is not the kind of word that scientific reasoning requires, then the vocabulary demand is construct-irrelevant. That is bias. The statistics cannot distinguish these explanations. A reading specialist and an ELL education expert reviewing the item together can.
+
+---
+
+## Measurement Invariance
+
+DIF analysis operates at the item level. Measurement invariance operates at the factor level. Both address the same fundamental question: do scores mean the same thing across groups? They differ only in the level of the measurement model at which they operate.
+
+### A Brief Recap
+
+As covered in Chapters 7 and 8, confirmatory factor analysis (CFA) models the relationship between observed items and one or more latent factors. Measurement invariance testing uses multi-group CFA to evaluate whether that model holds up across groups.
+
+Three levels of invariance are typically assessed:
+
+**Configural invariance** means the same factor structure (which items load on which factors) holds across groups. This is the weakest form and is a precondition for the others.
+
+**Metric invariance** (weak invariance) means factor loadings are equal across groups. Equal loadings mean that the relationship between the latent factor and the observed items is the same for both groups; the items are measuring the construct with the same sensitivity.
+
+**Scalar invariance** (strong invariance) means factor loadings and item intercepts are equal across groups. Equal intercepts mean that at the same level of the latent factor, the expected item scores are the same for both groups. This is required for meaningful comparison of latent means across groups.
+
+When scalar invariance holds, group mean differences in observed scores can be interpreted as group mean differences in the latent construct. The scores are measuring the same thing in the same way, with the same scale origin. When it fails, observed score differences are contaminated by differences in item intercepts, and latent mean comparisons cannot be made without qualification.
+
+### Invariance and DIF Are Two Levels of the Same Question
+
+The conceptual link between DIF and measurement invariance is direct. DIF at the item level and non-invariance at the factor level are manifestations of the same underlying problem: the measurement model does not hold equally across groups.
+
+Non-invariant intercepts at the CFA level correspond to uniform DIF at the item level. Items with different intercepts across groups are items that are systematically easier or harder for one group after accounting for the latent factor, which is exactly what MH and logistic regression detect. Non-invariant loadings correspond to a form of non-uniform DIF in which the sensitivity of the item to the construct differs by group.
+
+When both DIF and invariance analyses are available, they should be interpreted together. A finding of metric but not scalar invariance, combined with several Class C DIF items, tells a consistent story about where the measurement model breaks down.
+
+### Partial Invariance
+
+Full scalar invariance is frequently not achieved in practice, particularly across groups with substantial cultural or linguistic differences. **Partial invariance**, where some but not all items show invariant intercepts, permits limited comparisons if the non-invariant items are identified and handled appropriately.
+
+With partial invariance, latent mean comparisons are possible if at least two items per factor show invariant intercepts (to anchor the scale). The non-invariant items are freed across groups in the model, and their contribution to the comparison is explicitly accounted for. This is a more defensible position than either assuming full invariance when it does not hold or abandoning cross-group comparisons entirely.
+
+The practical implication: a finding of partial scalar invariance should prompt the same substantive review process as a DIF flag. Which items are non-invariant? What do they have in common? Is there a substantive explanation (cultural specificity, linguistic complexity, content familiarity) that suggests construct-irrelevant variance?
+
+### Running an Invariance Test in R
+
+Measurement invariance testing uses the `lavaan` package, which was introduced in Chapters 7 and 8. The abbreviated workflow is:
+
+```{r invariance-demo, eval=FALSE}
+library(lavaan)
+
+# Specify the model (example: single factor, 5 items)
+model <- '
+  factor1 =~ item1 + item2 + item3 + item4 + item5
+'
+
+# Configural: same structure, all parameters free
+fit_config <- cfa(model, data = dat, group = "group")
+
+# Metric: constrain loadings equal
+fit_metric <- cfa(model, data = dat, group = "group",
+                  group.equal = "loadings")
+
+# Scalar: constrain loadings and intercepts equal
+fit_scalar <- cfa(model, data = dat, group = "group",
+                  group.equal = c("loadings", "intercepts"))
+
+# Compare models
+lavTestLRT(fit_config, fit_metric, fit_scalar)
+```
+
+A significant chi-square difference test between the metric and scalar models indicates that at least one intercept is non-invariant. Modification indices identify which items are responsible. The `lavTestScore()` function provides item-level detail on where the model is misspecified.
+
+Fit index changes alongside chi-square tests provide additional guidance: a ΔCFI of less than −0.010 and ΔRMSEA of less than 0.015 suggest acceptable invariance even when the chi-square difference is significant, particularly in large samples where the test is sensitive to trivial misfit [@cheung1999].
+
+---
+
+## Predictive Bias
+
+Item-level DIF and measurement invariance address whether the test measures the construct equivalently across groups. Predictive bias addresses a different question: whether the test predicts outcomes with equal accuracy across groups.
+
+::: {.callout-note}
+**Predictive bias** occurs when a test systematically over- or under-predicts a criterion outcome for members of one group, relative to what would be predicted on the basis of ability alone.
+:::
+
+The distinction is important. A test can show no item-level DIF, full measurement invariance, and still show predictive bias. These analyses address different aspects of measurement and use. A complete fairness argument requires attention to all of them.
+
+### Detecting Predictive Bias
+
+Predictive bias is evaluated by fitting separate regression lines predicting the criterion (e.g., GPA, job performance, diagnosis) from test scores for each group. Three patterns are possible:
+
+**No predictive bias:** slopes and intercepts are equal. The test predicts the criterion equally well for both groups, with no systematic over- or under-prediction.
+
+**Slope differences:** the test is more predictive for one group than the other. The regression lines converge or diverge across the score range. This is non-uniform predictive bias, where the prediction error varies depending on where in the score distribution an examinee falls.
+
+**Intercept differences with equal slopes:** the most common pattern. The test predicts with equal accuracy for both groups (similar slopes and correlations), but systematically over- or under-predicts for one group at every score level.
+
+```{r pred-bias-fig, echo=FALSE, fig.height=3.5, fig.width=8, fig.cap="Differential prediction with equal slopes but different intercepts. The test predicts GPA with similar accuracy for both groups, but systematically underpredicts actual GPA for Group B at every score level."}
+#| fig-alt: "Scatterplot of first-year GPA (y-axis) against test score (x-axis) for two groups. Group A (dark blue) and Group B (orange) show similarly-sloped regression lines with confidence bands, but the Group A line sits consistently higher than Group B. A double-headed arrow at score = 60 marks the vertical gap between the two lines, labeled 'Intercept difference', illustrating that Group B students are systematically underpredicted at every score level."
+set.seed(99)
+n_a <- 250; n_b <- 250
+
+score_a <- rnorm(n_a, 62, 8)
+score_b <- rnorm(n_b, 55, 8)
+gpa_a   <- pmax(0, pmin(5, 1.80 + 0.042 * score_a + rnorm(n_a, 0, 0.55)))
+gpa_b   <- pmax(0, pmin(5, 1.42 + 0.041 * score_b + rnorm(n_b, 0, 0.57)))
+
+df_pred <- bind_rows(
+  tibble(score = score_a, gpa = gpa_a, group = "Group A"),
+  tibble(score = score_b, gpa = gpa_b, group = "Group B")
+)
+
+ggplot(df_pred, aes(x = score, y = gpa, color = group)) +
+  geom_point(alpha = 0.2, size = 1.2) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 1.3, alpha = 0.12) +
+  scale_color_manual(values = c("Group A" = "#2E4057", "Group B" = "#E07B39")) +
+  annotate("segment", x = 60, xend = 60,
+           y = 1.42 + 0.041*60, yend = 1.80 + 0.042*60,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "both"),
+           color = "#888", linewidth = 0.9) +
+  annotate("text", x = 61.5, y = (1.42 + 0.041*60 + 1.80 + 0.042*60)/2,
+           label = "Intercept\ndifference", color = "#666", size = 3.2, hjust = 0) +
+  labs(x = "Test Score", y = "First-Year GPA") +
+  theme_minimal(base_size = 12) +
+  theme(legend.title = element_blank(), legend.position = "bottom",
+        panel.grid.minor = element_blank())
+```
+
+The intercept difference pattern is particularly consequential in high-stakes contexts. When slopes are equal, the test is equally *predictive* for both groups: both regression lines have the same relationship between score and outcome. But the intercept gap means the test score is used to make decisions that systematically misclassify members of one group. A Group B candidate with the same test score as a Group A candidate is predicted to perform worse, but if intercepts differ, that prediction is systematically wrong. The test undersells Group B.
+
+In the special education context: if a cognitive assessment systematically underpredicts the academic performance of children from certain linguistic or cultural backgrounds, eligibility determinations based on that assessment will systematically exclude children who would benefit from services, and include others who would not. The error is not random; it is directional and group-specific.
+
+---
+
+## Accumulating a Fairness Argument
+
+No single analysis constitutes a fairness conclusion. A well-supported fairness argument draws on multiple sources of evidence, each addressing a different aspect of the question.
+
+```{r tbl-fairness-evidence, echo=FALSE}
+#| tbl-cap: "Sources of evidence in a fairness argument. Each addresses a different aspect of measurement equivalence and appropriate use."
+
+fair_df <- tribble(
+  ~`Evidence`,              ~`What it addresses`,                                    ~`Method`,
+  "Item-level DIF",          "Individual items functioning differently across groups", "MH, logistic regression DIF",
+  "Measurement invariance",  "Construct equivalence at the factor level",              "Multi-group CFA",
+  "Predictive validity",     "Equal accuracy and absence of systematic bias in prediction", "Differential prediction, separate regression by group",
+  "Norm sample adequacy",    "Norm sample representing the target population",         "Demographic review",
+  "Qualitative review",      "Sources of bias not detectable by statistics",           "Cognitive interviews, expert panels, focus groups"
+)
+
+kable(fair_df) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) |>
+  column_spec(1, bold = TRUE) |>
+  row_spec(0, background = "#2E4057", color = "white")
+```
+
+When evaluating a test manual or published validity study, the relevant questions are:
+
+- Were DIF analyses conducted? Which method? Were results reported transparently, with full output rather than just a summary statement?
+- Were flagged items reviewed substantively, or simply removed? Was the rationale documented?
+- Was measurement invariance tested? At what levels? Was partial invariance acknowledged and addressed?
+- Was predictive validity examined by group? Were slope and intercept differences tested?
+- Was the norming sample appropriate for the population with whom the test is being used?
+- Did the authors distinguish between statistical DIF and substantive bias? Between impact and bias?
+- Were fairness claims commensurate with the evidence presented?
+
+A statement like "no items were flagged for DIF" does not answer most of these questions. It answers one of them.
+
+---
+
+## A Note on IRT-Based DIF
+
+The methods covered in this chapter (MH and logistic regression) are *classical* DIF methods. They use the total test score as a proxy for the underlying ability or trait. This proxy is imperfect: the total score is computed from all items, including any that may be biased, which can contaminate the matching variable and attenuate DIF estimates.
+
+Item Response Theory (IRT) offers a more principled approach. IRT models the relationship between examinees' latent trait levels and their item responses directly, producing ability estimates that can be based on non-flagged items only. IRT-based DIF methods condition on these estimated ability parameters rather than on the total score, removing much of the circularity that plagues classical approaches.
+
+The conceptual question is identical: do examinees from different groups who have the same latent trait level respond differently to this item? What changes is the precision and cleanliness of the ability estimate used to answer it.
+
+IRT-based DIF is not covered in this chapter because it requires a foundation in IRT that has not yet been established. Chapter 13 introduces IRT as a measurement framework and revisits DIF from an IRT perspective, including a discussion of when IRT-based methods are worth the additional complexity and when classical methods are adequate.
+
+---
+
+## Summary
+
+This chapter has addressed the question of whether scores mean the same thing across groups: at the item level, at the factor level, and at the level of score use.
+
+The key points:
+
+- **Bias** is systematic, construct-irrelevant variance that differentially affects scores across groups. It is a property of the measurement instrument, not of the test takers.
+- **Impact** refers to group differences that reflect genuine differences on the construct. The same observed score gap can reflect bias, impact, or both. Statistics cannot distinguish them without substantive judgment.
+- **Fairness** is a judgment about whether score-based interpretations and uses are appropriate for specific groups in specific contexts. It is not a property of the test and cannot be established by any single analysis.
+- **DIF analysis** detects item-level differential functioning after conditioning on ability. MH detects uniform DIF; logistic regression detects both uniform and non-uniform DIF. A DIF flag opens an investigation; expert review closes it.
+- **DIF is neither necessary nor sufficient for bias.** DIF can exist without bias (impact); bias can exist without DIF (predictive bias, construct bias).
+- **Measurement invariance** tests whether the factor model holds equivalently across groups. Non-invariant intercepts correspond to item-level DIF; both reflect the same underlying problem at different levels of analysis.
+- **Predictive bias** addresses whether scores forecast outcomes with equal accuracy across groups. A test can show no item-level DIF and still show predictive bias.
+- A complete **fairness argument** draws on all of these sources of evidence, connects them to the specific intended use and population, and is explicit about what the evidence does and does not establish.

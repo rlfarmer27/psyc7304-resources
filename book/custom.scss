@@ -1,0 +1,48 @@
+/*-- scss:defaults --*/
+
+$primary:   #2E4057;
+$secondary: #E07B39;
+$success:   #3A7D44;
+$body-bg:   #ffffff;
+$body-color: #222222;
+
+$font-family-sans-serif: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+$font-family-monospace:  'Source Code Pro', 'Courier New', monospace;
+$font-size-root: 16px;
+
+$headings-color: #2E4057;
+$link-color:     #2E4057;
+
+/*-- scss:rules --*/
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&family=Source+Code+Pro&display=swap');
+
+// Callout styling consistent with slide deck
+.callout-note {
+  border-left-color: $primary;
+  background-color: #EEF2F7;
+}
+.callout-important {
+  border-left-color: #C0392B;
+  background-color: #FCE4D6;
+}
+.callout-tip {
+  border-left-color: $success;
+  background-color: #E2EFDA;
+}
+.callout-warning {
+  border-left-color: #C7A020;
+  background-color: #FFF8E1;
+}
+
+// Table header color
+thead {
+  background-color: $primary;
+  color: white;
+}
+
+// Tighten code blocks
+pre {
+  border-left: 4px solid $primary;
+  border-radius: 3px;
+}
