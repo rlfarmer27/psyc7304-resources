@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSYC 7304/8304 — Course Resources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:      #1e2d40;
+    --navy-mid:  #2E4057;
+    --blue-lt:   #d9e1f2;
+    --orange:    #d9672a;
+    --orange-lt: #f5dece;
+    --cream:     #faf8f5;
+    --stone:     #f0ece5;
+    --ink:       #1a1a1a;
+    --muted:     #6b6b6b;
+    --rule:      #ddd8d0;
+    --serif:     'DM Serif Display', Georgia, serif;
+    --sans:      'DM Sans', system-ui, sans-serif;
+    --mono:      'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--cream);
+  }
+
+  /* ── Header ─────────────────────────────────────────────────── */
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 56px 48px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -80px;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(217,103,42,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(46,64,87,0.6) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .course-tag {
+    font-family: var(--mono);
+    font-size: 0.75em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-size: 2.6em;
+    font-weight: 400;
+    line-height: 1.15;
+    color: white;
+    margin-bottom: 14px;
+    max-width: 680px;
+  }
+
+  .header-sub {
+    font-size: 0.95em;
+    color: rgba(255,255,255,0.65);
+    max-width: 560px;
+    line-height: 1.55;
+  }
+
+  .header-meta {
+    margin-top: 28px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    font-size: 0.8em;
+    color: rgba(255,255,255,0.5);
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+  }
+
+  .meta-item strong {
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+  }
+
+  /* ── Notice bar ──────────────────────────────────────────────── */
+  .notice {
+    background: var(--orange-lt);
+    border-left: 3px solid var(--orange);
+    padding: 12px 20px;
+    font-size: 0.85em;
+    color: #5a3010;
+  }
+
+  .notice-inner {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* ── Main layout ─────────────────────────────────────────────── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* ── Section headings ────────────────────────────────────────── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 6px;
+  }
+
+  h2.section-title {
+    font-family: var(--serif);
+    font-size: 1.6em;
+    font-weight: 400;
+    color: var(--navy);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* ── About block ─────────────────────────────────────────────── */
+  .about {
+    margin-bottom: 52px;
+  }
+
+  .about p {
+    color: var(--muted);
+    font-size: 0.95em;
+    max-width: 680px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  .about p:last-child { margin-bottom: 0; }
+
+  /* ── Module grid ─────────────────────────────────────────────── */
+  .modules-section { margin-bottom: 52px; }
+
+  .module-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .module-row {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    background: white;
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.15s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .module-row:last-child { border-bottom: none; }
+
+  .module-row:hover {
+    background: var(--stone);
+  }
+
+  .module-row.coming-soon {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .module-num {
+    font-family: var(--mono);
+    font-size: 0.72em;
+    color: var(--muted);
+    padding: 16px 0 16px 16px;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--rule);
+    background: var(--stone);
+    letter-spacing: 0.04em;
+  }
+
+  .module-row:hover .module-num {
+    background: #e8e3da;
+  }
+
+  .module-info {
+    padding: 14px 16px;
+  }
+
+  .module-title {
+    font-size: 0.93em;
+    font-weight: 600;
+    color: var(--navy-mid);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+
+  .module-row:hover .module-title {
+    color: var(--navy);
+  }
+
+  .module-desc {
+    font-size: 0.78em;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .module-status {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.68em;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .badge-available {
+    background: #e2efda;
+    color: #2d6235;
+    border: 1px solid #b8d9ae;
+  }
+
+  .badge-soon {
+    background: var(--stone);
+    color: #888;
+    border: 1px solid var(--rule);
+  }
+
+  /* ── Special rows ────────────────────────────────────────────── */
+  .module-row.special .module-num {
+    color: var(--orange);
+  }
+
+  /* ── Resources section ───────────────────────────────────────── */
+  .resources-section { margin-bottom: 52px; }
+
+  .resource-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .resource-card {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 18px 20px;
+    background: white;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .resource-card:hover {
+    border-color: var(--navy-mid);
+    box-shadow: 0 2px 8px rgba(30,45,64,0.08);
+  }
+
+  .resource-card.coming-soon {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .resource-icon {
+    font-size: 1.3em;
+    margin-bottom: 8px;
+  }
+
+  .resource-title {
+    font-size: 0.88em;
+    font-weight: 600;
+    color: var(--navy-mid);
+    margin-bottom: 3px;
+  }
+
+  .resource-desc {
+    font-size: 0.78em;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  /* ── Footer ──────────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 28px 24px;
+    background: white;
+  }
+
+  .footer-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-left {
+    font-size: 0.8em;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .footer-left strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .footer-right {
+    display: flex;
+    gap: 16px;
+  }
+
+  .footer-link {
+    font-size: 0.78em;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+
+  .footer-link:hover { color: var(--navy); }
+
+  /* ── Responsive ──────────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    header { padding: 36px 24px 32px; }
+    header h1 { font-size: 1.9em; }
+    .module-row { grid-template-columns: 44px 1fr; }
+    .module-status { display: none; }
+    .resource-grid { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <span class="course-tag">PSYC 7304 / 8304 · University of Memphis</span>
+    <h1>Measurement Theory &amp; Psychometrics</h1>
+    <p class="header-sub">Supplementary course materials organized by module — slides, datasets, and reference guides. Assignment instructions and lab submissions are on Canvas.</p>
+    <div class="header-meta">
+      <div class="meta-item"><strong>Instructor</strong> &nbsp;Ryan Farmer, PhD</div>
+      <div class="meta-item"><strong>Version</strong> &nbsp;v2026</div>
+      <div class="meta-item"><strong>Schedule</strong> &nbsp;Wednesdays 9:00 a.m. – 12:00 p.m.</div>
+    </div>
+  </div>
+</header>
+
+<div class="notice">
+  <div class="notice-inner">
+    Materials are added and updated throughout the semester. Check back after each class meeting. If something is missing that you expect to be here, check Canvas first — some materials remain there by design.
+  </div>
+</div>
+
+<main>
+
+  <!-- ── Modules ─────────────────────────────────────────────── -->
+  <section class="modules-section">
+    <p class="section-label">Course Content</p>
+    <h2 class="section-title">Modules</h2>
+
+    <div class="module-list">
+
+      <a href="00_midterm-review/" class="module-row special">
+        <div class="module-num">00</div>
+        <div class="module-info">
+          <div class="module-title">Midterm Review</div>
+          <div class="module-desc">Practice materials and study guides for the midterm exam</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="01_philosophy/" class="module-row">
+        <div class="module-num">01</div>
+        <div class="module-info">
+          <div class="module-title">Philosophy of Measurement &amp; Statistical Foundations</div>
+          <div class="module-desc">Defining measurement, historical perspectives, pragmatic approach, statistical review</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="02_ethics-data/" class="module-row">
+        <div class="module-num">02</div>
+        <div class="module-info">
+          <div class="module-title">Ethics in Measurement &amp; Data Management</div>
+          <div class="module-desc">APA Ethics Code, test security, FAIR data principles, open science practices</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="03_ctt-latent-variables/" class="module-row">
+        <div class="module-num">03</div>
+        <div class="module-info">
+          <div class="module-title">Classical Test Theory &amp; Latent Variables</div>
+          <div class="module-desc">True score theory, error, latent variable framework, reliability foundations</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="04_validity/" class="module-row">
+        <div class="module-num">04</div>
+        <div class="module-info">
+          <div class="module-title">Validity</div>
+          <div class="module-desc">Validity frameworks, Kane's interpretation–use argument, sources of validity evidence</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="05_reliability/" class="module-row">
+        <div class="module-num">05</div>
+        <div class="module-info">
+          <div class="module-title">Reliability</div>
+          <div class="module-desc">Cronbach's alpha, McDonald's omega, ICC, Cohen's kappa, SEM</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="06_efa/" class="module-row">
+        <div class="module-num">06</div>
+        <div class="module-info">
+          <div class="module-title">Exploratory Factor Analysis</div>
+          <div class="module-desc">PCA vs. PAF, factor retention, rotation, interpretation</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="07_cfa-part1/" class="module-row">
+        <div class="module-num">07</div>
+        <div class="module-info">
+          <div class="module-title">Confirmatory Factor Analysis — Part 1</div>
+          <div class="module-desc">Model specification, identification, path diagrams, lavaan syntax, basic interpretation</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="08_cfa-part2/" class="module-row">
+        <div class="module-num">08</div>
+        <div class="module-info">
+          <div class="module-title">Confirmatory Factor Analysis — Part 2</div>
+          <div class="module-desc">Model fit, modification indices, hierarchical and bifactor models, pathway to SEM</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="09_bias-fairness-dif/" class="module-row">
+        <div class="module-num">09</div>
+        <div class="module-info">
+          <div class="module-title">Test Bias, Fairness, &amp; Differential Item Functioning</div>
+          <div class="module-desc">Bias taxonomy, impact vs. bias, Mantel–Haenszel, logistic regression DIF, predictive bias</div>
+        </div>
+        <div class="module-status"><span class="badge badge-available">available</span></div>
+      </a>
+
+      <a href="10_diagnostic-accuracy/" class="module-row">
+        <div class="module-num">10</div>
+        <div class="module-info">
+          <div class="module-title">Diagnostic Accuracy &amp; ROC Analysis</div>
+          <div class="module-desc">Sensitivity, specificity, PPV, NPV, ROC curves, AUC, cut-score selection</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="11_scale-development/" class="module-row">
+        <div class="module-num">11</div>
+        <div class="module-info">
+          <div class="module-title">Scale Development</div>
+          <div class="module-desc">Theory to items, content validity, CVR/CVI, pilot testing, item analysis</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="12_questionable-practices/" class="module-row">
+        <div class="module-num">12</div>
+        <div class="module-info">
+          <div class="module-title">Questionable Measurement Practices &amp; Test Evaluation</div>
+          <div class="module-desc">Flake &amp; Fried framework, Buros review standards, comprehensive test evaluation</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+      <a href="13_integration/" class="module-row">
+        <div class="module-num">13</div>
+        <div class="module-info">
+          <div class="module-title">Course Integration &amp; Professional Psychometrics</div>
+          <div class="module-desc">Synthesizing course concepts, IRT overview, future directions in measurement</div>
+        </div>
+        <div class="module-status"><span class="badge badge-soon">coming soon</span></div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── Resources ───────────────────────────────────────────── -->
+  <section class="resources-section">
+    <p class="section-label">Reference</p>
+    <h2 class="section-title">General Resources</h2>
+    <div class="resource-grid">
+
+      <a href="https://www.testingstandards.net/open-access-files.html" target="_blank" class="resource-card">
+        <div class="resource-icon">📖</div>
+        <div class="resource-title">Standards for Educational and Psychological Testing</div>
+        <div class="resource-desc">AERA/APA/NCME (2014) — primary course text, open access</div>
+      </a>
+
+      <a href="https://quantitudepod.org/" target="_blank" class="resource-card">
+        <div class="resource-icon">🎙️</div>
+        <div class="resource-title">Quantitude Podcast</div>
+        <div class="resource-desc">Curran &amp; Hancock — supplementary listening on quantitative methods</div>
+      </a>
+
+      <a href="https://bookdown.org/sz_psyc490/r4psychometics/" target="_blank" class="resource-card">
+        <div class="resource-icon">💻</div>
+        <div class="resource-title">R Programming for Psychometrics</div>
+        <div class="resource-desc">Zhang &amp; Kwon — open access R reference for course software</div>
+      </a>
+
+      <a href="https://buros.org/reviewers-guide-mental-measurements-yearbook-series" target="_blank" class="resource-card">
+        <div class="resource-icon">📋</div>
+        <div class="resource-title">Buros Reviewer's Guide</div>
+        <div class="resource-desc">Standards and criteria for test evaluation — used in the Test Review assignment</div>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <strong>Ryan Farmer, PhD</strong> · University of Memphis · <a href="mailto:rlfarmer@memphis.edu" style="color: inherit;">rlfarmer@memphis.edu</a><br>
+      Licensed under the Mozilla Public License 2.0. Some content developed with AI assistance and reviewed by the instructor.
+    </div>
+    <div class="footer-right">
+      <a href="https://github.com/rlfarmer27/psyc7304-resources" class="footer-link" target="_blank">github</a>
+      <a href="https://github.com/rlfarmer27/psyc7304-resources/blob/main/LICENSE" class="footer-link" target="_blank">license</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
