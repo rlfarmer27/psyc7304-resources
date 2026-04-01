@@ -640,6 +640,32 @@ Notice that Group B students with higher test scores tend to have positive predi
 
 ---
 
+The intercept difference has a direct and concrete interpretation. The two regression equations share nearly identical slopes — meaning the test is equally predictive for both groups in terms of how GPA changes per unit of score. What differs is the baseline prediction. At any given test score, a Group B applicant is predicted to earn 0.38 GPA points less than a Group A applicant with the identical score. That gap is constant across the entire score range.
+
+```{r}
+library(knitr)
+library(kableExtra)
+
+pred_df <- data.frame(
+  Score     = c(50, 55, 58, 60, 65),
+  Group_A   = c(2.60, 2.74, 2.82, 2.88, 3.02),
+  Group_B   = c(2.22, 2.36, 2.44, 2.50, 2.64),
+  Difference = c(0.38, 0.38, 0.38, 0.38, 0.38)
+)
+
+kable(pred_df,
+      col.names = c("Test Score", "Group A predicted GPA",
+                    "Group B predicted GPA", "Difference"),
+      align = "cccc",
+      caption = "Predicted first-year GPA by group at selected test scores. The intercept difference of 0.38 GPA units is constant across the score range.") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE) |>
+  row_spec(0, background = "#2E4057", color = "white") |>
+  row_spec(3, background = "#FFF2CC")  # highlight cutoff row
+```
+
+At any given test score, Group B applicants are predicted to earn 0.38 GPA points less than Group A applicants with the same score. That gap is constant across the entire score range, as the table shows. Figure 2 traces what this means for admission decisions when a cutoff is applied. 
+
 **Figure 2** shows the decision consequences at a fixed admissions cutoff (dashed vertical line, score = 58). Use the slider to increase the intercept gap between the two groups. An incorrectly rejected applicant (X mark) scored below the cutoff but would have achieved a GPA at or above 2.5 if admitted. Watch what happens to Group B's X marks as the gap grows.
 
 ```{r pred-bias-slider, echo=FALSE, message=TRUE, warning=TRUE}
@@ -814,8 +840,11 @@ add_trace(x = c(28, 88), y = c(gpa_min, gpa_min),
 p2
 ```
 
-The X marks identify students rejected by the cutoff whose actual GPA meets the success threshold — a false negative produced by the cutoff. At gap = 0, both groups have similar error rates because the test predicts equally well for both. As the gap increases, Group B accumulates more X marks while Group A's count stays roughly stable. The cutoff is not inherently discriminatory; the prediction model is. The same test score carries different predictive meaning depending on which group's intercept applies.
+The X marks identify students rejected by the cutoff whose actual GPA meets the success threshold — a false negative produced by the cutoff. At gap = 0, the test predicts equally well for both groups, so false negatives arise from the position of the cutoff relative to each group's score distribution, not from prediction error. As the gap increases, Group B accumulates more X marks while Group A's count stays roughly stable. That shift is the signature of predictive bias: the same test score carries different predictive meaning depending on which group's regression line applies, and the cutoff does not account for it.
 
+At gap = 0.38 — the scenario shown in Figure 1 — a meaningful number of Group B applicants who would have achieved the success threshold are rejected because the combined model systematically underestimates their expected performance at that score. The cutoff acts on the score, but the score’s meaning is distorted by the biased prediction model.
+
+This kind of analysis — relating a cutoff to classification errors across groups — is taken up more formally in the chapter on diagnostic accuracy.
 
 ---
 
