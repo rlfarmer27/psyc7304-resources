@@ -643,6 +643,7 @@ Notice that Group B students with higher test scores tend to have positive predi
 **Figure 2** shows the decision consequences at a fixed admissions cutoff (dashed vertical line, score = 58). Use the slider to increase the intercept gap between the two groups. An incorrectly rejected applicant (X mark) scored below the cutoff but would have achieved a GPA at or above 2.5 if admitted. Watch what happens to Group B's X marks as the gap grows.
 
 ```{r pred-bias-slider, echo=FALSE, message=TRUE, warning=TRUE}
+library(plotly)
 # Variables carried from the interactive chunk above
 # Re-declared here for chunk isolation safety
 col_a  <- "#2E4057"
@@ -749,14 +750,16 @@ p2 <- plot_ly(height = 550) |>
             hovertemplate = "Group B | Rejected<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
 
   # Trace 6: cutoff line (fixed — not touched by slider)
-  add_segments(x = cutoff, xend = cutoff, y = 1.3, yend = 4.2,
-               line = list(color = "#333", width = 1.5, dash = "dash"),
-               name = "Admissions cutoff (58)", hoverinfo = "skip") |>
+add_trace(x = c(cutoff, cutoff), y = c(1.3, 4.2),
+          type = "scatter", mode = "lines",
+          line = list(color = "#333", width = 1.5, dash = "dash"),
+          name = "Admissions cutoff (58)", hoverinfo = "skip") |>
 
   # Trace 7: GPA threshold line (fixed)
-  add_segments(x = 28, xend = 88, y = gpa_min, yend = gpa_min,
-               line = list(color = "#aaa", width = 1, dash = "dot"),
-               name = "GPA threshold (2.5)", hoverinfo = "skip") |>
+add_trace(x = c(28, 88), y = c(gpa_min, gpa_min),
+          type = "scatter", mode = "lines",
+          line = list(color = "#aaa", width = 1, dash = "dot"),
+          name = "GPA threshold (2.5)", hoverinfo = "skip") |>
 
   plotly::layout(
     title = list(text = make_title(init), font = list(size = 11, color = "#444")),
