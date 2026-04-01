@@ -72,6 +72,7 @@ format:
     df-print: kable
     html-math-method: mathjax
     embed-resources: false
+    plotly: true
 
 execute:
   echo: false

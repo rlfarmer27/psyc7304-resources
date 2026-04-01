@@ -11,3 +11,4 @@ lubridate
 knitr
 kableExtra
 difR
+plotly

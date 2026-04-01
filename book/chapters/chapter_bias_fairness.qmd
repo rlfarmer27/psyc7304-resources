@@ -58,7 +58,7 @@ This is the most important distinction in the chapter, and students who understa
 
 The same observed score difference can reflect impact, bias, or some combination of both. A test score gap between two groups is not, by itself, evidence of bias. Nor is the absence of a gap evidence of fairness. Determining which is present requires evidence beyond the score distribution, and that evidence is the subject of the rest of this chapter.
 
-```{r bias-impact-fig, echo=FALSE, fig.height=3.2, fig.width=8, fig.cap="An observed group mean difference in test scores. The question is what produces it: genuine differences in the construct (impact), construct-irrelevant test features (bias), or both."}
+```{r bias-impact-fig, echo=FALSE, fig.height=3.8, fig.width=8.5, fig.cap="An observed group mean difference in test scores. The question is what produces it: genuine differences in the construct (impact), construct-irrelevant test features (bias), or both."}
 #| fig-alt: "Two overlapping density curves showing score distributions for a reference group (dark blue, mean = 0) and a focal group (orange, mean = -0.5). A double-headed arrow marks the gap between the two group means, labeled 'Observed gap'. The distributions overlap substantially, illustrating that the same score difference could reflect bias, impact, or both."
 set.seed(42)
 n <- 400
@@ -162,12 +162,14 @@ This is a conceptual point that is frequently misunderstood, including in publis
 
 **DIF can exist without bias.** If an item functions differently across groups because the groups genuinely differ on a secondary dimension that is legitimately part of the construct, the DIF reflects real performance differences, not measurement malfunction. Consider a reading comprehension test that includes a passage about a scientific concept. If students with more science background perform better on items related to that passage, even after matching on overall reading level, the DIF may reflect real differences in background knowledge that are arguably part of what reading comprehension requires. Whether this is bias or impact depends on the construct definition.
 
-A simpler example: a scale measures weight. Men score higher than women on average. The scale shows DIF by sex. This is not bias. It is the scale doing its job. The construct is weight, and the groups genuinely differ on it.
+A simpler example comes from a physical measurement. A bathroom scale measures weight. Men weigh more than women on average, so the raw scores differ by sex. That difference is impact, not bias. When you compare men and women who have the same actual weight, the scale gives them the same reading. There is no differential functioning once you condition on the construct.
+
+This works cleanly only because the construct—weight—is clearly defined and biologically grounded. For psychological constructs, where group differences may reflect cultural expression or measurement artifacts, the same logic may hold, but *does not* automatically, apply.
 
 **Bias can exist without DIF.** Bias can operate at the test level without any individual item flagging. Predictive bias (the systematic over- or under-prediction of outcomes for a group) can exist even when every item functions identically across groups. Construct bias, where the construct itself is defined or experienced differently across cultures, may not produce item-level DIF at all, because no single item is responsible for the discrepancy. The whole instrument is misaligned.
 
 ::: {.callout-important}
-DIF is a symptom, not a diagnosis. A flagged item is a signal that something warrants investigation, not evidence that bias has been confirmed. A clean DIF analysis is not evidence that no bias exists.
+DIF is a *highly informative* symptom but not a diagnosis. A flagged item is a signal that something warrants investigation, not evidence that bias has been confirmed. A clean DIF analysis is not evidence that no bias exists.
 :::
 
 ### Uniform vs. Non-Uniform DIF
@@ -178,7 +180,7 @@ DIF comes in two forms, distinguished by whether the group difference in item pe
 
 **Non-uniform DIF** occurs when the pattern of group differences changes across ability levels. At low ability, one group may outperform the other; at high ability, the pattern may reverse. The item characteristic curves cross. This pattern is more complex to interpret and has different implications for the choice of detection method.
 
-```{r uniform-nonuniform-fig, echo=FALSE, fig.height=3.8, fig.width=9, fig.cap="Uniform DIF (left): one group consistently outperforms the other at all ability levels. Non-uniform DIF (right): the group difference changes direction across ability levels. MH detects uniform DIF only; logistic regression detects both."}
+```{r uniform-nonuniform-fig, echo=FALSE, fig.height=4.2, fig.width=8.5, fig.cap="Uniform DIF (left): one group consistently outperforms the other at all ability levels. Non-uniform DIF (right): the group difference changes direction across ability levels. MH detects uniform DIF only; logistic regression detects both."}
 #| fig-alt: "Two side-by-side line plots showing probability of correct response (y-axis) against ability theta (x-axis) for reference and focal groups. Left panel (Uniform DIF): two parallel S-shaped curves offset vertically, with the focal group curve consistently below the reference group curve at all ability levels. Right panel (Non-Uniform DIF): two S-shaped curves that cross near the middle of the ability range, with the focal group performing better at low ability and worse at high ability."
 theta <- seq(-3, 3, by = 0.05)
 
@@ -195,10 +197,11 @@ ggplot(df_dif, aes(x = theta, y = p, color = group, linetype = group)) +
   scale_color_manual(values = c("Reference" = "#2E4057", "Focal" = "#E07B39")) +
   scale_linetype_manual(values = c("Reference" = "solid", "Focal" = "dashed")) +
   labs(x = "Ability (θ)", y = "P(correct)") +
+  scale_y_continuous(limits = c(2, 4.0), breaks = seq(2, 4, 0.5)) +
   theme_minimal(base_size = 12) +
   theme(legend.title = element_blank(), legend.position = "bottom",
-        panel.grid.minor = element_blank(),
-        strip.text = element_text(face = "bold", color = "#2E4057"))
+      panel.grid.minor = element_blank()) +
+coord_cartesian(clip = "off")
 ```
 
 ---
@@ -370,7 +373,7 @@ Both MH and logistic regression use the total test score as the matching variabl
 
 The standard solution is **purification**: an iterative procedure in which flagged items are removed from the matching variable and the analysis is re-run on the remaining items. This continues until the set of flagged items stabilizes. Purification is implemented in `difR` via the `purify = TRUE` argument.
 
-In practice, purification rarely changes conclusions dramatically unless the test is short or heavily biased. It is nonetheless worth conducting as a sensitivity check, particularly when a large proportion of items are flagged.
+In practice, purification is conceptually important but practically modest in most well-constructed tests. It is nonetheless worth conducting as a sensitivity check, particularly when a large proportion of items are flagged.
 
 ### From Statistical Flag to Substantive Judgment
 
@@ -385,9 +388,11 @@ An item can be flagged because:
 
 Resolving the ambiguity requires substantive expert review: people with knowledge of the construct, the groups involved, and the cultural and linguistic context of the items. The statistics open the conversation. Expert judgment closes it.
 
-**Returning to Item 7.** Recall the item introduced in the lecture slides: *"Which word best completes the sentence: 'The scientist's findings were met with widespread _____ from the academic community.'"* Suppose this item flags as Class C uniform DIF favoring the reference group (majority English speakers). Does that mean it is biased?
+**Item 7.** *"Which word best completes the sentence: 'The scientist's findings were met with widespread _____ from the academic community.'"* Suppose this item flags as Class C uniform DIF favoring the reference group (majority English speakers). Does that mean it is biased?
 
-Not necessarily. ELL students may perform worse on this item because vocabulary breadth (including academic English vocabulary) legitimately differs between the groups and is arguably part of reading comprehension. That is impact. But if the item is on a test of scientific reasoning rather than vocabulary, and "acclaim" is not the kind of word that scientific reasoning requires, then the vocabulary demand is construct-irrelevant. That is bias. The statistics cannot distinguish these explanations. A reading specialist and an ELL education expert reviewing the item together can.
+Not necessarily. ELL students may perform worse on this item because academic vocabulary legitimately differs between groups, and if vocabulary knowledge is part of what this reading comprehension test is intended to measure, then the DIF reflects impact, not bias. The item is functioning as designed.
+
+But if the same item appears on a test of scientific reasoning, where vocabulary breadth is not part of the construct, then the linguistic demand is construct‑irrelevant. In that context, the DIF would indicate bias. The statistics cannot distinguish these explanations. Only substantive review—by a reading specialist and an ELL education expert—can determine whether the vocabulary demand aligns with the construct the test claims to measure.
 
 ---
 
@@ -512,6 +517,302 @@ ggplot(df_pred, aes(x = score, y = gpa, color = group)) +
 The intercept difference pattern is particularly consequential in high-stakes contexts. When slopes are equal, the test is equally *predictive* for both groups: both regression lines have the same relationship between score and outcome. But the intercept gap means the test score is used to make decisions that systematically misclassify members of one group. A Group B candidate with the same test score as a Group A candidate is predicted to perform worse, but if intercepts differ, that prediction is systematically wrong. The test undersells Group B.
 
 In the special education context: if a cognitive assessment systematically underpredicts the academic performance of children from certain linguistic or cultural backgrounds, eligibility determinations based on that assessment will systematically exclude children who would benefit from services, and include others who would not. The error is not random; it is directional and group-specific.
+
+### A Closer Look: Simulating Predictive Bias
+
+The scatter plot above shows the intercept difference pattern statically. The two interactive figures below let you engage with the data directly.
+
+**Figure 1** shows the prediction error for each student. When an admissions office applies a single combined regression equation to both groups, Group B students are systematically underpredicted. Hover over any point to see the actual GPA, the predicted GPA from the combined model, and the prediction error.
+
+```{r pred-bias-interactive, echo=FALSE, message=FALSE, warning=FALSE}
+library(plotly)
+
+# ── Generate base data once ───────────────────────────────────────────────────
+set.seed(42)
+n_a <- 250; n_b <- 250
+
+score_a <- rnorm(n_a, 62, 9)
+score_b <- rnorm(n_b, 55, 9)
+resid_a <- rnorm(n_a, 0, 0.42)
+resid_b <- rnorm(n_b, 0, 0.42)
+
+slope   <- 0.028
+int_a   <- 1.20
+gap_real <- 0.38
+
+gpa_a      <- pmax(1.5, pmin(4.0, int_a + slope * score_a + resid_a))
+gpa_b_real <- pmax(1.5, pmin(4.0, (int_a - gap_real) + slope * score_b + resid_b))
+
+df_a   <- tibble(score = score_a, gpa = gpa_a,      group = "Group A")
+df_b   <- tibble(score = score_b, gpa = gpa_b_real, group = "Group B")
+df_all <- bind_rows(df_a, df_b)
+
+# Single combined model
+cmod           <- lm(gpa ~ score, data = df_all)
+df_all$pred    <- round(predict(cmod, newdata = df_all), 2)
+df_all$err     <- round(df_all$gpa - df_all$pred, 2)
+df_all$gpa_r   <- round(df_all$gpa, 2)
+df_all$score_r <- round(df_all$score, 1)
+
+df_a2 <- df_all |> filter(group == "Group A")
+df_b2 <- df_all |> filter(group == "Group B")
+
+# Regression lines
+score_seq <- seq(28, 88, by = 1)
+line_a    <- data.frame(score = score_seq, gpa = int_a + slope * score_seq)
+line_b    <- data.frame(score = score_seq, gpa = (int_a - gap_real) + slope * score_seq)
+line_comb <- data.frame(score = score_seq,
+                        gpa   = predict(cmod, newdata = data.frame(score = score_seq)))
+
+col_a <- "#2E4057"; col_b <- "#E07B39"; col_c <- "#888888"
+
+# Build customdata as list of two-element lists (not matrix)
+cd_a <- lapply(seq_len(nrow(df_a2)), function(i)
+  list(df_a2$pred[i], df_a2$err[i]))
+cd_b <- lapply(seq_len(nrow(df_b2)), function(i)
+  list(df_b2$pred[i], df_b2$err[i]))
+
+p1 <- plot_ly() |>
+
+  add_trace(
+    x = df_a2$score_r, y = df_a2$gpa_r,
+    customdata = cd_a,
+    type = "scatter", mode = "markers",
+    marker = list(color = col_a, opacity = 0.35, size = 6),
+    name = "Group A",
+    hovertemplate = paste0(
+      "<b>Group A</b><br>",
+      "Test score: %{x}<br>",
+      "Actual GPA: %{y}<br>",
+      "Combined model predicts: %{customdata[0]}<br>",
+      "Prediction error: %{customdata[1]}<extra></extra>"
+    )
+  ) |>
+
+  add_trace(
+    x = df_b2$score_r, y = df_b2$gpa_r,
+    customdata = cd_b,
+    type = "scatter", mode = "markers",
+    marker = list(color = col_b, opacity = 0.35, size = 6),
+    name = "Group B",
+    hovertemplate = paste0(
+      "<b>Group B</b><br>",
+      "Test score: %{x}<br>",
+      "Actual GPA: %{y}<br>",
+      "Combined model predicts: %{customdata[0]}<br>",
+      "Prediction error: %{customdata[1]}<extra></extra>"
+    )
+  ) |>
+
+  add_trace(x = line_a$score, y = line_a$gpa,
+            type = "scatter", mode = "lines",
+            line = list(color = col_a, width = 2),
+            name = "Group A regression", hoverinfo = "skip") |>
+
+  add_trace(x = line_b$score, y = line_b$gpa,
+            type = "scatter", mode = "lines",
+            line = list(color = col_b, width = 2),
+            name = "Group B regression", hoverinfo = "skip") |>
+
+  add_trace(x = line_comb$score, y = line_comb$gpa,
+            type = "scatter", mode = "lines",
+            line = list(color = col_c, width = 1.5, dash = "dash"),
+            name = "Combined model", hoverinfo = "skip") |>
+
+  layout(
+    title = list(
+      text = "Hover over any point to see actual GPA, predicted GPA, and prediction error",
+      font = list(size = 12, color = "#555")
+    ),
+    xaxis = list(title = "Test Score", range = c(28, 88)),
+    yaxis = list(title = "First-Year GPA", range = c(1.3, 4.2)),
+    legend = list(orientation = "h", y = -0.2, font = list(size = 11)),
+    hovermode = "closest",
+    plot_bgcolor = "white", paper_bgcolor = "white",
+    font = list(family = "Arial", size = 12),
+    margin = list(b = 90, t = 50)
+  )
+
+p1
+```
+
+Notice that Group B students with higher test scores tend to have positive prediction errors — their actual GPA exceeds what the combined model predicts. The combined model treats all students as if they follow Group A's regression line. For Group B students, this systematically undersells their expected performance.
+
+---
+
+**Figure 2** shows the decision consequences at a fixed admissions cutoff (dashed vertical line, score = 58). Use the slider to increase the intercept gap between the two groups. An incorrectly rejected applicant (X mark) scored below the cutoff but would have achieved a GPA at or above 2.5 if admitted. Watch what happens to Group B's X marks as the gap grows.
+
+```{r pred-bias-slider, echo=FALSE, message=TRUE, warning=TRUE}
+# Variables carried from the interactive chunk above
+# Re-declared here for chunk isolation safety
+col_a  <- "#2E4057"
+col_b  <- "#E07B39"
+slope  <- 0.028
+int_a  <- 1.20
+
+set.seed(42)
+n_a     <- 250; n_b <- 250
+score_a <- rnorm(n_a, 62, 9)
+score_b <- rnorm(n_b, 55, 9)
+resid_a <- rnorm(n_a, 0, 0.42)
+resid_b <- rnorm(n_b, 0, 0.42)
+gpa_a   <- pmax(1.5, pmin(4.0, int_a + slope * score_a + resid_a))
+
+cutoff  <- 58
+gpa_min <- 2.5
+gaps    <- seq(0, 0.80, by = 0.10)
+
+# All frames use the same scores and residuals — only Group B intercept shifts
+all_frames <- lapply(gaps, function(gap) {
+  int_b   <- int_a - gap
+  gpa_b_f <- pmax(1.5, pmin(4.0, int_b + slope * score_b + resid_b))
+  gpa_a_f <- gpa_a  # never changes
+
+  status_a <- ifelse(score_a >= cutoff, "admitted",
+              ifelse(gpa_a_f >= gpa_min, "would-succeed", "wouldnt"))
+  status_b <- ifelse(score_b >= cutoff, "admitted",
+              ifelse(gpa_b_f >= gpa_min, "would-succeed", "wouldnt"))
+
+  list(
+    xa_adm  = score_a[status_a == "admitted"],
+    ya_adm  = gpa_a_f[status_a == "admitted"],
+    xa_ws   = score_a[status_a == "would-succeed"],
+    ya_ws   = gpa_a_f[status_a == "would-succeed"],
+    xa_no   = score_a[status_a == "wouldnt"],
+    ya_no   = gpa_a_f[status_a == "wouldnt"],
+    xb_adm  = score_b[status_b == "admitted"],
+    yb_adm  = gpa_b_f[status_b == "admitted"],
+    xb_ws   = score_b[status_b == "would-succeed"],
+    yb_ws   = gpa_b_f[status_b == "would-succeed"],
+    xb_no   = score_b[status_b == "wouldnt"],
+    yb_no   = gpa_b_f[status_b == "wouldnt"],
+    n_b     = sum(status_b == "would-succeed"),
+    n_a     = sum(status_a == "would-succeed"),
+    gap     = gap
+  )
+})
+
+init <- all_frames[[1]]
+
+# Traces 0–5 are the 6 data series; traces 6–7 are the fixed lines
+# Slider only restyles traces 0–5 using traceindices
+
+make_title <- function(f) {
+  paste0("Intercept gap = ", sprintf("%.2f", f$gap),
+         " GPA units  |  Group B incorrectly rejected: ", f$n_b,
+         "  |  Group A incorrectly rejected: ", f$n_a)
+}
+
+p2 <- plot_ly(height = 550) |>
+  # Trace 0: Group A admitted
+  add_trace(x = init$xa_adm, y = init$ya_adm,
+            type = "scatter", mode = "markers",
+            marker = list(color = col_a, opacity = 0.22, size = 5),
+            name = "Group A — admitted",
+            hovertemplate = "Group A | Admitted<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
+
+  # Trace 1: Group A — would succeed (X)
+  add_trace(x = init$xa_ws, y = init$ya_ws,
+            type = "scatter", mode = "markers",
+            marker = list(color = col_a, opacity = 0.75, size = 6,
+                          symbol = "x-thin", line = list(color = col_a, width = 1.5)),
+            name = "Group A — rejected, would have succeeded",
+            hovertemplate = "Group A | Rejected — would have succeeded<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
+
+  # Trace 2: Group A — would not succeed
+  add_trace(x = init$xa_no, y = init$ya_no,
+            type = "scatter", mode = "markers",
+            marker = list(color = col_a, opacity = 0.10, size = 4),
+            name = "Group A — rejected",
+            hovertemplate = "Group A | Rejected<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
+
+  # Trace 3: Group B admitted
+  add_trace(x = init$xb_adm, y = init$yb_adm,
+            type = "scatter", mode = "markers",
+            marker = list(color = col_b, opacity = 0.22, size = 5),
+            name = "Group B — admitted",
+            hovertemplate = "Group B | Admitted<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
+
+  # Trace 4: Group B — would succeed (X) — the key trace
+  add_trace(x = init$xb_ws, y = init$yb_ws,
+            type = "scatter", mode = "markers",
+            marker = list(color = col_b, opacity = 0.85, size = 7,
+                          symbol = "x-thin", line = list(color = col_b, width = 1.5)),
+            name = "Group B — rejected, would have succeeded",
+            hovertemplate = "Group B | Rejected — would have succeeded<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
+
+  # Trace 5: Group B — would not succeed
+  add_trace(x = init$xb_no, y = init$yb_no,
+            type = "scatter", mode = "markers",
+            marker = list(color = col_b, opacity = 0.10, size = 4),
+            name = "Group B — rejected",
+            hovertemplate = "Group B | Rejected<br>Score: %{x:.1f} | GPA: %{y:.2f}<extra></extra>") |>
+
+  # Trace 6: cutoff line (fixed — not touched by slider)
+  add_segments(x = cutoff, xend = cutoff, y = 1.3, yend = 4.2,
+               line = list(color = "#333", width = 1.5, dash = "dash"),
+               name = "Admissions cutoff (58)", hoverinfo = "skip") |>
+
+  # Trace 7: GPA threshold line (fixed)
+  add_segments(x = 28, xend = 88, y = gpa_min, yend = gpa_min,
+               line = list(color = "#aaa", width = 1, dash = "dot"),
+               name = "GPA threshold (2.5)", hoverinfo = "skip") |>
+
+  plotly::layout(
+    title = list(text = make_title(init), font = list(size = 11, color = "#444")),
+    xaxis = list(title = "Test Score", range = c(28, 88)),
+    yaxis = list(title = "First-Year GPA", range = c(1.3, 4.2)),
+    legend = list(
+      orientation = "h", x = 0, y = -0.22,
+      font = list(size = 10), tracegroupgap = 2
+    ),
+    hovermode = "closest",
+    plot_bgcolor = "white", paper_bgcolor = "white",
+    font = list(family = "Arial", size = 12),
+    margin = list(b = 200, t = 55, l = 60, r = 20),
+
+    sliders = list(list(
+      active = 0,
+      currentvalue = list(
+        prefix = "Intercept gap: ",
+        visible = TRUE,
+        font = list(size = 12, color = "#2E4057")
+      ),
+      # Push slider well below the legend
+      y = -.55,
+      len = 1,
+      pad = list(t = 20, b = 10),
+      steps = lapply(seq_along(gaps), function(i) {
+        f <- all_frames[[i]]
+        list(
+          label = sprintf("%.1f", gaps[i]),
+          method = "update",
+          # traceindices restricts update to traces 0–5 only
+          args = list(
+            list(
+              x = list(f$xa_adm, f$xa_ws, f$xa_no,
+                       f$xb_adm, f$xb_ws, f$xb_no),
+              y = list(f$ya_adm, f$ya_ws, f$ya_no,
+                       f$yb_adm, f$yb_ws, f$yb_no)
+            ),
+            list(
+              title = list(
+                text = make_title(f),
+                font = list(size = 11, color = "#444")
+              )
+            ),
+            list(0, 1, 2, 3, 4, 5)  # traceindices — only update these traces
+          )
+        )
+      })
+    ))
+  )
+
+p2
+```
+
+The X marks identify students rejected by the cutoff whose actual GPA meets the success threshold — a false negative produced by the cutoff. At gap = 0, both groups have similar error rates because the test predicts equally well for both. As the gap increases, Group B accumulates more X marks while Group A's count stays roughly stable. The cutoff is not inherently discriminatory; the prediction model is. The same test score carries different predictive meaning depending on which group's intercept applies.
+
 
 ---
 
