@@ -249,3 +249,10 @@ $warning:  #C7A020;
 .reveal table th {
   padding: 0.28em 0.5em;
 }
+
+// ── Bold text on dark background slides ──────────────────────────────────────
+.reveal section[data-background-color="#2E4057"] strong,
+.reveal section[data-background-color="#2E4057"] b {
+  color: #ffffff;
+  font-weight: 700;
+}
