@@ -1,0 +1,1045 @@
+---
+title: "Does the Test Actually Classify People Correctly?"
+subtitle: "PSYC 7304/8304 · Diagnostic Accuracy and ROC Analysis"
+author: "Ryan Farmer, PhD"
+format:
+  revealjs:
+    theme: [default, week12_custom.scss]
+    slide-number: true
+    progress: true
+    history: false
+    transition: fade
+    transition-speed: fast
+    background-transition: fade
+    code-fold: false
+    toc: false
+    center: false
+    width: 1200
+    height: 700
+    margin: 0.06
+    smaller: false
+    highlight-style: github
+    embed-resources: true
+    preview-links: false
+    chalkboard: false
+    mouse-wheel: false
+    controls: true
+    controls-layout: bottom-right
+    fragments: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(pROC)
+library(knitr)
+library(kableExtra)
+library(scales)
+library(gridExtra)
+
+# ── nomogrammer (local copy, Chekroud 2016, MIT License) ─────────────────────
+nomogrammer <- function(Prevalence, Plr = NULL, Nlr = NULL,
+                        Sens = NULL, Spec = NULL,
+                        Detail = FALSE, NullLine = FALSE,
+                        LabelSize = (14 / 5), Verbose = FALSE) {
+  if (!is.null(Sens) & !is.null(Spec)) {
+    Plr <- Sens / (1 - Spec); Nlr <- (1 - Sens) / Spec
+  }
+  PreTestOdds     <- Prevalence / (1 - Prevalence)
+  PostTestOddsPos <- PreTestOdds * Plr
+  PostTestOddsNeg <- PreTestOdds * Nlr
+  PostTestProbPos <- PostTestOddsPos / (1 + PostTestOddsPos)
+  PostTestProbNeg <- PostTestOddsNeg / (1 + PostTestOddsNeg)
+  probs <- c(0.001,0.002,0.003,0.005,0.007,0.01,0.02,0.03,0.05,0.07,
+             0.10,0.15,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.85,
+             0.90,0.93,0.95,0.97,0.98,0.99,0.993,0.995,0.997,0.999)
+  lodds       <- function(p) log(p / (1 - p))
+  axis_lo     <- lodds(probs)
+  axis_labels <- percent(probs, accuracy = 0.1)
+  axis_labels <- gsub("^0\\.", ".", axis_labels)
+  lr_vals  <- c(0.001,0.002,0.003,0.005,0.007,0.01,0.02,0.03,0.05,0.07,
+                0.1,0.2,0.3,0.5,0.7,1,2,3,5,7,10,20,30,50,70,
+                100,200,300,500,1000)
+  lr_scale <- log(lr_vals); lr_labels <- as.character(lr_vals)
+  x_pre <- 0; x_lr <- 1; x_post <- 2
+  df_pre  <- data.frame(x = x_pre,  y = axis_lo,  lab = axis_labels)
+  df_lr   <- data.frame(x = x_lr,   y = lr_scale, lab = lr_labels)
+  df_post <- data.frame(x = x_post, y = axis_lo,  lab = axis_labels)
+  pre_y      <- lodds(Prevalence)
+  post_y_pos <- lodds(PostTestProbPos)
+  post_y_neg <- lodds(PostTestProbNeg)
+  lr_y_pos   <- log(Plr); lr_y_neg <- log(Nlr)
+  p <- ggplot() +
+    geom_point(data=df_pre,  aes(x=x,y=y),size=0.8,color="#555") +
+    geom_text(data=df_pre,   aes(x=x-0.06,y=y,label=lab),
+              size=LabelSize,hjust=1,color="#333") +
+    geom_point(data=df_lr,   aes(x=x,y=y),size=0.8,color="#555") +
+    geom_text(data=df_lr,    aes(x=x+0.06,y=y,label=lab),
+              size=LabelSize,hjust=0,color="#333") +
+    geom_point(data=df_post, aes(x=x,y=y),size=0.8,color="#555") +
+    geom_text(data=df_post,  aes(x=x+0.06,y=y,label=lab),
+              size=LabelSize,hjust=0,color="#333") +
+    geom_line(data=df_pre,  aes(x=x,y=y),color="#555",linewidth=0.4) +
+    geom_line(data=df_lr,   aes(x=x,y=y),color="#555",linewidth=0.4) +
+    geom_line(data=df_post, aes(x=x,y=y),color="#555",linewidth=0.4) +
+    {if(NullLine) geom_segment(aes(x=x_pre,xend=x_post,y=pre_y,yend=pre_y),
+                               color="#bbb",linewidth=0.7,linetype="dashed")} +
+    geom_segment(aes(x=x_pre,xend=x_post,y=pre_y,yend=post_y_pos),
+                 color="#2E4057",linewidth=1.2) +
+    geom_point(aes(x=x_pre, y=pre_y),     color="#2E4057",size=3.5) +
+    geom_point(aes(x=x_lr,  y=lr_y_pos),  color="#2E4057",size=3.5) +
+    geom_point(aes(x=x_post,y=post_y_pos),color="#2E4057",size=3.5,shape=17) +
+    geom_segment(aes(x=x_pre,xend=x_post,y=pre_y,yend=post_y_neg),
+                 color="#E07B39",linewidth=1.2) +
+    geom_point(aes(x=x_lr,  y=lr_y_neg),  color="#E07B39",size=3.5) +
+    geom_point(aes(x=x_post,y=post_y_neg),color="#E07B39",size=3.5,shape=17) +
+    {if(Detail) list(
+      # Pre-test label offset left to avoid axis collision
+      annotate("text",x=x_pre-0.20,y=pre_y+0.45,
+               label=percent(Prevalence,accuracy=0.1),
+               color="#2E4057",size=LabelSize+0.5,fontface="bold",hjust=1),
+      # LR labels offset right, with vertical nudge to avoid axis ticks
+      annotate("text",x=x_lr+0.18,y=lr_y_pos+0.55,
+               label=paste0("LR+ = ",round(Plr,2)),
+               color="#2E4057",size=LabelSize+0.3,hjust=0),
+      annotate("text",x=x_lr+0.18,y=lr_y_neg-0.55,
+               label=paste0("LR- = ",round(Nlr,2)),
+               color="#E07B39",size=LabelSize+0.3,hjust=0),
+      # Post-test labels: nudge up/down away from axis ticks
+      annotate("text",x=x_post+0.18,y=post_y_pos+0.55,
+               label=percent(PostTestProbPos,accuracy=0.1),
+               color="#2E4057",size=LabelSize+0.5,fontface="bold",hjust=0),
+      annotate("text",x=x_post+0.18,y=post_y_neg-0.55,
+               label=percent(PostTestProbNeg,accuracy=0.1),
+               color="#E07B39",size=LabelSize+0.5,fontface="bold",hjust=0)
+    )} +
+    annotate("text",x=x_pre, y=max(axis_lo)+0.9,label="Pre-test\nprobability",
+             size=LabelSize+0.6,fontface="bold",color="#333",hjust=0.5) +
+    annotate("text",x=x_lr,  y=max(axis_lo)+0.9,label="Likelihood\nratio",
+             size=LabelSize+0.6,fontface="bold",color="#333",hjust=0.5) +
+    annotate("text",x=x_post,y=max(axis_lo)+0.9,label="Post-test\nprobability",
+             size=LabelSize+0.6,fontface="bold",color="#333",hjust=0.5) +
+    scale_x_continuous(limits=c(-0.65,2.85),expand=c(0,0)) +
+    theme_void() + theme(plot.margin=margin(12,8,12,8))
+  return(p)
+}
+
+# ── Simulated data ────────────────────────────────────────────────────────────
+set.seed(42)
+
+sim_covid <- function(n=1000, prevalence, sens=0.86, spec=0.99, seed_offset=0) {
+  set.seed(42 + seed_offset)
+  n_pos <- rbinom(1, n, prevalence); n_neg <- n - n_pos
+  tp <- rbinom(1, n_pos, sens);      fn <- n_pos - tp
+  fp <- rbinom(1, n_neg, 1-spec);    tn <- n_neg - fp
+  tibble(true_status = c(rep("Positive",n_pos), rep("Negative",n_neg)),
+         test_result = c(rep("Positive",tp), rep("Negative",fn),
+                         rep("Positive",fp), rep("Negative",tn)))
+}
+
+covid_mid <- sim_covid(n=1000, prevalence=0.30, seed_offset=2)
+
+n_phq <- 500; prev_phq <- 0.25
+n_dep <- round(n_phq * prev_phq); n_nodep <- n_phq - n_dep
+set.seed(42)
+phq_dep   <- pmax(0, pmin(27, round(rnorm(n_dep,   15.0, 4.0))))
+phq_nodep <- pmax(0, pmin(27, round(rnorm(n_nodep,  5.5, 3.5))))
+
+dat_phq <- tibble(
+  score       = c(phq_dep, phq_nodep),
+  true_status = c(rep("Depressed", n_dep), rep("Not depressed", n_nodep))
+) |> mutate(test_pos = score >= 10)
+
+compute_dx_stats <- function(tp, fp, fn, tn, prevalence=NULL) {
+  sens <- tp/(tp+fn); spec <- tn/(tn+fp)
+  prev <- if(!is.null(prevalence)) prevalence else (tp+fn)/(tp+fp+fn+tn)
+  list(sens=sens, spec=spec,
+       ppv=(sens*prev)/(sens*prev+(1-spec)*(1-prev)),
+       npv=(spec*(1-prev))/((1-sens)*prev+spec*(1-prev)),
+       lrp=sens/(1-spec), lrn=(1-sens)/spec)
+}
+
+phq_tp <- sum(dat_phq$true_status=="Depressed"    &  dat_phq$test_pos)
+phq_fn <- sum(dat_phq$true_status=="Depressed"    & !dat_phq$test_pos)
+phq_fp <- sum(dat_phq$true_status=="Not depressed" &  dat_phq$test_pos)
+phq_tn <- sum(dat_phq$true_status=="Not depressed" & !dat_phq$test_pos)
+phq_st <- compute_dx_stats(phq_tp, phq_fp, phq_fn, phq_tn, prevalence=0.25)
+
+cov_tab <- covid_mid |>
+  summarise(tp=sum(true_status=="Positive"&test_result=="Positive"),
+            fn=sum(true_status=="Positive"&test_result=="Negative"),
+            fp=sum(true_status=="Negative"&test_result=="Positive"),
+            tn=sum(true_status=="Negative"&test_result=="Negative"))
+cov_st <- compute_dx_stats(cov_tab$tp,cov_tab$fp,cov_tab$fn,cov_tab$tn,prevalence=0.30)
+
+roc_phq <- roc(response=ifelse(dat_phq$true_status=="Depressed",1,0),
+               predictor=dat_phq$score, direction="<", quiet=TRUE)
+auc_val <- auc(roc_phq)
+ci_val  <- ci.auc(roc_phq)
+```
+
+## The question we haven't asked yet {background-color="#2E4057"}
+
+::: {style="font-size:1.05em; margin-top:0.8em; color:#ffffff;"}
+We have asked: does the test measure what it claims to measure?
+
+We have asked: does it measure the same thing for everyone?
+
+**We have not yet asked:** when a clinician uses a test score to make a decision, how often does the decision turn out to be correct?
+:::
+
+::: {style="background:#1a2d40; border-left:4px solid #7fa8c9; padding:0.6em 0.9em; margin-top:1.1em; font-size:0.88em; color:#d0dde8;"}
+This is the question diagnostic accuracy methods answer. It is distinct from reliability, factor structure, and correlational validity — and it is the one practitioners most need answered.
+:::
+
+::: notes
+Opening framing. The previous chapter was bias/DIF. This chapter shifts from "does the test measure fairly" to "does the test classify correctly." Set up the gap between what test manuals report and what clinicians need.
+:::
+
+## Two instruments, same manual statistics, very different classifiers
+
+:::: {.columns}
+::: {.column width="50%"}
+**Instrument A**
+
+- Internal consistency: α = .92
+- Criterion correlation: *r* = .70
+- Sensitivity at cutoff: **.80**
+- False positive rate: **.05**
+:::
+
+::: {.column width="50%"}
+**Instrument B**
+
+- Internal consistency: α = .91
+- Criterion correlation: *r* = .69
+- Sensitivity at cutoff: **.60**
+- False positive rate: **.15**
+:::
+::::
+
+::: {style="margin-top:1em; font-size:0.9em; color:#555;"}
+On the properties typically reported in test manuals, these instruments are nearly identical.
+On classification performance, Instrument B is substantially inferior.
+:::
+
+::: notes
+Motivating example. Students should recognize that the statistics they have spent weeks learning are necessary but not sufficient for evaluating clinical utility.
+:::
+
+# The Classification Problem {background-color="#2E4057"}
+
+---
+
+## The confusion matrix
+
+```{r}
+tribble(
+  ~` `,                ~`Condition present`,  ~`Condition absent`,
+  "Test positive",     "True Positive (TP)",  "False Positive (FP)",
+  "Test negative",     "False Negative (FN)", "True Negative (TN)"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=FALSE, font_size=24) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  column_spec(1, bold=TRUE, background="#f0f4f8")
+```
+
+::: {style="margin-top:0.9em; font-size:0.88em;"}
+Every classification decision — a COVID test, a depression screen, a reading probe, a neuropsychological battery — produces exactly one of these four outcomes. The structure is identical across domains.
+:::
+
+::: notes
+Establish the universal structure. Students have encountered 2x2 tables in research methods; connect to that prior knowledge.
+:::
+
+---
+
+## COVID rapid antigen test at 30% prevalence
+
+```{r}
+covid_mid |>
+  mutate(true_status=factor(true_status,levels=c("Positive","Negative")),
+         test_result=factor(test_result,levels=c("Positive","Negative"))) |>
+  count(test_result, true_status) |>
+  pivot_wider(names_from=true_status, values_from=n, values_fill=0) |>
+  kable(col.names=c("Test result","Condition present","Condition absent")) |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=FALSE, font_size=24) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  column_spec(1, bold=TRUE)
+```
+
+::: {style="margin-top:0.8em; font-size:0.9em;"}
+Overall accuracy: **`r round((filter(covid_mid, true_status==test_result)|>nrow())/nrow(covid_mid)*100,1)`%** — sounds good. But most correct classifications are negative cases correctly cleared.
+:::
+
+::: notes
+Walk through the table. Ask: what does a positive result mean for a specific patient? This sets up the base rate section.
+:::
+
+---
+
+## Why overall accuracy misleads
+
+::: {style="font-size:0.95em; margin-bottom:0.7em;"}
+A test that calls **everyone negative** in a 5% prevalence setting achieves **95% accuracy** — with zero sensitivity.
+
+Overall accuracy is dominated by the most common outcome. In screening contexts, that means it is dominated by true negatives, not by the cases you are trying to detect.
+:::
+
+::: {.callout-important}
+Overall accuracy cannot tell you how well a test performs on the group you most care about detecting. It is almost always the wrong summary statistic for a screening or diagnostic instrument.
+:::
+
+::: notes
+This is the most common misconception in applied assessment. Students who have read test manuals will have seen "hit rate" reported prominently. This slide is the corrective.
+:::
+
+---
+
+## No cutoff is perfect
+
+```{r fig-cutoffs-slides, fig.height=4.6, fig.width=11.0, out.width="100%"}
+cutoff_labels <- c("Lenient (7): high Se, lower Sp",
+                   "Standard (10): balanced",
+                   "Strict (13): high Sp, lower Se")
+cutoff_vals   <- c(7, 10, 13)
+
+score_seq  <- seq(0, 27, length.out=400)
+dens_dep   <- dnorm(score_seq, 15.0, 4.0)
+dens_nodep <- dnorm(score_seq,  5.5, 3.5)
+max_dens   <- max(c(dens_dep, dens_nodep))
+
+dens_df <- bind_rows(
+  tibble(score=score_seq, density=dens_dep,   group="Depressed"),
+  tibble(score=score_seq, density=dens_nodep, group="Not depressed")
+)
+
+plots_list <- lapply(seq_along(cutoff_vals), function(i) {
+  co <- cutoff_vals[i]
+  fp_shade <- tibble(score   = score_seq[score_seq >= co],
+                     density = dnorm(score_seq[score_seq >= co], 5.5, 3.5))
+  fn_shade <- tibble(score   = score_seq[score_seq <  co],
+                     density = dnorm(score_seq[score_seq <  co], 15.0, 4.0))
+
+  # Robust label positions that work for all three cutoffs
+  tn_x  <- max(0.5, co * 0.35)
+  tn_y  <- dnorm(tn_x, 5.5, 3.5) * 0.45
+  fn_x  <- max(0.5, co * 0.55)
+  fn_y  <- dnorm(fn_x, 15.0, 4.0) * 0.40
+  tp_x  <- min(26.5, co + (27 - co) * 0.55)
+  tp_y  <- dnorm(tp_x, 15.0, 4.0) * 0.50
+  fp_x  <- min(26.5, co + (27 - co) * 0.25)
+  fp_y  <- dnorm(fp_x, 5.5, 3.5) * 1.8
+
+  ggplot() +
+    geom_ribbon(data=fp_shade, aes(x=score,ymin=0,ymax=density),
+                fill="#E07B39", alpha=0.40) +
+    geom_ribbon(data=fn_shade, aes(x=score,ymin=0,ymax=density),
+                fill="#2E4057", alpha=0.40) +
+    geom_line(data=dens_df, aes(x=score,y=density,color=group), linewidth=1.0) +
+    geom_vline(xintercept=co, linetype="dashed", color="#333", linewidth=0.9) +
+    annotate("text", x=tn_x, y=tn_y, label="TN",
+             color="#E07B39", size=3.8, fontface="bold") +
+    annotate("text", x=fn_x, y=fn_y, label="FN",
+             color="#2E4057", size=3.8, fontface="bold") +
+    annotate("text", x=tp_x, y=tp_y, label="TP",
+             color="#2E4057", size=3.8, fontface="bold") +
+    annotate("text", x=fp_x, y=fp_y, label="FP",
+             color="#E07B39", size=3.8, fontface="bold") +
+    scale_color_manual(values=c("Depressed"="#2E4057","Not depressed"="#E07B39")) +
+    scale_x_continuous(limits=c(0,27), breaks=seq(0,25,5)) +
+    labs(x="Score", y="", subtitle=cutoff_labels[i]) +
+    theme_minimal(base_size=11) +
+    theme(legend.position  = if(i==1) "top" else "none",
+          legend.title     = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.subtitle    = element_text(size=9.5, color="#444"))
+})
+
+grid.arrange(plots_list[[1]], plots_list[[2]], plots_list[[3]], ncol=3)
+```
+
+::: notes
+TP/FP/FN/TN labels are positioned relative to each cutoff value so they don't overlap the curves. Moving the cutoff trades one error type for the other; this motivates ROC analysis.
+:::
+
+
+# Sensitivity and Specificity {background-color="#2E4057"}
+
+
+## Two conditional probabilities
+
+::: {style="font-size:0.92em; margin-bottom:0.5em;"}
+**Sensitivity** answers: *given that the person has the condition*, what is the probability of a positive result?
+
+$$\text{Sensitivity} = P(\text{Test}+ \mid \text{Condition}+) = \frac{TP}{TP + FN}$$
+
+**Specificity** answers: *given that the person does not have the condition*, what is the probability of a negative result?
+
+$$\text{Specificity} = P(\text{Test}- \mid \text{Condition}-) = \frac{TN}{TN + FP}$$
+:::
+
+::: {.callout-note}
+Both are conditioned on **known true status**. They describe test performance looking forward from an already-established ground truth. They do **not** tell a clinician what a result means for a specific patient.
+:::
+
+::: notes
+Emphasize the conditional probability framing. The "looking forward from ground truth" language helps. Foreshadow that PPV/NPV reverse the conditioning direction.
+:::
+
+---
+
+## SnNOut / SpPIn
+
+:::: {.columns}
+::: {.column width="50%"}
+**Sensitive test, Negative result**
+
+**Rules Out**
+
+If a test is highly sensitive, nearly all people with the condition test positive. A negative result therefore almost certainly means the condition is absent.
+
+*COVID antigen: Se = `r percent(cov_st$sens, accuracy=0.1)`*
+
+A negative result does not fully rule out infection.
+:::
+
+::: {.column width="50%"}
+**Specific test, Positive result**
+
+**Rules In**
+
+If a test is highly specific, nearly all positive results come from people who truly have the condition. A positive result is strong evidence of the condition.
+
+*COVID antigen: Sp = `r percent(cov_st$spec, accuracy=0.1)`*
+
+A positive result strongly rules in infection.
+:::
+::::
+
+::: {style="font-size:0.78em; color:#666; margin-top:0.7em;"}
+Mnemonic from Sackett et al. (1991). Screening calls for high sensitivity; confirmation calls for high specificity.
+:::
+
+::: notes
+The COVID example is intuitive. Students know that negative rapid tests during surges needed to be repeated — that is SnNOut failing because sensitivity was imperfect.
+:::
+
+---
+
+## Test performance vs. decision performance
+
+::: {style="font-size:0.88em; margin-bottom:0.6em;"}
+Sensitivity and specificity describe **test performance** — how the instrument behaves when true status is already known.
+
+Clinicians work in the opposite direction: they have a result and need to know what it implies about a patient they have not yet diagnosed.
+
+**That is a different conditional probability. It requires different statistics.**
+:::
+
+```{r}
+tribble(
+  ~Question,                                      ~`Conditioned on`,    ~Statistic,
+  "Of sick people, how many does the test catch?", "Known true status",  "Sensitivity",
+  "Of healthy people, how many does it clear?",    "Known true status",  "Specificity",
+  "This person tested positive — are they sick?",  "Known test result",  "PPV",
+  "This person tested negative — are they well?",  "Known test result",  "NPV"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=TRUE, font_size=19) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(3:4, background="#FFF2CC")
+```
+
+::: notes
+This table is the conceptual pivot. Top two rows = what we covered. Bottom two (highlighted) = what comes next. The distinction between these conditional probability spaces is the most important single idea in the chapter.
+:::
+
+# Predictive Values and Base Rates {background-color="#2E4057"}
+
+
+## PPV and NPV: conditioned on the test result
+
+::: {style="font-size:0.90em; margin-bottom:0.5em;"}
+**Positive predictive value (PPV):** given a positive result, what is the probability the person has the condition?
+
+$$PPV = P(\text{Condition}+ \mid \text{Test}+) = \frac{TP}{TP + FP}$$
+
+**Negative predictive value (NPV):** given a negative result, what is the probability the person does not have the condition?
+
+$$NPV = P(\text{Condition}- \mid \text{Test}-) = \frac{TN}{TN + FN}$$
+:::
+
+::: {.callout-important}
+PPV and NPV are **not fixed properties of the test**. They depend on sensitivity, specificity, *and* the base rate of the condition in the population being tested.
+:::
+
+::: notes
+The callout is the key teaching point. Students often assume PPV and NPV are properties of the instrument. The next slide demonstrates directly why they are not.
+:::
+
+---
+
+## The base rate problem
+
+```{r}
+tibble(
+  `Prevalence`  = c("5% — community screening",
+                    "30% — household contact",
+                    "60% — symptomatic cluster"),
+  `Sensitivity` = "86%",
+  `Specificity` = "99%",
+  PPV = c(
+    percent((0.86*.05)/(0.86*.05+0.01*.95), accuracy=0.1),
+    percent((0.86*.30)/(0.86*.30+0.01*.70), accuracy=0.1),
+    percent((0.86*.60)/(0.86*.60+0.01*.40), accuracy=0.1)
+  ),
+  NPV = c(
+    percent((0.99*.95)/(0.14*.05+0.99*.95), accuracy=0.1),
+    percent((0.99*.70)/(0.14*.30+0.99*.70), accuracy=0.1),
+    percent((0.99*.40)/(0.14*.60+0.99*.40), accuracy=0.1)
+  )
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=FALSE, font_size=21) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(1, background="#FCE4D6") |>
+  column_spec(1, bold=TRUE)
+```
+
+::: {style="font-size:0.88em; margin-top:0.6em;"}
+The test does not change. Sensitivity and specificity are identical in all three rows. Only the population changes — and that alone drives PPV from 81% to 99%.
+:::
+
+::: notes
+Work through the arithmetic for the red row: at 5% prevalence, 50 of 1000 are truly positive; the test finds about 43 (86% sensitivity). But it also flags about 10 of the 950 negatives (1% false positive rate). So PPV = 43/(43+10) = 81%.
+:::
+
+---
+
+## Why PPV rises sharply but NPV declines slowly
+
+::: {style="font-size:0.92em; margin-bottom:0.6em;"}
+Both follow from the structure of Bayes' theorem.
+
+**PPV** has true positives in its numerator and all positives (true + false) in its denominator. When prevalence is low, most positives are false — the denominator swamps the numerator. **PPV falls sharply.**
+
+**NPV** draws its numerator from the large non-diseased majority, which contributes stably regardless of prevalence. **NPV declines slowly.**
+:::
+
+::: {style="background:#f0f4f8; border-left:4px solid #2E4057; padding:0.55em 0.8em; font-size:0.88em;"}
+Implication: low-prevalence screening is most useful for **ruling conditions out** (high NPV), not ruling them in. Universal screening in MTSS Tier 1 operates in exactly this range.
+:::
+
+::: notes
+The asymmetry is worth spending time on. Students who understand the algebra understand why screening programs built around sensitivity/NPV are rational for rare conditions.
+:::
+
+---
+
+## Base rates across settings
+
+```{r}
+tribble(
+  ~Setting,                      ~`Typical base rate`,               ~Implication,
+  "General education classroom", "5-10% for any given condition",    "Positive universal screen often a false positive; confirmation needed",
+  "MTSS Tier 2 (selected)",      "20-35%",                           "Positive screen more meaningful; still benefit from verification",
+  "Outpatient referral clinic",  "25-50%",                           "PPV substantial; screening and diagnostic assessment aligned",
+  "Specialty mood disorder clinic","50-70%",                         "High PPV; negative result more notable than positive",
+  "Population health screening", "1-5%",                             "Even specific tests generate false positives; two-stage design required"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=TRUE, font_size=17) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(1, background="#FCE4D6") |>
+  row_spec(3:4, background="#E8F5E9")
+```
+
+::: notes
+School psych students recognize Tier 1/2 framing. Clinical students recognize the outpatient vs. specialty distinction. The red row is where most school psychology universal screening happens.
+:::
+
+# Likelihood Ratios {background-color="#2E4057"}
+
+## Why likelihood ratios solve the prevalence problem
+
+::: {style="font-size:0.90em; margin-bottom:0.5em;"}
+PPV and NPV are setting-specific. A PPV computed in a specialty clinic cannot be applied in a school or primary care context.
+
+**Likelihood ratios** express diagnostic weight in a form independent of prevalence, combinable with any base rate.
+
+$$LR+ = \frac{\text{Sensitivity}}{1 - \text{Specificity}} \qquad LR- = \frac{1 - \text{Sensitivity}}{\text{Specificity}}$$
+
+They operate on the **odds scale**. Bayes' theorem in odds form:
+
+$$\text{Post-test odds} = \text{Pre-test odds} \times LR$$
+
+Convert prevalence to odds, multiply by LR, convert back to probability. The ratio of hit rate to false alarm rate does not change when the population changes — **that is why LRs generalize.**
+:::
+
+::: notes
+Students often treat LR multiplication as a formula to memorize. The sentence about the ratio not changing when the population changes is the conceptual key.
+:::
+
+---
+
+## LR interpretation benchmarks
+
+```{r}
+tribble(
+  ~LR,               ~`Change in probability`,   ~Interpretation,
+  "LR+ > 10",        "Large (often decisive)",    "Strongly supports presence",
+  "LR+ 5-10",        "Moderate",                  "Useful diagnostic shift",
+  "LR+ 2-5",         "Small",                     "Minor but sometimes important",
+  "LR = 1.0",        "None",                      "Test adds no information",
+  "LR- 0.2-0.5",     "Small",                     "Minor reduction in probability",
+  "LR- 0.1-0.2",     "Moderate",                  "Useful diagnostic shift",
+  "LR- < 0.1",       "Large (often decisive)",    "Strongly supports absence"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=TRUE, font_size=20) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(4, background="#FFF2CC") |>
+  column_spec(1, bold=TRUE)
+```
+
+::: {style="font-size:0.82em; color:#555; margin-top:0.5em;"}
+PHQ-9 analog: LR+ = **`r round(phq_st$lrp,1)`** (useful), LR- = **`r round(phq_st$lrn,3)`** (good). COVID antigen: LR+ = **`r round(cov_st$lrp,1)`** (excellent), LR- = **`r round(cov_st$lrn,3)`** (modest).
+:::
+
+::: notes
+The contrast between COVID LR+ and LR- is intuitive — excellent specificity gives a huge positive LR but sensitivity is only .86 so the negative LR is modest.
+:::
+
+---
+
+## Fagan nomogram: outpatient setting (25% base rate)
+
+```{r fig-nom-out, fig.height=5.2, fig.width=5.8, out.width="56%"}
+nomogrammer(Prevalence=0.25, Sens=0.88, Spec=0.88,
+            Detail=TRUE, NullLine=TRUE, LabelSize=2.4)
+```
+
+::: {style="font-size:0.90em; margin-top:0.4em;"}
+**Pre-test 25%.** Positive result (blue line) updates to **~71%**. Negative result (orange line) updates to **~4%**.
+Draw a line from pre-test probability through the LR, read off post-test probability on the right.
+:::
+
+::: notes
+Walk through nomogram reading. The dashed horizontal at LR = 1 shows a null test that adds no information. Positive screen in outpatient context: actionable but not diagnostic on its own.
+:::
+
+---
+
+## Fagan nomogram: community screening (5% base rate)
+
+```{r fig-nom-comm, fig.height=5.2, fig.width=5.8, out.width="56%"}
+nomogrammer(Prevalence=0.05, Sens=0.88, Spec=0.88,
+            Detail=TRUE, NullLine=TRUE, LabelSize=2.4)
+```
+
+::: {style="font-size:0.90em; margin-top:0.4em;"}
+**Same likelihood ratios. Pre-test 5%.** Positive result updates to only **~28%**. Negative result updates to **~1%**.
+The lines are identical — what changes is where they start.
+:::
+
+::: notes
+This is the single most important slide for school psychologists. A positive universal screen is not the same thing as a positive screen in a referred patient. Same test, same LRs, completely different clinical meaning.
+:::
+
+# ROC Curves and AUC {background-color="#2E4057"}
+
+## Why ROC analysis exists
+
+::: {style="font-size:0.95em; margin-bottom:0.6em;"}
+Every statistic covered so far describes the test at **one specific cutoff**. The choice of cutoff is consequential and somewhat arbitrary. Different contexts call for different cutoffs.
+
+**ROC analysis asks:** if we evaluated this test at *every possible cutoff simultaneously*, what does its overall discriminative ability look like?
+
+The ROC curve plots sensitivity (y) against 1 - specificity (x) at every threshold. It traces the full trade-off space. The area under the curve summarizes it in a single number that does not depend on any particular cutoff.
+:::
+
+::: {.callout-note}
+Each point on the ROC curve is one row of the cutoff table. The curve *is* the table, drawn as a path through sensitivity-specificity space.
+:::
+
+::: notes
+This slide lands as "why didn't we start here?" The answer: the 2x2 table and sensitivity/specificity are foundational; ROC is the generalization. The callout connecting the curve to the table they already have is the pedagogical bridge.
+:::
+
+---
+
+## ROC curve: PHQ-9 analog
+
+```{r fig-roc-slide, fig.height=4.8, fig.width=6.2, out.width="62%"}
+roc_df <- tibble(fpr=1-roc_phq$specificities, tpr=roc_phq$sensitivities)
+cut10_idx <- which.min(abs(roc_phq$thresholds - 10))
+op_fpr <- 1 - roc_phq$specificities[cut10_idx]
+op_tpr <- roc_phq$sensitivities[cut10_idx]
+
+ggplot(roc_df, aes(x=fpr, y=tpr)) +
+  geom_abline(slope=1, intercept=0, linetype="dashed",
+              color="#aaa", linewidth=0.8) +
+  geom_path(color="#2E4057", linewidth=1.5) +
+  geom_point(aes(x=op_fpr, y=op_tpr),
+             color="#E07B39", size=5, shape=17) +
+  annotate("text", x=op_fpr+0.04, y=op_tpr-0.07,
+           label=paste0("Cutoff = 10\nSe=",round(op_tpr,2),
+                        ", Sp=",round(1-op_fpr,2)),
+           color="#E07B39", size=3.5, hjust=0) +
+  annotate("text", x=0.58, y=0.13,
+           label=paste0("AUC = ",round(auc_val,3),
+                        "\n95% CI: ",round(ci_val[1],3),
+                        " - ",round(ci_val[3],3)),
+           color="#2E4057", size=3.5, hjust=0) +
+  scale_x_continuous(limits=c(0,1), breaks=seq(0,1,0.2),
+                     labels=percent_format(accuracy=1)) +
+  scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2),
+                     labels=percent_format(accuracy=1)) +
+  labs(x="False positive rate (1 - Specificity)",
+       y="True positive rate (Sensitivity)") +
+  theme_minimal(base_size=13) +
+  theme(panel.grid.minor=element_blank())
+```
+
+::: {style="font-size:0.88em; margin-top:0.2em;"}
+AUC = **`r round(auc_val,3)`** — excellent discrimination. Orange triangle: standard cutoff of 10. Other operating points are available for contexts requiring a different balance.
+:::
+
+::: notes
+Diagonal = chance (AUC = .50). Upper-left corner = perfect (AUC = 1.0). AUC = .95 means in 95% of randomly drawn depressed/non-depressed pairs, the depressed person scores higher.
+:::
+
+---
+
+## AUC: what it means and what it does not
+
+:::: {.columns}
+::: {.column width="52%"}
+**What AUC is**
+
+The probability that a randomly selected person with the condition scores higher than a randomly selected person without it.
+
+Equivalent to the Wilcoxon-Mann-Whitney U statistic.
+
+Independent of prevalence and cutoff — the right metric for comparing two tests.
+:::
+
+::: {.column width="48%"}
+**What AUC is not**
+
+A statement about performance at any specific cutoff. AUC = .90 can coexist with Se = .60, Sp = .85 at the threshold actually used.
+
+A guarantee of correct individual classification. It is a summary over all thresholds and all possible case/non-case pairs.
+:::
+::::
+
+::: {style="font-size:0.82em; color:#555; margin-top:0.7em; text-align:center;"}
+Benchmarks: AUC ≥ .90 excellent · .80–.89 good · .70–.79 acceptable · < .70 poor
+:::
+
+::: notes
+The right column is important. Students who see "AUC = .92" in a test manual should not assume the test classifies individuals well at the cutoff they plan to use.
+:::
+
+# Cut-Score Selection {background-color="#2E4057"}
+
+## The Youden index
+
+::: {style="font-size:0.90em; margin-bottom:0.5em;"}
+The ROC curve shows all possible operating points. The **Youden index** provides a criterion-neutral way to choose:
+
+$$J = \text{Sensitivity} + \text{Specificity} - 1$$
+
+Maximizing J treats false positives and false negatives as equally costly. J = 0: no better than chance. J = 1: perfect.
+:::
+
+```{r}
+lapply(c(7,8,9,10,11,12,13), function(co) {
+  tp_c <- sum(dat_phq$true_status=="Depressed"    & dat_phq$score>=co)
+  fn_c <- sum(dat_phq$true_status=="Depressed"    & dat_phq$score<co)
+  fp_c <- sum(dat_phq$true_status=="Not depressed" & dat_phq$score>=co)
+  tn_c <- sum(dat_phq$true_status=="Not depressed" & dat_phq$score<co)
+  st   <- compute_dx_stats(tp_c,fp_c,fn_c,tn_c,prevalence=0.25)
+  tibble(Cutoff=co, Se=round(st$sens,2), Sp=round(st$spec,2),
+         PPV=round(st$ppv,2), NPV=round(st$npv,2),
+         J=round(st$sens+st$spec-1,3))
+}) |>
+  bind_rows() |>
+  kable(col.names=c("Cutoff","Se","Sp","PPV","NPV","Youden J")) |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=FALSE, font_size=19) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(4, background="#D6EAF8") |>   # cutoff 10 (standard)
+  row_spec(which.max(sapply(7:13, function(co) {  # Youden max row
+    tp_c <- sum(dat_phq$true_status=="Depressed"    & dat_phq$score>=co)
+    fn_c <- sum(dat_phq$true_status=="Depressed"    & dat_phq$score<co)
+    fp_c <- sum(dat_phq$true_status=="Not depressed" & dat_phq$score>=co)
+    tn_c <- sum(dat_phq$true_status=="Not depressed" & dat_phq$score<co)
+    st   <- compute_dx_stats(tp_c,fp_c,fn_c,tn_c,prevalence=0.25)
+    st$sens+st$spec-1
+  })), background="#FFF2CC")
+```
+
+::: notes
+Blue row: standard clinical cutoff (10). Yellow row: Youden-optimal. Published cutoffs often predate formal optimization — this is common in psychological assessment.
+:::
+
+---
+
+## When Youden is not the right criterion
+
+```{r}
+tribble(
+  ~Context,                       ~Priority,               ~Rationale,
+  "Suicide risk screening",        "Maximize sensitivity",  "Missed case: catastrophic. False positive: manageable.",
+  "MTSS Tier 1 universal",         "Balanced or favor Se",  "False negatives leave children without support",
+  "Special education referral",    "Favor specificity",     "False positive triggers costly, stigmatizing evaluation",
+  "Forensic PVT",                  "Fix Sp >= .90",         "False positive (genuine patient = feigning) unacceptable",
+  "Community MH screening",        "Very high NPV",         "Goal is ruling out; positives require follow-up anyway"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=TRUE, font_size=18) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(1, background="#FCE4D6") |>
+  row_spec(c(3,4), background="#FFF2CC")
+```
+
+::: notes
+Red row (suicide risk) and yellow rows (special education, forensic) represent the two poles. Students should be able to articulate why the optimal threshold differs across contexts without any arithmetic.
+:::
+
+---
+
+## The utility threshold formula
+
+::: {style="font-size:0.90em; margin-bottom:0.5em;"}
+The cost-benefit reasoning can be made explicit. The optimal probability threshold is:
+
+$$p^* = \frac{C_{FP}}{C_{FP} + C_{FN}}$$
+
+where $C_{FP}$ is the cost of a false positive and $C_{FN}$ is the cost of a false negative.
+:::
+
+```{r}
+tribble(
+  ~Scenario,            ~`Cost FP`, ~`Cost FN`, ~`Optimal threshold`,
+  "Equal costs",         "1",        "1",         "p* = .50",
+  "FN 10x costlier",     "1",        "10",        "p* = .09",
+  "FP 10x costlier",     "10",       "1",         "p* = .91"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=FALSE, font_size=21) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  row_spec(2, background="#FCE4D6")
+```
+
+::: {style="font-size:0.85em; color:#555; margin-top:0.5em;"}
+Youden-optimal corresponds roughly to equal costs. Suicide risk screening, where missed cases may result in death, can justify p* near .05 or lower.
+:::
+
+::: notes
+This is the formal underpinning of the "it depends on context" argument. The formula shows the choice is principled — it requires making the cost structure explicit, which is a clinical and ethical judgment, not a statistical one.
+:::
+
+
+# Calibration {background-color="#2E4057"}
+
+
+## Discrimination vs. calibration
+
+::: {style="font-size:0.92em; margin-bottom:0.6em;"}
+**Discrimination** (AUC): can the test rank-order individuals correctly by condition status?
+
+**Calibration**: when the model assigns a 50% probability to a set of individuals, does approximately 50% of them actually have the condition?
+
+These are **independent properties**. A test can discriminate excellently and be badly miscalibrated — correctly separating cases from non-cases in rank order while systematically overestimating or underestimating absolute probabilities.
+:::
+
+::: {.callout-note}
+Calibration matters most when probabilities are used as inputs to clinical decisions — exactly the nomogram workflow we just covered.
+:::
+
+::: notes
+Many students have never encountered calibration as distinct from discrimination. The nomogram connection is key: if you feed a miscalibrated probability into a Bayesian update, the output will be wrong in a systematic, predictable direction.
+:::
+
+---
+
+## Calibration plot: PHQ-9 analog
+
+```{r fig-cal-slide, fig.height=4.2, fig.width=5.8, out.width="58%"}
+mod_cal  <- glm(I(true_status=="Depressed") ~ score,
+                data=dat_phq, family=binomial)
+dat_phq2 <- dat_phq |>
+  mutate(pred_prob=predict(mod_cal, type="response"))
+
+cal_df <- dat_phq2 |>
+  mutate(decile=ntile(pred_prob, 10)) |>
+  group_by(decile) |>
+  summarise(mean_pred=mean(pred_prob),
+            obs_rate=mean(true_status=="Depressed"),
+            .groups="drop")
+
+# Fit a straight line through the decile points for the reference line
+# (the loess S-curve is an artifact of the logistic fit on its own training data)
+cal_lm <- lm(obs_rate ~ mean_pred, data=cal_df)
+
+ggplot(cal_df, aes(x=mean_pred, y=obs_rate)) +
+  geom_abline(slope=1, intercept=0, linetype="dashed",
+              color="#aaa", linewidth=1.0) +
+  geom_smooth(method="lm", se=FALSE,
+              color="#888", linewidth=0.9, linetype="solid") +
+  geom_point(size=4.5, color="#2E4057") +
+  scale_x_continuous(limits=c(0,1), breaks=seq(0,1,0.2),
+                     labels=percent_format(accuracy=1)) +
+  scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2),
+                     labels=percent_format(accuracy=1)) +
+  labs(x="Mean predicted probability (by decile)",
+       y="Observed proportion depressed") +
+  theme_minimal(base_size=13) +
+  theme(panel.grid.minor=element_blank())
+```
+
+::: {style="font-size:0.85em; margin-top:0.3em;"}
+Dashed line = perfect calibration. Points near the diagonal indicate good calibration. The solid line is a linear fit through the decile points.
+:::
+
+::: notes
+Loess replaced with a linear fit to avoid the misleading S-curve artifact from fitting a logistic model on its own training data. In real validation studies, calibration plots frequently show systematic departures — overconfidence (steep S-curve) or underconfidence (shallow slope).
+:::
+
+# Common Misconceptions {background-color="#2E4057"}
+
+## Five things that are commonly wrong
+
+::: {style="font-size:0.89em;"}
+**1. High sensitivity does not mean few false positives.**
+False positives are determined by 1 - specificity (the false positive rate), not by sensitivity.
+
+**2. High specificity does not guarantee high PPV.**
+PPV depends on prevalence. At low base rates, even a 99% specific test can produce mostly false positives.
+
+**3. AUC is not a statement about performance at any specific cutoff.**
+AUC = .90 says nothing about what happens at the threshold actually used in practice.
+
+**4. Overall accuracy is almost always misleading.**
+It is dominated by the most common outcome, not by the clinically important cases.
+
+**5. Sensitivity/specificity and PPV/NPV answer different questions.**
+They are conditioned on different things. Conflating them is one of the most consequential interpretive errors in applied assessment.
+:::
+
+::: notes
+Works well as a pair exercise: put up the slide, cover the explanations, ask students to articulate what is wrong with each claim before revealing it.
+:::
+
+
+# What This Means for Practice {background-color="#2E4057"}
+
+
+## What test manuals report vs. what you need
+
+```{r}
+tribble(
+  ~`Typically reported`,               ~`Rarely present`,
+  "Internal consistency (alpha)",       "Sensitivity and specificity at multiple cutoffs",
+  "Factor structure",                   "PPV and NPV at multiple prevalence levels",
+  "Criterion correlations",             "AUC with confidence intervals",
+  "Normative data",                     "Likelihood ratios",
+  "Overall classification accuracy",    "Calibration evidence",
+  "(sometimes) Hit rate",               "Description of the criterion standard"
+) |>
+  kable() |>
+  kable_styling(bootstrap_options=c("striped","hover"),
+                full_width=TRUE, font_size=19) |>
+  row_spec(0, background="#2E4057", color="white") |>
+  column_spec(1, color="#666") |>
+  column_spec(2, color="#2E4057", bold=TRUE)
+```
+
+::: notes
+Directly connected to the Test Review assignment. The absence of the right column is an evidentiary gap, not evidence of absence.
+:::
+
+---
+
+## Questions to ask in a test review
+
+::: {style="font-size:0.88em;"}
+- Was a **reference standard** identified, and is it defensible?
+- Were **sensitivity and specificity** reported at the primary cutoff, **with confidence intervals**?
+- Were operating characteristics reported **across multiple cutoffs**?
+- Was **AUC** reported with a confidence interval?
+- Were **PPV and NPV** reported with the **prevalence value** used to compute them specified?
+- Were **likelihood ratios** reported?
+- Was **calibration** evaluated?
+- Were results **stratified by demographic group**?
+- Was the **study sample** appropriate for the population with whom the test will be used?
+:::
+
+::: {style="font-size:0.84em; color:#555; margin-top:0.6em; border-top:1px solid #ddd; padding-top:0.4em;"}
+A statement that "the test correctly classified X% of cases" answers one of these questions — and it is the least informative one.
+:::
+
+::: notes
+Directly actionable for the Test Review assignment. Students can use this as a checklist. The closing line is the chapter's thesis statement.
+:::
+
+---
+
+## Summary
+
+::: {style="font-size:0.86em;"}
+**Sensitivity/specificity** are conditioned on true status. They describe test performance, not decision performance. They do not depend on prevalence.
+
+**PPV/NPV** are conditioned on test result. They answer the clinical question but are setting-specific — they depend on base rate.
+
+**Likelihood ratios** generalize across settings by operating on the odds scale. The Fagan nomogram implements Bayesian updating graphically.
+
+**AUC** provides a cutoff-independent summary of discriminative ability. It is not a statement about any specific threshold.
+
+**Calibration** — whether predicted probabilities match observed rates — is independent of discrimination and matters when probabilities drive decisions.
+
+**Cut-score selection** is a values judgment about the relative costs of false positives and false negatives. Youden's J is the criterion-neutral default. The optimal threshold differs by setting, population, and purpose.
+
+**Most test manuals report none of this.** That absence is an evidentiary gap.
+:::
+
+::: notes
+Reference slide — each bullet maps to one section. The closing line is the chapter's take-home.
+:::
+
+---
+
+## Reading
+
+::: {style="font-size:0.88em;"}
+**Required**
+
+Youngstrom, E. A. (2014). A primer on receiver operating characteristic analysis and diagnostic efficiency statistics for pediatric psychology. *Journal of Pediatric Psychology*, *39*(2), 204–221.
+
+VanDerHeyden, A. M. (2013). Universal screening may not be for everyone. *School Psychology Review*, *42*(4), 402–414.
+
+**Recommended**
+
+Streiner, D. L., & Cairney, J. (2007). What's under the ROC? *The Canadian Journal of Psychiatry*, *52*(2), 121–128.
+
+Kroenke, K., Spitzer, R. L., & Williams, J. B. W. (2001). The PHQ-9. *Journal of General Internal Medicine*, *16*(9), 606–613.
+:::
+
+::: notes
+Required readings match the syllabus. The PHQ-9 paper lets students compare what Kroenke et al. actually report against the checklist on the previous slide.
+:::

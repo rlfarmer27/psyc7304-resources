@@ -897,8 +897,8 @@ n_a <- 200; n_b <- 200
 score_a <- rnorm(n_a, 62, 8)
 score_b <- rnorm(n_b, 55, 8)
 
-gpa_a <- 1.80 + 0.042 * score_a + rnorm(n_a, 0, 0.55)
-gpa_b <- 1.42 + 0.041 * score_b + rnorm(n_b, 0, 0.57)
+gpa_b <- 1.80 + 0.042 * score_a + rnorm(n_a, 0, 0.55)
+gpa_a <- 1.42 + 0.041 * score_b + rnorm(n_b, 0, 0.57)
 
 gpa_a <- pmax(0, pmin(5, gpa_a))
 gpa_b <- pmax(0, pmin(5, gpa_b))
@@ -913,12 +913,12 @@ ggplot(df_pred, aes(x = score, y = gpa, color = group)) +
   geom_smooth(method = "lm", se = TRUE, linewidth = 1.4, alpha = 0.15) +
   scale_color_manual(values = c("Group A (majority)" = pal_ref, "Group B (minority)" = pal_foc)) +
   annotate("segment",
-    x = 60, xend = 60, y = 1.80 + 0.042*60, yend = 1.42 + 0.041*60,
-    arrow = arrow(length = unit(0.25, "cm"), ends = "both"), color = "#888888", linewidth = 1
-  ) +
-  annotate("text", x = 61, y = (1.80 + 0.042*60 + 1.42 + 0.041*60)/2,
-    label = "Intercept\ndifference\n(~0.38 GPA units)", color = "#555555", size = 3.5, hjust = 0
-  ) +
+  x = 60, xend = 60, y = 1.42 + 0.041*60, yend = 1.80 + 0.042*60,
+  arrow = arrow(length = unit(0.25, "cm"), ends = "both"), color = "#888888", linewidth = 1
+) +
+annotate("text", x = 61, y = (1.42 + 0.041*60 + 1.80 + 0.042*60)/2,
+  label = "Intercept\ndifference\n(~0.38 GPA units)", color = "#555555", size = 3.5, hjust = 0
+) +
   labs(
     x = "Admissions Test Score", y = "First-Year GPA",
     title = "Differential prediction: similar slopes, different intercepts",
@@ -933,7 +933,7 @@ ggplot(df_pred, aes(x = score, y = gpa, color = group)) +
 At the same test score, Group B students earn **higher GPAs than predicted**. The test undersells them with real consequences for admissions decisions.
 
 ::: {.notes}
-Walk through the plot carefully. Slopes are nearly identical; the test is equally predictive for both groups. But the intercept gap means the prediction is systematically off for Group B. A Group B student with a score of 60 is predicted to earn a 3.88 GPA but actually earns closer to 4.09. That gap, multiplied across thousands of applicants, has serious consequences.
+Walk through the plot carefully. Slopes are nearly identical — the test is equally predictive for both groups. But the intercept gap means the combined model systematically underpredicts Group B. A Group B student with a score of 60 is predicted by the combined model to earn around 3.62 GPA but actually tends to earn closer to 3.88. That gap means Group B applicants near the cutoff look like weaker candidates than they are. Multiplied across thousands of applicants, the consequences are real.
 :::
 
 ## Consequences Matter

@@ -1,4 +1,5 @@
 # Do Scores Mean the Same for Everyone? {#bias-fairness}
+
 ## Bias, Fairness, and Measurement Equivalence
 
 ```{r setup, include=FALSE}
@@ -34,13 +35,13 @@ In each case, a score-based decision affected a person's life. In each case, the
 
 This chapter is about how to evaluate that assumption, what happens when it fails, and what the evidence base for a fair assessment actually requires.
 
----
+------------------------------------------------------------------------
 
 ## What Bias Means, and What It Doesn't
 
 The word *bias* is used loosely in everyday language to mean unfairness or prejudice. In psychometrics it has a more specific meaning, and the distinction matters.
 
-::: {.callout-note}
+::: callout-note
 **Measurement bias** refers to systematic, construct-irrelevant variance that differentially affects the scores of identifiable groups.
 :::
 
@@ -56,9 +57,9 @@ This is the most important distinction in the chapter, and students who understa
 
 **Bias** refers to observed group differences that are at least partly attributable to construct-irrelevant factors: features of the test or the testing situation that systematically affect one group more than another, independently of their standing on the construct.
 
-The same observed score difference can reflect impact, bias, or some combination of both. A test score gap between two groups is not, by itself, evidence of bias. Nor is the absence of a gap evidence of fairness. Determining which is present requires evidence beyond the score distribution, and that evidence is the subject of the rest of this chapter.
+The same observed score difference can reflect impact, bias, or some combination of both. A test score gap between two groups is not, by itself, evidence of bias. Nor is the absence of a gap evidence of fairness. Determining which is present requires evidence beyond the score distribution, and that evidence is the subject of the rest of this chapter. See @fig-bias-impact.
 
-```{r bias-impact-fig, echo=FALSE, fig.height=3.8, fig.width=8.5, fig.cap="An observed group mean difference in test scores. The question is what produces it: genuine differences in the construct (impact), construct-irrelevant test features (bias), or both."}
+```{r fig-bias-impact, echo=FALSE, fig.height=3.8, fig.width=8.5, fig.cap="An observed group mean difference in test scores. The question is what produces it: genuine differences in the construct (impact), construct-irrelevant test features (bias), or both."}
 #| fig-alt: "Two overlapping density curves showing score distributions for a reference group (dark blue, mean = 0) and a focal group (orange, mean = -0.5). A double-headed arrow marks the gap between the two group means, labeled 'Observed gap'. The distributions overlap substantially, illustrating that the same score difference could reflect bias, impact, or both."
 set.seed(42)
 n <- 400
@@ -108,13 +109,13 @@ kable(bias_df) |>
 
 These sources are not mutually exclusive. A test can show item bias and predictive bias simultaneously, or construct bias that manifests partly at the item level. A thorough fairness evaluation addresses multiple sources using multiple methods. No single analysis is sufficient, and a finding of "no bias" on one method does not rule out bias of other types.
 
----
+------------------------------------------------------------------------
 
 ## Fairness Is Not a Statistic
 
 Bias is a technical concept with detection methods. Fairness is something broader.
 
-::: {.callout-note}
+::: callout-note
 **Fairness** is a judgment about whether score-based interpretations and uses are appropriate for specific groups in specific contexts. It is not a fixed property of the test.
 :::
 
@@ -122,17 +123,17 @@ This framing comes from the pragmatic tradition in measurement science, which ho
 
 The same reading comprehension test might be:
 
-- Fair for native English speakers in an academic selection context where reading comprehension is the construct of interest
-- Unfair for recent immigrants in a high-stakes employment context where the job does not require the kind of reading comprehension the test measures
-- An open question for English language learners in an educational placement context, pending evidence about whether the test's linguistic demands are construct-relevant or construct-irrelevant for that use
+-   Fair for native English speakers in an academic selection context where reading comprehension is the construct of interest
+-   Unfair for recent immigrants in a high-stakes employment context where the job does not require the kind of reading comprehension the test measures
+-   An open question for English language learners in an educational placement context, pending evidence about whether the test's linguistic demands are construct-relevant or construct-irrelevant for that use
 
 What changes across these scenarios is not the test. It is the use, the population, and the consequences of the decision.
 
-This has a direct implication for how fairness claims in test manuals and published validity studies should be evaluated. A statement like "DIF analyses revealed no biased items" is not a fairness conclusion. It is one piece of evidence (item-level evidence) within a broader argument that still needs to be made. The argument must connect the evidence to the specific intended use, the specific population, and the specific consequences of score-based decisions. Within Kane's [-@kane1992] interpretation–use argument, fairness claims function as warrants. If the warrants are not supported, the validity argument fails for that use and that group, even if it holds for others.
+This has a direct implication for how fairness claims in test manuals and published validity studies should be evaluated. A statement like "DIF analyses revealed no biased items" is not a fairness conclusion. It is one piece of evidence (item-level evidence) within a broader argument that still needs to be made. The argument must connect the evidence to the specific intended use, the specific population, and the specific consequences of score-based decisions. Within Kane's [-@kaneArgumentbasedApproachValidity1992] interpretation–use argument, fairness claims function as warrants. If the warrants are not supported, the validity argument fails for that use and that group, even if it holds for others.
 
 Fairness review is also not a one-time event. As test uses expand to new populations or new contexts, the evidence base must be revisited.
 
----
+------------------------------------------------------------------------
 
 ## Differential Item Functioning
 
@@ -140,7 +141,7 @@ The most widely used statistical approach to detecting item-level bias is differ
 
 ### What DIF Is
 
-::: {.callout-note}
+::: callout-note
 An item shows **differential item functioning** when examinees from different groups who have the same standing on the construct being measured do not have the same probability of answering the item correctly (or endorsing it, for Likert-type items).
 :::
 
@@ -168,7 +169,7 @@ This works cleanly only because the construct—weight—is clearly defined and 
 
 **Bias can exist without DIF.** Bias can operate at the test level without any individual item flagging. Predictive bias (the systematic over- or under-prediction of outcomes for a group) can exist even when every item functions identically across groups. Construct bias, where the construct itself is defined or experienced differently across cultures, may not produce item-level DIF at all, because no single item is responsible for the discrepancy. The whole instrument is misaligned.
 
-::: {.callout-important}
+::: callout-important
 DIF is a *highly informative* symptom but not a diagnosis. A flagged item is a signal that something warrants investigation, not evidence that bias has been confirmed. A clean DIF analysis is not evidence that no bias exists.
 :::
 
@@ -180,7 +181,9 @@ DIF comes in two forms, distinguished by whether the group difference in item pe
 
 **Non-uniform DIF** occurs when the pattern of group differences changes across ability levels. At low ability, one group may outperform the other; at high ability, the pattern may reverse. The item characteristic curves cross. This pattern is more complex to interpret and has different implications for the choice of detection method.
 
-```{r uniform-nonuniform-fig, echo=FALSE, fig.height=4.2, fig.width=8.5, fig.cap="Uniform DIF (left): one group consistently outperforms the other at all ability levels. Non-uniform DIF (right): the group difference changes direction across ability levels. MH detects uniform DIF only; logistic regression detects both."}
+Examples of uniform and non-uniform DIF are available in @fig-uniform-nonuniform.
+
+```{r fig-uniform-nonuniform, echo=FALSE, fig.height=4.2, fig.width=8.5, fig.cap="Uniform DIF (left): one group consistently outperforms the other at all ability levels. Non-uniform DIF (right): the group difference changes direction across ability levels. MH detects uniform DIF only; logistic regression detects both."}
 #| fig-alt: "Two side-by-side line plots showing probability of correct response (y-axis) against ability theta (x-axis) for reference and focal groups. Left panel (Uniform DIF): two parallel S-shaped curves offset vertically, with the focal group curve consistently below the reference group curve at all ability levels. Right panel (Non-Uniform DIF): two S-shaped curves that cross near the middle of the ability range, with the focal group performing better at low ability and worse at high ability."
 theta <- seq(-3, 3, by = 0.05)
 
@@ -197,28 +200,28 @@ ggplot(df_dif, aes(x = theta, y = p, color = group, linetype = group)) +
   scale_color_manual(values = c("Reference" = "#2E4057", "Focal" = "#E07B39")) +
   scale_linetype_manual(values = c("Reference" = "solid", "Focal" = "dashed")) +
   labs(x = "Ability (θ)", y = "P(correct)") +
-  scale_y_continuous(limits = c(2, 4.0), breaks = seq(2, 4, 0.5)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
   theme_minimal(base_size = 12) +
   theme(legend.title = element_blank(), legend.position = "bottom",
       panel.grid.minor = element_blank()) +
 coord_cartesian(clip = "off")
 ```
 
----
+------------------------------------------------------------------------
 
 ## Classical DIF Methods
 
-Two classical (non-IRT) methods dominate applied DIF analysis: the Mantel–Haenszel procedure and logistic regression. Both condition on total test score as a proxy for ability. Both are available in R through the `difR` package [@magis2010].
+Two classical (non-IRT) methods dominate applied DIF analysis: the Mantel–Haenszel procedure and logistic regression. Both condition on total test score as a proxy for ability. Both are available in R through the `difR` package [@magisGeneralFrameworkPackage2010].
 
 ### The Mantel–Haenszel Procedure
 
-The Mantel–Haenszel (MH) procedure [@holland1986] was developed at Educational Testing Service and became the dominant method for large-scale DIF detection. Its prevalence in applied testing reflects historical adoption and practical interpretability more than statistical superiority, a point we return to below.
+The Mantel–Haenszel (MH) procedure [@hollandthayer1986] was developed at Educational Testing Service and became the dominant method for large-scale DIF detection . Its prevalence in applied testing reflects historical adoption and practical interpretability more than statistical superiority, a point we return to below.
 
-**Logic.** MH stratifies examinees by their total test score. Within each score stratum, it constructs a 2×2 table: group membership (reference vs. focal) × item response (correct vs. incorrect). It then combines these stratum-specific tables into a summary statistic that tests whether the odds of correct response differ by group after conditioning on ability.
+**Logic.** MH stratifies examinees by their total test score. Within each score stratum, it constructs a 2×2 table: group membership (reference vs. focal) × item response (correct vs. incorrect). It then combine{s these stratum-specific tables into a summary statistic that tests whether the odds of correct response differ by group after conditioning on ability.
 
-Within a single stratum, the comparison looks like this:
+Within a single stratum, the comparison looks like @tbl-mh-stratum:
 
-```{r mh-stratum-table, echo=FALSE}
+```{r tbl-mh-stratum, echo=FALSE}
 mh_ex <- tribble(
   ~Group,       ~Correct, ~Incorrect, ~`P(correct)`,
   "Reference",  28,       12,         ".70",
@@ -272,19 +275,20 @@ mh_df |>
   row_spec(which(mh_df$Class == "B"), background = "#FFF2CC")
 ```
 
-Three statistics matter:
+Three statistics matter in @tbl-mh-results:
 
-- **MH χ²** tests whether item performance differs by group after conditioning on total score. A significant result indicates DIF is present.
-- **MH Δ (delta)** is the effect size. A negative delta means the item is easier for the focal group; a positive delta means it is easier for the reference group. The magnitude determines the ETS classification regardless of direction.
-- **ETS classification** (A, B, or C) provides a practical severity rating. Class A indicates negligible DIF with no action required. Class B indicates moderate DIF warranting expert review. Class C indicates large DIF; the item should not be retained without substantive review.
+-   **MH χ²** tests whether item performance differs by group after conditioning on total score. A significant result indicates DIF is present.
+-   **MH Δ (delta)** is the effect size. A negative delta means the item is easier for the focal group; a positive delta means it is easier for the reference group. The magnitude determines the ETS classification regardless of direction.
+-   **ETS classification** (A, B, or C) provides a practical severity rating. Class A indicates negligible DIF with no action required. Class B indicates moderate DIF warranting expert review. Class C indicates large DIF; the item should not be retained without substantive review.
 
-The thresholds are: |Δ| must be ≥ 1.0 *and* the result must be statistically significant to leave Class A. |Δ| ≥ 1.5 *and* statistical significance places an item in Class C.
+The thresholds are: \|Δ\| must be ≥ 1.0 *and* the result must be statistically significant to leave Class A. \|Δ\| ≥ 1.5 *and* statistical significance places an item in Class C.
 
 **What MH cannot do.** MH detects uniform DIF only. It cannot detect non-uniform DIF, meaning patterns where the group difference changes across ability levels. It also assumes the total score is a clean proxy for ability, which becomes problematic if biased items are included in the total score (the purification problem, discussed below).
 
 #### Running the Mantel–Haenszel Procedure in R
 
 The `difMH()` function in the `difR` package runs the full MH procedure. The three required inputs are the item response matrix, a group vector, and a matching variable (typically the total score).
+
 ```{r mh-code, eval=FALSE, echo=TRUE}
 library(difR)
 
@@ -315,12 +319,11 @@ The `focal.name = 1` argument tells `difMH` which value in the group vector iden
 
 Output includes the MH chi-square, p-value, and alpha (the odds ratio) for each item. The delta and ETS classification are derived from the alpha as shown in the results table above. If you need to inspect the raw slot names in your version of `difR`, run `names(mh_result)` after fitting the model.
 
-
 ### Logistic Regression DIF
 
-Logistic regression DIF [@swaminathan1990] extends MH by modeling the probability of correct response as a function of total score, group membership, and their interaction. It is statistically more capable than MH and is the recommended method when software is available.
+Logistic regression DIF [@swaminathanDetectingDifferentialItem1990] extends MH by modeling the probability of correct response as a function of total score, group membership, and their interaction. It is statistically more capable than MH and is the recommended method when software is available.
 
-Three nested models are estimated for each item:
+Three nested models are estimated for each item and provided in @tbl-lr-models:
 
 ```{r tbl-lr-models, echo=FALSE}
 #| tbl-cap: "The three nested logistic regression models used in LR DIF analysis."
@@ -337,7 +340,7 @@ kable(lr_models) |>
   row_spec(0, background = "#2E4057", color = "white")
 ```
 
-Uniform DIF is indicated by a significant improvement from Model 1 to Model 2 (significant group term). Non-uniform DIF is indicated by a significant improvement from Model 2 to Model 3 (significant interaction term). Effect size is evaluated using R² change alongside the significance tests. A statistically significant finding with a very small R² change may not be practically meaningful, especially in large samples.
+Uniform DIF is indicated by a significant improvement from Model 1 to Model 2 (significant group term). Non-uniform DIF is indicated by a significant improvement from Model 2 to Model 3 (significant interaction term). Effect size is evaluated using R² change alongside the significance tests. A statistically significant finding with a very small R² change may not be practically meaningful, especially in large samples. Example results are provided in @tbl-lr-results.
 
 ```{r lr-run, echo=FALSE, results='hide'}
 lr_result <- difLogistic(Data = items, group = group, focal.name = 1,
@@ -367,6 +370,32 @@ The results for Item 9 are instructive. MH classified it as Class C with Δ = �
 
 **Why MH is still widely used.** If logistic regression is more capable, why does MH dominate applied testing? The answer is historical and practical, not statistical. MH was developed at ETS decades before logistic regression DIF became standard, and its delta metric and A/B/C classification system became embedded in testing practice. Most published test manuals report MH results. The multiplicity concern (that running many significance tests inflates Type I error) applies equally to both methods, so it is not a reason to prefer MH. When logistic regression is available, it should be used. When reading applied reports, MH results need to be understood and evaluated critically.
 
+#### Running Logistic Regression DIF in R
+
+The `difLogistic()` function in `difR` runs the full logistic regression DIF procedure. The setup is identical to `difMH()`: item response matrix, group vector, and matching variable.
+
+```{r lr-code, eval=FALSE, echo=TRUE}
+# Run logistic regression DIF
+lr_result <- difLogistic(
+  Data       = items,
+  group      = group,
+  focal.name = 1,
+  match      = total,
+  type       = "both",    # test for both uniform and non-uniform DIF
+  criterion  = "LRT",     # likelihood ratio test
+  alpha      = 0.05
+)
+
+# View results
+print(lr_result)
+```
+
+The `type = "both"` argument tests for both uniform and non-uniform DIF simultaneously. Setting `type = "udif"` tests uniform DIF only (equivalent in scope to MH); `type = "nudif"` tests non-uniform DIF only. In most applied situations `"both"` is the right choice.
+
+The `criterion = "LRT"` argument uses the likelihood ratio test to compare nested models. The alternative is `"Wald"`, which uses Wald chi-square tests. LRT is generally preferred.
+
+As with `difMH()`, setting `purify = TRUE` runs the iterative purification procedure. Output includes the likelihood ratio statistic, degrees of freedom, p-value, and R² change for each item. Items flagged by `difLogistic()` but not by `difMH()` are candidates for non-uniform DIF — the interaction term is doing work that MH cannot do.
+
 ### The Purification Problem
 
 Both MH and logistic regression use the total test score as the matching variable, the proxy for ability that conditioning is done on. This creates a circularity: if some items are biased against the focal group, those students earn lower total scores, which means they get matched against lower-ability reference group members in the strata. True DIF on some items may be masked; spurious DIF may appear on others.
@@ -381,20 +410,20 @@ A DIF flag is not a bias determination. It is an invitation to investigate. The 
 
 An item can be flagged because:
 
-- It contains construct-irrelevant content that systematically disadvantages the focal group. This is bias, and the item should be revised or removed.
-- It taps a secondary dimension on which the groups legitimately differ. This is impact, and the item may be retained depending on the construct definition.
-- It uses vocabulary or cultural context that is more familiar to the reference group. This may be bias, and requires expert evaluation of whether that familiarity is construct-relevant.
-- The matching variable is contaminated by other biased items. This is a methodological artifact that purification can address.
+-   It contains construct-irrelevant content that systematically disadvantages the focal group. This is bias, and the item should be revised or removed.
+-   It taps a secondary dimension on which the groups legitimately differ. This is impact, and the item may be retained depending on the construct definition.
+-   It uses vocabulary or cultural context that is more familiar to the reference group. This may be bias, and requires expert evaluation of whether that familiarity is construct-relevant.
+-   The matching variable is contaminated by other biased items. This is a methodological artifact that purification can address.
 
 Resolving the ambiguity requires substantive expert review: people with knowledge of the construct, the groups involved, and the cultural and linguistic context of the items. The statistics open the conversation. Expert judgment closes it.
 
-**Item 7.** *"Which word best completes the sentence: 'The scientist's findings were met with widespread _____ from the academic community.'"* Suppose this item flags as Class C uniform DIF favoring the reference group (majority English speakers). Does that mean it is biased?
+**Item 7.** *"Which word best completes the sentence: 'The scientist's findings were met with widespread \_\_\_\_\_ from the academic community.'"* Suppose this item flags as Class C uniform DIF favoring the reference group (majority English speakers). Does that mean it is biased?
 
 Not necessarily. ELL students may perform worse on this item because academic vocabulary legitimately differs between groups, and if vocabulary knowledge is part of what this reading comprehension test is intended to measure, then the DIF reflects impact, not bias. The item is functioning as designed.
 
 But if the same item appears on a test of scientific reasoning, where vocabulary breadth is not part of the construct, then the linguistic demand is construct‑irrelevant. In that context, the DIF would indicate bias. The statistics cannot distinguish these explanations. Only substantive review—by a reading specialist and an ELL education expert—can determine whether the vocabulary demand aligns with the construct the test claims to measure.
 
----
+------------------------------------------------------------------------
 
 ## Measurement Invariance
 
@@ -459,15 +488,15 @@ lavTestLRT(fit_config, fit_metric, fit_scalar)
 
 A significant chi-square difference test between the metric and scalar models indicates that at least one intercept is non-invariant. Modification indices identify which items are responsible. The `lavTestScore()` function provides item-level detail on where the model is misspecified.
 
-Fit index changes alongside chi-square tests provide additional guidance: a ΔCFI of less than −0.010 and ΔRMSEA of less than 0.015 suggest acceptable invariance even when the chi-square difference is significant, particularly in large samples where the test is sensitive to trivial misfit [@cheung1999].
+Fit index changes alongside chi-square tests provide additional guidance: a ΔCFI of less than −0.010 and ΔRMSEA of less than 0.015 suggest acceptable invariance even when the chi-square difference is significant, particularly in large samples where the test is sensitive to trivial misfit [@cheungTestingFactorialInvariance1999].
 
----
+------------------------------------------------------------------------
 
 ## Predictive Bias
 
 Item-level DIF and measurement invariance address whether the test measures the construct equivalently across groups. Predictive bias addresses a different question: whether the test predicts outcomes with equal accuracy across groups.
 
-::: {.callout-note}
+::: callout-note
 **Predictive bias** occurs when a test systematically over- or under-predicts a criterion outcome for members of one group, relative to what would be predicted on the basis of ability alone.
 :::
 
@@ -483,48 +512,58 @@ Predictive bias is evaluated by fitting separate regression lines predicting the
 
 **Intercept differences with equal slopes:** the most common pattern. The test predicts with equal accuracy for both groups (similar slopes and correlations), but systematically over- or under-predicts for one group at every score level.
 
-```{r pred-bias-fig, echo=FALSE, fig.height=3.5, fig.width=8, fig.cap="Differential prediction with equal slopes but different intercepts. The test predicts GPA with similar accuracy for both groups, but systematically underpredicts actual GPA for Group B at every score level."}
-#| fig-alt: "Scatterplot of first-year GPA (y-axis) against test score (x-axis) for two groups. Group A (dark blue) and Group B (orange) show similarly-sloped regression lines with confidence bands, but the Group A line sits consistently higher than Group B. A double-headed arrow at score = 60 marks the vertical gap between the two lines, labeled 'Intercept difference', illustrating that Group B students are systematically underpredicted at every score level."
+```{r fig-pred-bias, echo=FALSE, fig.height=3.5, fig.width=8, fig.cap="Differential prediction with equal slopes but different intercepts. The test predicts GPA with similar accuracy for both groups, but systematically underpredicts actual GPA for Group B at every score level."}
+#| fig-alt: "Scatterplot of first-year GPA (y-axis) against test score (x-axis) for two groups. Group A (dark blue) and Group B (orange) show similarly-sloped regression lines with confidence bands, but the Group B line sits consistently higher than Group A. A double-headed arrow at score = 60 marks the vertical gap between the two lines, labeled 'Intercept difference', illustrating that Group B students are systematically underpredicted at every score level."
 set.seed(99)
 n_a <- 250; n_b <- 250
 
 score_a <- rnorm(n_a, 62, 8)
 score_b <- rnorm(n_b, 55, 8)
-gpa_a   <- pmax(0, pmin(5, 1.80 + 0.042 * score_a + rnorm(n_a, 0, 0.55)))
-gpa_b   <- pmax(0, pmin(5, 1.42 + 0.041 * score_b + rnorm(n_b, 0, 0.57)))
+gpa_a   <- pmax(0, pmin(4, 1.20 + 0.028 * score_a + rnorm(n_a, 0, 0.42)))
+gpa_b   <- pmax(0, pmin(4, 1.58 + 0.028 * score_b + rnorm(n_b, 0, 0.42)))
 
 df_pred <- bind_rows(
   tibble(score = score_a, gpa = gpa_a, group = "Group A"),
   tibble(score = score_b, gpa = gpa_b, group = "Group B")
 )
 
+mean_a <- round(mean(score_a), 1)
+mean_b <- round(mean(score_b), 1)
+
 ggplot(df_pred, aes(x = score, y = gpa, color = group)) +
   geom_point(alpha = 0.2, size = 1.2) +
   geom_smooth(method = "lm", se = TRUE, linewidth = 1.3, alpha = 0.12) +
   scale_color_manual(values = c("Group A" = "#2E4057", "Group B" = "#E07B39")) +
   annotate("segment", x = 60, xend = 60,
-           y = 1.42 + 0.041*60, yend = 1.80 + 0.042*60,
-           arrow = arrow(length = unit(0.2, "cm"), ends = "both"),
-           color = "#888", linewidth = 0.9) +
-  annotate("text", x = 61.5, y = (1.42 + 0.041*60 + 1.80 + 0.042*60)/2,
-           label = "Intercept\ndifference", color = "#666", size = 3.2, hjust = 0) +
+         y = 1.20 + 0.028*60, yend = 1.58 + 0.028*60,
+         arrow = arrow(length = unit(0.2, "cm"), ends = "both"),
+         color = "#888", linewidth = 0.9) +
+annotate("text", x = 59, y = (1.20 + 0.028*60 + 1.58 + 0.028*60)/2 - 0.55,
+         label = "Intercept\ndifference", color = "#000000", size = 3.2, hjust = .15) +
+  scale_y_continuous(limits = c(1.5, 4.0), breaks = seq(1.5,4,0.5)) +
   labs(x = "Test Score", y = "First-Year GPA") +
   theme_minimal(base_size = 12) +
   theme(legend.title = element_blank(), legend.position = "bottom",
         panel.grid.minor = element_blank())
 ```
 
-The intercept difference pattern is particularly consequential in high-stakes contexts. When slopes are equal, the test is equally *predictive* for both groups: both regression lines have the same relationship between score and outcome. But the intercept gap means the test score is used to make decisions that systematically misclassify members of one group. A Group B candidate with the same test score as a Group A candidate is predicted to perform worse, but if intercepts differ, that prediction is systematically wrong. The test undersells Group B.
+In @fig-pred-bias, group B students earn lower average test scores—about `r mean_b` in this simulation, compared with `r mean_a` for Group A. Yet at any given score, Group B students typically achieve higher GPAs than Group A students with the same score. The separation between the two regression lines illustrates this pattern clearly.
 
-In the special education context: if a cognitive assessment systematically underpredicts the academic performance of children from certain linguistic or cultural backgrounds, eligibility determinations based on that assessment will systematically exclude children who would benefit from services, and include others who would not. The error is not random; it is directional and group-specific.
+Because the admissions office relies on a single prediction equation for all applicants, a Group B student with a score of 55 receives a predicted GPA that is too low. In reality, students from Group B who score 55 tend to perform better than the model suggests.
+
+The consequence is straightforward: Group B applicants near the cutoff are rejected based on a prediction that undervalues their likely performance. They would have succeeded, but the model prevents them from demonstrating it.
+
+The issue is not that the test items themselves are biased or that the test is inherently harder for Group B. The problem is that the prediction model misrepresents what a given score means for Group B applicants. Decisions are made using a prediction that is systematically inaccurate in a way that disproportionately harms one group.
+
+A similar dynamic can occur in special education. If a cognitive assessment consistently underestimates the academic potential of children from certain cultural or linguistic backgrounds, eligibility decisions based on that assessment will exclude students who need services and include others who do not. The error is not random; it is directional and specific to particular groups.
 
 ### A Closer Look: Simulating Predictive Bias
 
 The scatter plot above shows the intercept difference pattern statically. The two interactive figures below let you engage with the data directly.
 
-**Figure 1** shows the prediction error for each student. When an admissions office applies a single combined regression equation to both groups, Group B students are systematically underpredicted. Hover over any point to see the actual GPA, the predicted GPA from the combined model, and the prediction error.
+@fig-pred-bias-interactive1 shows the prediction error for each student. When an admissions office applies a single combined regression equation to both groups, Group B students are systematically underpredicted. Hover over any point to see the actual GPA, the predicted GPA from the combined model, and the prediction error.
 
-```{r pred-bias-interactive, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig-pred-bias-interactive1, echo=FALSE, message=FALSE, warning=FALSE}
 library(plotly)
 
 # ── Generate base data once ───────────────────────────────────────────────────
@@ -541,7 +580,7 @@ int_a   <- 1.20
 gap_real <- 0.38
 
 gpa_a      <- pmax(1.5, pmin(4.0, int_a + slope * score_a + resid_a))
-gpa_b_real <- pmax(1.5, pmin(4.0, (int_a - gap_real) + slope * score_b + resid_b))
+gpa_b_real <- pmax(1.5, pmin(4.0, (int_a + gap_real) + slope * score_b + resid_b))
 
 df_a   <- tibble(score = score_a, gpa = gpa_a,      group = "Group A")
 df_b   <- tibble(score = score_b, gpa = gpa_b_real, group = "Group B")
@@ -560,7 +599,7 @@ df_b2 <- df_all |> filter(group == "Group B")
 # Regression lines
 score_seq <- seq(28, 88, by = 1)
 line_a    <- data.frame(score = score_seq, gpa = int_a + slope * score_seq)
-line_b    <- data.frame(score = score_seq, gpa = (int_a - gap_real) + slope * score_seq)
+line_b    <- data.frame(score = score_seq, gpa = (int_a + gap_real) + slope * score_seq)
 line_comb <- data.frame(score = score_seq,
                         gpa   = predict(cmod, newdata = data.frame(score = score_seq)))
 
@@ -636,26 +675,26 @@ p1 <- plot_ly() |>
 p1
 ```
 
-Notice that Group B students with higher test scores tend to have positive prediction errors — their actual GPA exceeds what the combined model predicts. The combined model treats all students as if they follow Group A's regression line. For Group B students, this systematically undersells their expected performance.
+Notice that Group B students with higher test scores tend to have positive prediction errors — their actual GPA exceeds what the combined model predicts. The combined model treats all students as if they follow Group A's regression line. Since Group B's true intercept is higher, the combined model systematically undersells their expected performance.
 
----
+------------------------------------------------------------------------
 
-The intercept difference has a direct and concrete interpretation. The two regression equations share nearly identical slopes — meaning the test is equally predictive for both groups in terms of how GPA changes per unit of score. What differs is the baseline prediction. At any given test score, a Group B applicant is predicted to earn 0.38 GPA points less than a Group A applicant with the identical score. That gap is constant across the entire score range.
+The intercept difference has a direct and concrete interpretation. The two regression equations share nearly identical slopes, meaning the test is equally predictive for both groups in terms of how GPA changes per unit of score. What differs is the baseline prediction. At any given test score, a Group B applicant actually tends to earn 0.38 GPA points more than a Group A applicant with the identical score but the combined model does not account for this, predicting them as if they followed Group A's lower regression line. See @tbl-pred-gpa to see how this would pan out in this simulated data.
 
-```{r}
+```{r tbl-pred-gpa}
 library(knitr)
 library(kableExtra)
 
 pred_df <- data.frame(
-  Score     = c(50, 55, 58, 60, 65),
-  Group_A   = c(2.60, 2.74, 2.82, 2.88, 3.02),
-  Group_B   = c(2.22, 2.36, 2.44, 2.50, 2.64),
+  Score      = c(50, 55, 58, 60, 65),
+  Group_A    = c(2.60, 2.74, 2.82, 2.88, 3.02),
+  Group_B    = c(2.98, 3.12, 3.20, 3.26, 3.40),
   Difference = c(0.38, 0.38, 0.38, 0.38, 0.38)
 )
 
 kable(pred_df,
-      col.names = c("Test Score", "Group A predicted GPA",
-                    "Group B predicted GPA", "Difference"),
+      col.names = c("Test Score", "Group A actual/predicted GPA",
+                    "Group B actual GPA", "Gap (B higher by)"),
       align = "cccc",
       caption = "Predicted first-year GPA by group at selected test scores. The intercept difference of 0.38 GPA units is constant across the score range.") |>
   kable_styling(bootstrap_options = c("striped", "hover"),
@@ -664,11 +703,11 @@ kable(pred_df,
   row_spec(3, background = "#FFF2CC")  # highlight cutoff row
 ```
 
-At any given test score, Group B applicants are predicted to earn 0.38 GPA points less than Group A applicants with the same score. That gap is constant across the entire score range, as the table shows. Figure 2 traces what this means for admission decisions when a cutoff is applied. 
+At any given test score in @tbl-pred-gpa, Group B applicants actually tend to earn 0.38 GPA points more than Group A applicants with the same score — but the combined model, anchored to Group A's intercept, does not capture this. Figure 4 traces what this means for admission decisions when a cutoff is applied.
 
-**Figure 2** shows the decision consequences at a fixed admissions cutoff (dashed vertical line, score = 58). Use the slider to increase the intercept gap between the two groups. An incorrectly rejected applicant (X mark) scored below the cutoff but would have achieved a GPA at or above 2.5 if admitted. Watch what happens to Group B's X marks as the gap grows.
+@fig-pred-bias-slider shows the decision consequences at a fixed admissions cutoff (dashed vertical line, score = 58). Use the slider to increase the intercept gap between the two groups. An incorrectly rejected applicant (X mark) scored below the cutoff but would have achieved a GPA at or above 2.5 if admitted. Watch what happens to Group B's X marks as the gap grows.
 
-```{r pred-bias-slider, echo=FALSE, message=TRUE, warning=TRUE}
+```{r fig-pred-bias-slider, echo=FALSE, message=TRUE, warning=TRUE}
 library(plotly)
 # Variables carried from the interactive chunk above
 # Re-declared here for chunk isolation safety
@@ -691,7 +730,7 @@ gaps    <- seq(0, 0.80, by = 0.10)
 
 # All frames use the same scores and residuals — only Group B intercept shifts
 all_frames <- lapply(gaps, function(gap) {
-  int_b   <- int_a - gap
+  int_b   <- int_a + gap
   gpa_b_f <- pmax(1.5, pmin(4.0, int_b + slope * score_b + resid_b))
   gpa_a_f <- gpa_a  # never changes
 
@@ -842,15 +881,15 @@ p2
 
 The X marks identify students rejected by the cutoff whose actual GPA meets the success threshold — a false negative produced by the cutoff. At gap = 0, the test predicts equally well for both groups, so false negatives arise from the position of the cutoff relative to each group's score distribution, not from prediction error. As the gap increases, Group B accumulates more X marks while Group A's count stays roughly stable. That shift is the signature of predictive bias: the same test score carries different predictive meaning depending on which group's regression line applies, and the cutoff does not account for it.
 
-At gap = 0.38 — the scenario shown in Figure 1 — a meaningful number of Group B applicants who would have achieved the success threshold are rejected because the combined model systematically underestimates their expected performance at that score. The cutoff acts on the score, but the score’s meaning is distorted by the biased prediction model.
+At gap = 0.38 (the scenario shown in Figure 2 and 3) a meaningful number of Group B applicants who would have achieved the success threshold are rejected because the combined model systematically underestimates their expected performance at that score. The cutoff acts on the score, but the score’s meaning is distorted by the biased prediction model.
 
-This kind of analysis — relating a cutoff to classification errors across groups — is taken up more formally in the chapter on diagnostic accuracy.
+This kind of analysis - relating a cutoff to classification errors across groups — is taken up more formally in the chapter on diagnostic accuracy.
 
----
+------------------------------------------------------------------------
 
 ## Accumulating a Fairness Argument
 
-No single analysis constitutes a fairness conclusion. A well-supported fairness argument draws on multiple sources of evidence, each addressing a different aspect of the question.
+No single analysis constitutes a fairness conclusion. A well-supported fairness argument draws on multiple sources of evidence, each addressing a different aspect of the question. See @tbl-fairness-evidence
 
 ```{r tbl-fairness-evidence, echo=FALSE}
 #| tbl-cap: "Sources of evidence in a fairness argument. Each addresses a different aspect of measurement equivalence and appropriate use."
@@ -872,17 +911,17 @@ kable(fair_df) |>
 
 When evaluating a test manual or published validity study, the relevant questions are:
 
-- Were DIF analyses conducted? Which method? Were results reported transparently, with full output rather than just a summary statement?
-- Were flagged items reviewed substantively, or simply removed? Was the rationale documented?
-- Was measurement invariance tested? At what levels? Was partial invariance acknowledged and addressed?
-- Was predictive validity examined by group? Were slope and intercept differences tested?
-- Was the norming sample appropriate for the population with whom the test is being used?
-- Did the authors distinguish between statistical DIF and substantive bias? Between impact and bias?
-- Were fairness claims commensurate with the evidence presented?
+-   Were DIF analyses conducted? Which method? Were results reported transparently, with full output rather than just a summary statement?
+-   Were flagged items reviewed substantively, or simply removed? Was the rationale documented?
+-   Was measurement invariance tested? At what levels? Was partial invariance acknowledged and addressed?
+-   Was predictive validity examined by group? Were slope and intercept differences tested?
+-   Was the norming sample appropriate for the population with whom the test is being used?
+-   Did the authors distinguish between statistical DIF and substantive bias? Between impact and bias?
+-   Were fairness claims commensurate with the evidence presented?
 
 A statement like "no items were flagged for DIF" does not answer most of these questions. It answers one of them.
 
----
+------------------------------------------------------------------------
 
 ## A Note on IRT-Based DIF
 
@@ -894,7 +933,7 @@ The conceptual question is identical: do examinees from different groups who hav
 
 IRT-based DIF is not covered in this chapter because it requires a foundation in IRT that has not yet been established. Chapter 13 introduces IRT as a measurement framework and revisits DIF from an IRT perspective, including a discussion of when IRT-based methods are worth the additional complexity and when classical methods are adequate.
 
----
+------------------------------------------------------------------------
 
 ## Summary
 
@@ -902,11 +941,33 @@ This chapter has addressed the question of whether scores mean the same thing ac
 
 The key points:
 
-- **Bias** is systematic, construct-irrelevant variance that differentially affects scores across groups. It is a property of the measurement instrument, not of the test takers.
-- **Impact** refers to group differences that reflect genuine differences on the construct. The same observed score gap can reflect bias, impact, or both. Statistics cannot distinguish them without substantive judgment.
-- **Fairness** is a judgment about whether score-based interpretations and uses are appropriate for specific groups in specific contexts. It is not a property of the test and cannot be established by any single analysis.
-- **DIF analysis** detects item-level differential functioning after conditioning on ability. MH detects uniform DIF; logistic regression detects both uniform and non-uniform DIF. A DIF flag opens an investigation; expert review closes it.
-- **DIF is neither necessary nor sufficient for bias.** DIF can exist without bias (impact); bias can exist without DIF (predictive bias, construct bias).
-- **Measurement invariance** tests whether the factor model holds equivalently across groups. Non-invariant intercepts correspond to item-level DIF; both reflect the same underlying problem at different levels of analysis.
-- **Predictive bias** addresses whether scores forecast outcomes with equal accuracy across groups. A test can show no item-level DIF and still show predictive bias.
-- A complete **fairness argument** draws on all of these sources of evidence, connects them to the specific intended use and population, and is explicit about what the evidence does and does not establish.
+-   **Bias** is systematic, construct-irrelevant variance that differentially affects scores across groups. It is a property of the measurement instrument, not of the test takers.
+-   **Impact** refers to group differences that reflect genuine differences on the construct. The same observed score gap can reflect bias, impact, or both. Statistics cannot distinguish them without substantive judgment.
+-   **Fairness** is a judgment about whether score-based interpretations and uses are appropriate for specific groups in specific contexts. It is not a property of the test and cannot be established by any single analysis.
+-   **DIF analysis** detects item-level differential functioning after conditioning on ability. MH detects uniform DIF; logistic regression detects both uniform and non-uniform DIF. A DIF flag opens an investigation; expert review closes it.
+-   **DIF is neither necessary nor sufficient for bias.** DIF can exist without bias (impact); bias can exist without DIF (predictive bias, construct bias).
+-   **Measurement invariance** tests whether the factor model holds equivalently across groups. Non-invariant intercepts correspond to item-level DIF; both reflect the same underlying problem at different levels of analysis.
+-   **Predictive bias** addresses whether scores forecast outcomes with equal accuracy across groups. A test can show no item-level DIF and still show predictive bias.
+-   A complete **fairness argument** draws on all of these sources of evidence, connects them to the specific intended use and population, and is explicit about what the evidence does and does not establish.
+
+## Further Reading
+
+The sources below are organized for readers who want to go deeper on the methods and applications covered in this chapter.
+
+**Methodological and pedagogical references**
+
+Berrío, Á. I., Gómez-Benito, J., & Arias-Patiño, E. M. (2020). Developments and trends in research on methods of detecting differential item functioning. *Educational Research Review*, *31*, 100340. https://doi.org/10.1016/j.edurev.2020.100340
+
+Berry, C. M. (2015). Differential validity and differential prediction of cognitive ability tests: Understanding test bias in the employment context. *Annual Review of Organizational Psychology and Organizational Behavior*, *2*(1), 435–463. https://doi.org/10.1146/annurev-orgpsych-032414-111256
+
+Martinková, P., Drabinová, A., Liaw, Y.-L., Sanders, E. A., McFarland, J. L., & Price, R. M. (2017). Checking equity: Why differential item functioning analysis should be a routine part of developing conceptual assessments. *CBE—Life Sciences Education*, *16*(2), rm2. https://doi.org/10.1187/cbe.16-10-0307
+
+Woo, S. E., LeBreton, J. M., Keith, M. G., & Tay, L. (2023). Bias, fairness, and validity in graduate-school admissions: A psychometric perspective. *Perspectives on Psychological Science*, *18*(1), 3–31. https://doi.org/10.1177/17456916211055374
+
+**Applied examples**
+
+Aguinis, H., Culpepper, S. A., & Pierce, C. A. (2016). Differential prediction generalization in college admissions testing. *Journal of Educational Psychology*, *108*(7), 1045–1059. https://doi.org/10.1037/edu0000104
+
+Baker, C. A., Baum, L. J., Francis, J. P., Shura, R. D., & Ord, A. S. (2023). Assessment of test bias on the MMPI-2-RF higher order and restructured clinical scales as a function of gender and race. *Professional Psychology: Research and Practice*, *54*(4), 314–325. https://doi.org/10.1037/pro0000517
+
+Patel, J. S., Oh, Y., Rand, K. L., Wu, W., Cyders, M. A., Kroenke, K., & Stewart, J. C. (2019). Measurement invariance of the Patient Health Questionnaire-9 (PHQ-9) depression screener in U.S. adults across sex, race/ethnicity, and education level: NHANES 2005–2016. *Depression and Anxiety*, *36*(9), 813–823. https://doi.org/10.1002/da.22940
