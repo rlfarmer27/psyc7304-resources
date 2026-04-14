@@ -657,6 +657,103 @@ The lines are identical — what changes is where they start.
 This is the single most important slide for school psychologists. A positive universal screen is not the same thing as a positive screen in a referred patient. Same test, same LRs, completely different clinical meaning.
 :::
 
+---
+
+## Putting it together: sequential Bayesian updating
+
+::: {style="font-size:0.85em; margin-bottom:0.5em;"}
+Each assessment step uses the **previous post-test probability as the new pre-test probability**.
+Likelihood ratios multiply odds — they do not add probabilities.
+:::
+
+:::: {.columns}
+::: {.column width="48%"}
+```{r fig-nom-seq1, fig.height=4.8, fig.width=5.2, out.width="96%"}
+nomogrammer(Prevalence=0.25, Plr=7.2, Nlr=0.14,
+            Detail=TRUE, NullLine=TRUE, LabelSize=2.3)
+```
+**Step 1:** PHQ-9 positive (LR+ = 7.2)
+:::
+
+::: {.column width="48%"}
+```{r fig-nom-seq2, fig.height=4.8, fig.width=5.2, out.width="96%"}
+nomogrammer(Prevalence=0.71, Plr=3.3, Nlr=0.19,
+            Detail=TRUE, NullLine=TRUE, LabelSize=2.3)
+```
+**Step 2:** MINI positive (LR+ = 3.3)
+:::
+::::
+
+::: {style="background:#f0f4f8; border-left:4px solid #2E4057; padding:0.5em 0.9em; font-size:0.82em; margin-top:0.4em;"}
+**Step 1:** Pre-test odds = 0.25/0.75 = 0.333 &nbsp;×&nbsp; 7.2 = 2.40 &nbsp;→&nbsp; post-test = 2.40/3.40 = **71%**
+
+**Step 2:** Pre-test odds = 0.71/0.29 = 2.448 &nbsp;×&nbsp; 3.3 = 8.08 &nbsp;→&nbsp; post-test = 8.08/9.08 = **89%**
+:::
+
+::: notes
+Walk through each step explicitly. The key point: post-test 1 becomes the new pre-test for step 2. You are not averaging two pieces of evidence — you are compounding them. A positive screen followed by a positive structured interview produces a very high posterior probability. The assumption is that the two instruments provide independent information — if they measure the same thing in the same way, this logic breaks down.
+:::
+
+---
+
+## What if your data disagree?
+
+::: {style="font-size:0.88em; margin-bottom:0.5em;"}
+Data don't always point the same direction. The same logic applies — the MINI result updates from wherever the PHQ left you.
+:::
+
+:::: {.columns}
+::: {.column width="48%"}
+```{r fig-nom-seq3, fig.height=4.8, fig.width=5.2, out.width="96%"}
+nomogrammer(Prevalence=0.25, Plr=7.2, Nlr=0.14,
+            Detail=TRUE, NullLine=TRUE, LabelSize=2.3)
+```
+**Step 1:** PHQ-9 positive (LR+ = 7.2)
+:::
+
+::: {.column width="48%"}
+```{r fig-nom-seq4, fig.height=4.8, fig.width=5.2, out.width="96%"}
+nomogrammer(Prevalence=0.71, Plr=3.3, Nlr=0.19,
+            Detail=TRUE, NullLine=TRUE, LabelSize=2.3)
+```
+**Step 2:** MINI **negative** (LR− = 0.19)
+:::
+::::
+
+::: {style="background:#f0f4f8; border-left:4px solid #2E4057; padding:0.5em 0.9em; font-size:0.82em; margin-top:0.4em;"}
+**Step 1:** Pre-test odds = 0.333 &nbsp;×&nbsp; 7.2 = 2.40 &nbsp;→&nbsp; post-test = **71%**
+
+**Step 2:** Pre-test odds = 0.71/0.29 = 2.448 &nbsp;×&nbsp; 0.19 = 0.465 &nbsp;→&nbsp; post-test = 0.465/1.465 = **32%**
+:::
+
+::: notes
+This is the clinically important slide. A positive screen drives probability to 71% — but a negative structured interview pulls it almost all the way back to baseline (32% vs. 25% starting point). The MINI negative is not just a tie-breaker; it is meaningful evidence that substantially revises the estimate downward. The student should leave this slide understanding that disagreement between instruments is not a problem to be resolved by clinical judgment alone — it is information to be processed systematically.
+:::
+
+---
+
+## What sequential updating tells us
+
+::: {style="font-size:0.90em;"}
+**When evidence agrees** (PHQ+ → MINI+): probability compounds upward. 25% → 71% → 89%. By the end of a thorough evaluation, you can reach high confidence.
+
+**When evidence disagrees** (PHQ+ → MINI−): the negative finding pulls back toward baseline. 25% → 71% → 32%. The structured interview is doing real diagnostic work, not just confirming the screen.
+
+**Three implications:**
+
+1. Screening and confirmatory assessment are not redundant — they contribute independent information at different LR levels
+2. A negative finding after a positive screen is not a failure — it is the system working correctly
+3. The order matters only in terms of what probability you carry into each step — the final result is the same regardless of sequence
+:::
+
+::: {style="background:#f0f4f8; border-left:4px solid #2E4057; padding:0.5em 0.8em; font-size:0.84em; margin-top:0.5em;"}
+**Assumption:** this logic requires that the two instruments provide **independent** information. If the PHQ-9 and MINI are measuring the same construct with the same items, multiplying their LRs overcounts the evidence.
+:::
+
+::: notes
+The independence assumption is worth dwelling on. In practice, a PHQ-9 and a MINI are sufficiently different in format and administration that independence is defensible. But if a clinician used two similar self-report scales, the sequential update would be misleading. This connects to the broader point about assessment battery design — instruments should be selected to provide complementary, not redundant, information.
+:::
+
 # ROC Curves and AUC {background-color="#2E4057"}
 
 ## Why ROC analysis exists

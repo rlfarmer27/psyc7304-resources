@@ -1,0 +1,1381 @@
+---
+title: "Item Response Theory"
+subtitle: "PSYC 7304/8304 · Week 13"
+author: "Ryan Farmer, PhD"
+format:
+  revealjs:
+    theme: [default, week13_custom.scss]
+    slide-number: true
+    progress: true
+    history: false
+    transition: none
+    transition-speed: default
+    background-transition: none
+    code-fold: false
+    toc: false
+    center: false
+    width: 1200
+    height: 700
+    margin: 0.06
+    smaller: false
+    highlight-style: github
+    embed-resources: true
+    preview-links: false
+    chalkboard: false
+    mouse-wheel: false
+    controls: true
+    controls-layout: bottom-right
+    fragments: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{=html}
+<style>
+.reveal,
+.reveal .slides,
+.reveal .slides section,
+.reveal .slides section > * {
+  font-size: 22px !important;
+}
+.reveal h1 { font-size: 1.75em !important; }
+.reveal h2 { font-size: 1.15em !important; }
+.reveal h3 { font-size: 1.0em  !important; }
+.reveal .callout { font-size: 0.82em !important; }
+.reveal table   { font-size: 0.78em !important; }
+.reveal blockquote { font-size: 0.88em !important; }
+</style>
+```
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+theme_w13 <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.background   = element_rect(fill = "transparent", color = NA),
+      panel.background  = element_rect(fill = "transparent", color = NA),
+      panel.grid.minor  = element_blank(),
+      panel.grid.major  = element_line(color = "#e0e0e0"),
+      axis.title        = element_text(color = "#2E4057", size = 13),
+      axis.text         = element_text(color = "#444444", size = 11),
+      plot.title        = element_text(color = "#2E4057", size = 14, face = "bold"),
+      plot.subtitle     = element_text(color = "#666666", size = 12),
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.text       = element_text(size = 11)
+    )
+}
+
+col_primary <- "#2E4057"
+col_accent  <- "#E07B39"
+col_green   <- "#3A7D44"
+col_warn    <- "#C7A020"
+col_lt      <- "#F5F5F5"
+
+# IRT helper functions
+p_2pl <- function(theta, a, b)       1 / (1 + exp(-a * (theta - b)))
+p_3pl <- function(theta, a, b, c)    c + (1 - c) * p_2pl(theta, a, b)
+info_2pl <- function(theta, a, b)    a^2 * p_2pl(theta, a, b) * (1 - p_2pl(theta, a, b))
+
+theta_seq <- seq(-4, 4, by = 0.02)
+```
+
+# Where We Are {.section-slide background-color="#2E4057"}
+
+## Today's Session
+
+We have spent the semester building a vocabulary for measurement.
+
+This week closes the loop on item-level analysis and lays the conceptual foundation for SEM.
+
+. . .
+
+**Part 1: Three frameworks** — CTT, latent variable models, and IRT as distinct but related traditions
+
+**Part 2: The Item Response Function** — the ICC, item parameters, and how to read them
+
+**Part 3: The model families** — 1PL, 2PL, 3PL for dichotomous items
+
+**Part 4: Methods and data** — what IRT analysis actually requires
+
+**Part 5: The Test Information Function** — precision as a function of trait level
+
+**Part 6: Polytomous models** — extending IRT to Likert-type scales
+
+**Part 7: IRT and DIF** — closing the loop from Week 11
+
+**Part 8: IRT in practice** — where you will encounter it in your work
+
+::: {.notes}
+Orientation slide. Students are tired; it is Week 13. Give them the map upfront. Emphasize that this week is not a detour into a specialist topic — it directly connects to everything they have done and to SEM next semester.
+:::
+
+# Part 1: Three Frameworks {.section-slide background-color="#2E4057"}
+
+## Classical Test Theory: What It Is (and Is Not)
+
+CTT is a **statistical decomposition**, not a causal model.
+
+$$X = T + E$$
+
+- $X$ = observed score
+- $T$ = true score (expected value of $X$ over repeated measurement)
+- $E$ = random error
+
+. . .
+
+**The true score is a mathematical abstraction.** It is defined as the mean score a person would obtain if tested infinitely many times under identical conditions.
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+The true score carries **no ontological commitment**. It does not require that anything real underlies the scores. You can run a full CTT analysis — compute reliability, correct for attenuation, estimate error — without ever assuming a latent variable exists.
+:::
+
+::: {.notes}
+This is the Borsboom point. Most students have implicitly treated true score and latent variable as synonyms. They are not. Spend a moment here. The distinction matters for everything that follows.
+:::
+
+## The Conflation Most Researchers Make
+
+Most applied researchers treat the true score as a latent variable.
+
+They write things like: *"The true score on the depression scale reflects the person's underlying level of depression."*
+
+. . .
+
+This is not what CTT says. CTT says the true score is the expected value of repeated observations. It is silent on whether anything causes those observations.
+
+. . .
+
+::: {.columns}
+::: {.column width="48%"}
+**True score (CTT)**
+
+A statistical artifact
+
+Defined by the measurement procedure
+
+No causal story required
+
+Borsboom, Mellenbergh, & van Haren (2003): conflating these "mistakes a formal property for a substantive one"
+:::
+::: {.column width="48%"}
+**Latent variable**
+
+A theoretical entity
+
+Postulated to *cause* observed responses
+
+Requires a causal model
+
+The latent variable is the reason items correlate — not a description of that correlation
+:::
+:::
+
+::: {.notes}
+Borsboom et al. (2003) is the key citation. The argument: if a test measures depression, it is not because the items happen to correlate — it is because there is something called depression that produces those responses. CTT cannot make that argument. Latent variable theory can.
+:::
+
+## Latent Variable Models: EFA and CFA
+
+EFA and CFA are **latent variable models**, not CTT methods.
+
+. . .
+
+Both assume a latent factor $F$ that causally produces item responses:
+
+$$X_i = \lambda_i F + \delta_i$$
+
+- The factor *explains* why items correlate
+- The factor loading $\lambda_i$ quantifies how strongly item $i$ reflects the factor
+- Residuals $\delta_i$ are what remains after the factor is accounted for
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+**Why this matters:** CFA is a measurement model with a causal story. CTT is a scoring model without one. Both are useful. They answer different questions.
+:::
+
+. . .
+
+**EFA** discovers factor structure. **CFA** tests a specified factor structure. Both use continuous (or approximately continuous) indicators and a linear factor model.
+
+::: {.notes}
+Students have done CFA. Remind them: when they ran a CFA, they were positing that a latent variable causes item responses. They were not doing CTT. The two traditions share vocabulary (reliability, error) but not foundations.
+:::
+
+## Where IRT Fits
+
+IRT belongs to the **latent variable tradition** — not to CTT.
+
+Like CFA, IRT posits a latent trait $\theta$ that causes item responses.
+
+. . .
+
+::: {.columns}
+::: {.column width="48%"}
+**What IRT shares with CFA**
+
+Both model a latent variable as the cause of responses
+
+Both can test measurement invariance across groups
+
+Both require unidimensionality
+
+The 2PL and the one-factor probit model are mathematically equivalent
+:::
+::: {.column width="48%"}
+**What IRT adds beyond CFA**
+
+Uses a nonlinear (logistic) link — appropriate for binary and ordinal responses
+
+Models the *probability* of each response at each $\theta$ level
+
+Produces item-level precision estimates that vary across the trait continuum
+
+Enables item banking, adaptive testing, and score comparability across test forms
+:::
+:::
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+Think of IRT as CFA with a better link function for categorical items, plus item-level diagnostics CTT and CFA do not provide.
+:::
+
+::: {.notes}
+The 2PL/CFA equivalence is worth spending a moment on. Discrimination = factor loading (rescaled). Difficulty = item threshold. Students who understand CFA can see exactly where IRT parameters come from. This also previews measurement invariance as IRT-based DIF.
+:::
+
+## A Summary of the Three Frameworks
+
+```{r tbl-frameworks}
+fw <- tibble::tribble(
+  ~Framework,         ~`Latent variable?`, ~`Link function`,   ~`Unit of precision`, ~`Typical use`,
+  "CTT",              "No (true score is a statistical artifact)", "Linear (implicit)", "Single coefficient (α, ω)", "Scoring, reliability, attenuation correction",
+  "EFA / CFA",        "Yes (causal factor)", "Linear",          "Global (factor-level)", "Scale development, construct validation, invariance testing",
+  "IRT",              "Yes (latent trait θ)", "Logistic / probit", "Conditional (item- and θ-level)", "Item banking, adaptive testing, DIF, health outcomes"
+)
+
+kable(fw, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE)
+```
+
+. . .
+
+<div style="text-align: center; font-weight: bold;">
+CTT, CFA, and IRT are not competing answers to the same question. They answer different questions about the same data.
+</div>
+
+::: {.callout-note appearance="minimal"}
+These are complementary frameworks, not competitors. In practice, good test development uses all three: CTT for item statistics, CFA to establish factor structure, IRT to characterize item-level precision and enable adaptive scoring.
+:::
+
+::: {.notes}
+This table is the conceptual anchor for the whole lecture. Return to it at the end. The key message: each framework asks a different question and provides a different kind of answer.
+:::
+
+# Part 2: The Item Response Function {.section-slide background-color="#2E4057"}
+
+## The Core Idea
+
+CTT asks: *what score did this person get?*
+
+IRT asks: *what is the probability that a person at trait level $\theta$ endorses this item?*
+
+. . .
+
+That probability is described by the **Item Characteristic Curve** (ICC), also called the Item Response Function (IRF).
+
+. . .
+
+Three things define an ICC:
+
+- The **shape**: always a logistic S-curve for the standard models
+- The **location**: where along the $\theta$ continuum the curve is centered
+- The **slope**: how steeply the probability changes near the center
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+The $\theta$ scale is continuous, roughly standard-normal in a calibration sample (mean = 0, SD = 1). Higher $\theta$ = more of the trait. The scale has no natural origin — it is set by convention.
+:::
+
+::: {.notes}
+Emphasize the shift in the question being asked. Everything in IRT follows from modeling the probability of a response rather than summing responses into a score.
+:::
+
+## Reading an ICC
+
+```{r fig-single-icc, fig.height=4.2, fig.width=9.5}
+df_single <- tibble(
+  theta = theta_seq,
+  prob  = p_2pl(theta_seq, a = 1.2, b = 0.5)
+)
+
+ggplot(df_single, aes(x = theta, y = prob)) +
+  geom_line(color = col_primary, linewidth = 1.4) +
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = col_accent, linewidth = 0.8) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = col_accent, linewidth = 0.8) +
+  annotate("point", x = 0.5, y = 0.5, size = 4, color = col_accent) +
+  annotate("text", x = 0.7, y = 0.44, label = "b = 0.5\n(difficulty)", color = col_accent, size = 3.8, hjust = 0) +
+  annotate("text", x = -3.8, y = 0.92,
+           label = "P(θ = 2) ≈ 0.84\nPerson well above b;\nhigh probability of correct response",
+           color = col_primary, size = 3.5, hjust = 0) +
+  annotate("text", x = -3.8, y = 0.18,
+           label = "P(θ = -1) ≈ 0.23\nPerson well below b;\nlow probability of correct response",
+           color = col_primary, size = 3.5, hjust = 0) +
+  scale_x_continuous(breaks = -4:4, limits = c(-4, 4)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1)) +
+  labs(x = expression("Latent Trait  (" * theta * ")"),
+       y = "P(correct / endorsed)",
+       title = "A Single Item Characteristic Curve",
+       subtitle = "2PL model: a = 1.2, b = 0.5") +
+  theme_w13()
+```
+
+::: {.notes}
+Walk through the axes. x-axis: the latent trait continuum. y-axis: probability of a correct or keyed response. Point to specific values. Ask: what is the probability of a correct response for someone at theta = 0.5? (50%, by definition — that is what b means.) For someone at theta = 2? (About 84%.) This is the core reading skill for everything that follows.
+:::
+
+## The Difficulty Parameter (*b*)
+
+The difficulty parameter $b$ is the $\theta$ value where $P(\text{correct}) = 0.50$.
+
+Easy items have low $b$ (the curve is shifted left). Hard items have high $b$ (the curve is shifted right).
+
+```{r fig-icc-difficulty, fig.height=3.8, fig.width=9.5}
+df_b <- bind_rows(
+  tibble(theta = theta_seq, prob = p_2pl(theta_seq, 1.2, -1.5), item = "Easy  (b = -1.5)"),
+  tibble(theta = theta_seq, prob = p_2pl(theta_seq, 1.2,  0.0), item = "Moderate  (b = 0.0)"),
+  tibble(theta = theta_seq, prob = p_2pl(theta_seq, 1.2,  1.5), item = "Hard  (b = 1.5)")
+)
+
+ggplot(df_b, aes(x = theta, y = prob, color = item)) +
+  geom_line(linewidth = 1.3) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "#aaaaaa", linewidth = 0.5) +
+  scale_color_manual(values = c(col_green, col_primary, col_accent)) +
+  scale_x_continuous(breaks = -4:4) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1)) +
+  labs(x = expression(theta), y = "P(correct)",
+       color = NULL,
+       title = "Varying Difficulty (b) — Discrimination Held Constant at a = 1.2") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.callout-note appearance="minimal"}
+All three curves have the same slope. Only the location differs. Notice that even a "hard" item (b = 1.5) is eventually answered correctly by high-θ examinees.
+:::
+
+::: {.notes}
+Note the relationship to CTT's p-value: a lower b corresponds to a higher p-value (more people get it right). The key advantage: b is a property of the item independent of the sample. The p-value is not.
+:::
+
+## The Discrimination Parameter (*a*)
+
+The discrimination parameter $a$ is proportional to the slope of the ICC at its inflection point.
+
+High $a$: steep curve — the item sharply separates examinees near $b$. Low $a$: flat curve — the item barely differentiates at any trait level.
+
+```{r fig-icc-discrim, fig.height=3.8, fig.width=9.5}
+df_a <- bind_rows(
+  tibble(theta = theta_seq, prob = p_2pl(theta_seq, 0.4, 0), item = "Low discrimination  (a = 0.4)"),
+  tibble(theta = theta_seq, prob = p_2pl(theta_seq, 1.2, 0), item = "Moderate discrimination  (a = 1.2)"),
+  tibble(theta = theta_seq, prob = p_2pl(theta_seq, 2.2, 0), item = "High discrimination  (a = 2.2)")
+)
+
+ggplot(df_a, aes(x = theta, y = prob, color = item)) +
+  geom_line(linewidth = 1.3) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "#aaaaaa", linewidth = 0.5) +
+  scale_color_manual(values = c(col_green, col_primary, col_accent)) +
+  scale_x_continuous(breaks = -4:4) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1)) +
+  labs(x = expression(theta), y = "P(correct)",
+       color = NULL,
+       title = "Varying Discrimination (a) — Difficulty Held Constant at b = 0") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.callout-note appearance="minimal"}
+$a$ is analogous to the item-total correlation in CTT — and the two are strongly correlated. A highly discriminating item adds more information about the examinee's trait level.
+:::
+
+::: {.notes}
+Ask students: if you could only keep one item for a test, which discrimination value would you want? High. Why? Because it does the best job separating examinees near the difficulty threshold. The flat item barely helps regardless of where an examinee falls on the trait.
+:::
+
+## The Pseudo-Guessing Parameter (*c*)
+
+On selected-response tests, even very low-$\theta$ examinees can answer correctly by guessing.
+
+The $c$ parameter sets the lower asymptote of the ICC — the floor probability.
+
+```{r fig-icc-guess, fig.height=3.8, fig.width=9.5}
+df_c <- bind_rows(
+  tibble(theta = theta_seq,
+         prob = p_2pl(theta_seq, 1.5, 0),
+         item = "2PL: no guessing  (c = 0)"),
+  tibble(theta = theta_seq,
+         prob = p_3pl(theta_seq, 1.5, 0, 0.20),
+         item = "3PL: c = 0.20  (5-option item)"),
+  tibble(theta = theta_seq,
+         prob = p_3pl(theta_seq, 1.5, 0, 0.25),
+         item = "3PL: c = 0.25  (4-option item)")
+)
+
+ggplot(df_c, aes(x = theta, y = prob, color = item, linetype = item)) +
+  geom_line(linewidth = 1.3) +
+  scale_color_manual(values = c(col_primary, col_accent, col_green)) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotdash")) +
+  scale_x_continuous(breaks = -4:4) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1)) +
+  labs(x = expression(theta), y = "P(correct)",
+       color = NULL, linetype = NULL,
+       title = "Effect of the Pseudo-Guessing Parameter (c) — a = 1.5, b = 0") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.callout-important appearance="minimal"}
+When $c > 0$, the apparent location of the curve shifts. The $b$ parameter no longer equals the $\theta$ where $P = 0.50$ — it equals the $\theta$ where $P = (1 + c) / 2$. Interpret $b$ and $a$ cautiously in 3PL models.
+:::
+
+::: {.notes}
+c is only meaningful for selected-response formats where guessing is plausible. For personality or attitude scales, c = 0 is standard. The practical implication: when c is large, the item provides almost no information about low-theta examinees, because you can't tell whether a correct response reflects ability or a lucky guess.
+:::
+
+# Part 3: The Model Families {.section-slide background-color="#2E4057"}
+
+## Three Models for Dichotomous Items
+
+```{r tbl-models}
+mods <- tibble::tribble(
+  ~Model,           ~Parameters,              ~`Key assumption`,                    ~`Typical use`,
+  "1PL (Rasch)",    "b only",                 "All items equally discriminating",   "Health outcomes, European educational assessment, short scales",
+  "2PL",            "a, b",                   "Discrimination varies across items", "Psychological scales, licensure exams, most personality/ability research",
+  "3PL",            "a, b, c",                "Guessing possible (lower asymptote)","Large-scale educational testing: NAEP, SAT, GRE, PISA"
+)
+
+kable(mods, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE)
+```
+
+. . .
+
+The models are nested: 1PL $\subset$ 2PL $\subset$ 3PL.
+
+A more constrained model (fewer parameters) is easier to estimate and more parsimonious. A less constrained model fits more flexibly but requires more data.
+
+::: {.callout-note appearance="minimal"}
+**Model selection follows from the construct and item format**, not from habit. Ask: can examinees guess? Do items plausibly vary in how well they discriminate? Is equal discrimination a defensible assumption?
+:::
+
+::: {.notes}
+Nested structure is important. You can compare models with likelihood ratio tests, though the 2PL-to-3PL comparison has boundary condition issues (c cannot be negative). For most applied psychology work with Likert scales, the 2PL or GRM is appropriate; the 3PL is rarely needed.
+:::
+
+## All Three Models Side by Side
+
+```{r fig-three-models, fig.height=4.0, fig.width=9.5}
+df_models <- bind_rows(
+  tibble(theta = theta_seq,
+         prob = p_2pl(theta_seq, 1.0, 0),
+         model = "1PL: a fixed at 1.0, b = 0, c = 0"),
+  tibble(theta = theta_seq,
+         prob = p_2pl(theta_seq, 1.8, 0),
+         model = "2PL: a = 1.8, b = 0, c = 0"),
+  tibble(theta = theta_seq,
+         prob = p_3pl(theta_seq, 1.8, 0, 0.25),
+         model = "3PL: a = 1.8, b = 0, c = 0.25")
+)
+
+ggplot(df_models, aes(x = theta, y = prob, color = model, linetype = model)) +
+  geom_line(linewidth = 1.3) +
+  scale_color_manual(values = c(col_green, col_primary, col_accent)) +
+  scale_linetype_manual(values = c("dotdash", "solid", "dashed")) +
+  scale_x_continuous(breaks = -4:4) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1)) +
+  labs(x = expression(theta), y = "P(correct)",
+       color = NULL, linetype = NULL,
+       title = "1PL, 2PL, and 3PL Models for the Same Item") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.notes}
+This plot makes the model differences concrete. The 1PL is the flattest (a constrained to 1.0). The 2PL is steeper because a is freely estimated at 1.8. The 3PL lifts the floor. Same b = 0 across all three, but the curves look quite different in the low-theta range.
+:::
+
+## A Note on the Rasch Model
+
+The Rasch model (1PL) deserves its own moment because it has a different philosophical status than the 2PL and 3PL.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+**The statistical argument**
+
+Equal discrimination is a strong assumption that rarely holds empirically.
+
+Forcing equal slopes when they differ in reality introduces model misfit.
+
+Most applied researchers in North America use 2PL or 3PL for this reason.
+:::
+::: {.column width="48%"}
+**The Rasch argument**
+
+Rasch is not just a constrained 2PL — it is a measurement model with specific properties.
+
+If data fit Rasch, person comparisons are *independent of which items were used* and item comparisons are *independent of which persons were sampled*.
+
+This is called **specific objectivity** — a desirable property no other model provides.
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+In practice: Rasch dominates in European health outcomes measurement and certain educational traditions. The 2PL/3PL tradition dominates large-scale testing (NAEP, GRE) and most psychological research. The debate is real; the choice should be principled.
+:::
+
+::: {.notes}
+Don't let this become a debate lecture. The key pedagogical point: Rasch is not just a simplified 2PL. It has specific measurement-theoretic properties that are desirable if they hold. For most students' work in clinical/school/I-O settings, the 2PL or GRM is appropriate and sufficient.
+:::
+
+# Part 4: Methods and Data {.section-slide background-color="#2E4057"}
+
+## What IRT Data Look Like
+
+IRT requires **item-level response data** — not total scores.
+
+The data structure is a **persons × items matrix** where each cell contains a raw item response.
+
+```{r tbl-data-structure}
+set.seed(42)
+n_p <- 6; n_i <- 8
+mat <- matrix(rbinom(n_p * n_i, 1, 0.6), nrow = n_p, ncol = n_i)
+colnames(mat) <- paste0("Item", 1:n_i)
+rownames(mat) <- paste0("Person", 1:n_p)
+
+kable(mat, format = "html",
+      caption = "Example dichotomous response matrix (1 = correct/endorsed, 0 = incorrect/not endorsed)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white")
+```
+
+. . .
+
+For polytomous items the cells contain ordered category values (0, 1, 2, 3, 4 for a 5-point scale).
+
+::: {.callout-important appearance="minimal"}
+Aggregating to total scores before IRT analysis discards the item-level information IRT needs. IRT must be run on the raw response matrix.
+:::
+
+::: {.notes}
+This sounds obvious but students sometimes ask whether they can run IRT on scale scores. No. IRT models the probability of each individual item response. The entire point is to characterize individual items. Aggregation destroys that.
+:::
+
+## Assumptions
+
+IRT requires three assumptions. The most important is the first.
+
+. . .
+
+**1. Unidimensionality**
+
+All items reflect a single underlying trait. This is IRT's most critical and most commonly violated assumption.
+
+*How to check:* Run a CFA with a single factor before IRT. Examine fit, residual correlations, and EFA scree plots. Bifactor models can help diagnose multidimensionality.
+
+. . .
+
+**2. Local independence**
+
+After conditioning on $\theta$, item responses are uncorrelated. This is a logical consequence of unidimensionality — if the model captures all systematic variance, only random error remains.
+
+*How to check:* Examine residual inter-item correlations after model fitting. Pairs of items with large residual correlations suggest a violated assumption (e.g., testlets, redundant wording).
+
+. . .
+
+**3. Monotonicity**
+
+The probability of the keyed response increases (never decreases) as $\theta$ increases. The ICC is always an S-curve sloping upward.
+
+::: {.notes}
+Unidimensionality is by far the most important in practice. Students already know how to assess it via CFA. Emphasize that IRT assumes a unidimensional structure — if the data are multidimensional, fit a multidimensional IRT model or fix the construct before proceeding.
+:::
+
+## Sample Size
+
+IRT parameter estimation requires substantially larger samples than CTT.
+
+```{r tbl-sample-size}
+ss <- tibble::tribble(
+  ~Model,       ~`Minimum sample`,  ~`Recommended`,  ~`Why`,
+  "1PL (Rasch)","100–200",          "200+",          "One parameter per item; most parsimonious",
+  "2PL",        "200–500",          "500+",          "Two parameters per item; moderate data demand",
+  "3PL",        "500–1,000",        "1,000+",        "Three parameters; c is notoriously hard to estimate",
+  "GRM (polytomous)", "200–500",    "500+",          "Multiple thresholds per item; similar to 2PL"
+)
+
+kable(ss, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE)
+```
+
+. . .
+
+These are minimums for stable parameter recovery — not ideal targets. Samples below these thresholds produce unstable estimates with wide confidence intervals, particularly for $a$ and $c$.
+
+::: {.callout-important appearance="minimal"}
+Sample size requirements are one reason IRT is more common in large-scale assessment and health outcomes research than in typical dissertation studies.
+:::
+
+::: {.notes}
+This is a common practical question. The numbers here are rough guidelines; they also depend on the number of items and the targeting (how well the item difficulty distribution matches the person ability distribution). A very short test with excellent targeting might be estimable with fewer people; a poorly targeted test needs more.
+:::
+
+## Model Fit
+
+Fitting an IRT model is not sufficient. The model must fit the data.
+
+. . .
+
+**Item fit**
+
+Does the ICC predicted by the model match the observed response pattern for that item?
+
+- $S$-$X^2$ statistic (Orlando & Thissen, 2000): most widely recommended for 2PL/3PL; compares expected and observed response frequencies across score groups
+- Infit and outfit statistics (Rasch tradition): mean-square residuals; values near 1.0 indicate fit; >1.3–1.5 suggests misfit
+
+. . .
+
+**Global model fit**
+
+Do the model's assumptions hold across the full item bank?
+
+- Compare nested models with likelihood ratio tests (e.g., 1PL vs. 2PL)
+- Examine residual inter-item correlations for local dependence violations
+- CFA-based methods: $M_2$ statistic for limited-information fit
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+Misfit has substantive meaning. An item with poor fit may be multidimensional, have unusual response patterns at certain trait levels, or violate monotonicity. Poor fit is a signal to investigate the item, not just to drop it.
+:::
+
+::: {.notes}
+Keep this conceptual. Students do not need to compute these statistics by hand. The key message: IRT provides much richer item diagnostics than CTT. You can identify exactly which items are behaving unexpectedly and diagnose why.
+:::
+
+## Software: R and `mirt`
+
+The `mirt` package (Chalmers, 2012) is the standard for IRT in R.
+
+```{r mirt-example, echo=TRUE, eval=FALSE}
+library(mirt)
+
+# Fit a 2PL model to a binary response matrix
+mod_2pl <- mirt(data = response_matrix,
+                model = 1,          # unidimensional
+                itemtype = "2PL")
+
+# Extract item parameters
+coef(mod_2pl, IRTpars = TRUE, simplify = TRUE)
+
+# Item fit
+itemfit(mod_2pl, fit_stats = "S_X2")
+
+# Test information function
+plot(mod_2pl, type = "infoSE")
+
+# For polytomous data (GRM)
+mod_grm <- mirt(data = likert_matrix,
+                model = 1,
+                itemtype = "graded")
+```
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+`mirt` handles 1PL, 2PL, 3PL, GRM, PCM, GPCM, and multidimensional models. Parameter estimation uses marginal maximum likelihood (MML) by default — the correct approach for IRT.
+:::
+
+::: {.notes}
+Show this slide briefly. Students are not expected to run IRT in this course, but they should know the tool exists and that R handles it. IRTPRO and flexMIRT are commercial alternatives used operationally. Winsteps is Rasch-specific and still widely used in educational measurement.
+:::
+
+# Part 5: The Test Information Function {.section-slide background-color="#2E4057"}
+
+## From Items to Tests
+
+Every item contributes information about $\theta$. The total test information is the sum of all item information functions.
+
+. . .
+
+**Item information** is highest where the ICC is steepest — near the item's difficulty ($b$).
+
+$$I_i(\theta) = a_i^2 \cdot P_i(\theta) \cdot [1 - P_i(\theta)]$$
+
+- Higher $a$ → more information overall
+- Information is concentrated near $b$
+- Very easy or very hard items provide little information at most trait levels
+
+. . .
+
+The **Test Information Function** (TIF) sums across items:
+
+$$I(\theta) = \sum_{i=1}^{k} I_i(\theta)$$
+
+. . .
+
+And precision at each trait level follows directly:
+
+$$SE(\theta) = \frac{1}{\sqrt{I(\theta)}}$$
+
+Higher information = smaller standard error = better precision.
+
+::: {.notes}
+This is the IRT analogue of reliability, but it varies across the trait continuum. The key conceptual shift from CTT: instead of a single reliability coefficient, we get a function that tells us exactly where the test measures well and where it does not.
+:::
+
+## Item Information Functions
+
+```{r fig-item-info, fig.height=4.2, fig.width=9.5}
+df_info_items <- bind_rows(
+  tibble(theta = theta_seq,
+         info  = info_2pl(theta_seq, 1.0, -1.0),
+         item  = "Item A: a = 1.0, b = -1.0"),
+  tibble(theta = theta_seq,
+         info  = info_2pl(theta_seq, 1.5,  0.5),
+         item  = "Item B: a = 1.5, b = 0.5"),
+  tibble(theta = theta_seq,
+         info  = info_2pl(theta_seq, 0.8,  2.0),
+         item  = "Item C: a = 0.8, b = 2.0")
+)
+
+ggplot(df_info_items, aes(x = theta, y = info, color = item)) +
+  geom_line(linewidth = 1.3) +
+  scale_color_manual(values = c(col_primary, col_accent, col_green)) +
+  scale_x_continuous(breaks = -4:4) +
+  labs(x = expression(theta), y = "Information",
+       color = NULL,
+       title = "Item Information Functions",
+       subtitle = "Each curve peaks at the item's b; height determined by a") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.callout-note appearance="minimal"}
+Item A measures best at $\theta = -1.0$. Item B measures best at $\theta = 0.5$. Item C measures best at $\theta = 2.0$ but contributes less information (lower $a$). Together they spread coverage across the continuum.
+:::
+
+::: {.notes}
+This is the key figure for understanding test design. Ask: if you were building a test to screen for clinical-level depression (high-theta region), which items would you want? Items with high b and high a. If you wanted precision across the full range, you would want items spread across b values.
+:::
+
+## The Test Information Function
+
+```{r fig-tif, fig.height=4.2, fig.width=9.5}
+info_A <- info_2pl(theta_seq, 1.0, -1.0)
+info_B <- info_2pl(theta_seq, 1.5,  0.5)
+info_C <- info_2pl(theta_seq, 0.8,  2.0)
+info_total <- info_A + info_B + info_C
+se_total <- 1 / sqrt(info_total)
+
+df_tif <- tibble(theta = theta_seq, info = info_total, se = se_total)
+
+p1 <- ggplot(df_tif, aes(x = theta, y = info)) +
+  geom_area(fill = col_primary, alpha = 0.15) +
+  geom_line(color = col_primary, linewidth = 1.3) +
+  scale_x_continuous(breaks = -4:4) +
+  labs(x = expression(theta), y = "Total Information",
+       title = "Test Information Function (3 items)") +
+  theme_w13()
+
+p2 <- ggplot(df_tif, aes(x = theta, y = se)) +
+  geom_area(fill = col_accent, alpha = 0.15) +
+  geom_line(color = col_accent, linewidth = 1.3) +
+  geom_hline(yintercept = 0.316, linetype = "dashed", color = "#888888", linewidth = 0.6) +
+  annotate("text", x = 2.5, y = 0.34, label = "SE = 0.32\n(≈ α = .90)", size = 3.5, color = "#666666") +
+  scale_x_continuous(breaks = -4:4) +
+  labs(x = expression(theta), y = "Standard Error of θ̂",
+       title = "Conditional Standard Error") +
+  theme_w13()
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+```
+
+::: {.notes}
+The two panels are two views of the same information. Left: total information peaks around theta = 0.5 because that is where the highest-discriminating item (B) is centered. Right: the SE is lowest where information is highest. The dashed line on the right panel shows the SE equivalent to a reliability of .90 (SE = sqrt(1 - .90) = 0.316). Students can see directly which theta range is measured with that reliability.
+:::
+
+## TIF vs. Reliability: What You Gain
+
+::: {.columns}
+::: {.column width="48%"}
+**CTT reliability (α, ω)**
+
+A single coefficient describing average precision across all examinees
+
+Assumes equal precision for all trait levels
+
+Does not tell you where the test measures well or poorly
+
+Appropriate when examinees span the full trait range and you want an overall summary
+:::
+::: {.column width="48%"}
+**IRT test information function**
+
+A function of $\theta$ — precision varies across the trait continuum
+
+Reveals exactly where the test measures well and where it does not
+
+Enables deliberate test design: build a test optimized for a target range
+
+Appropriate when precision requirements differ across trait levels (e.g., screening at a clinical threshold)
+:::
+:::
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+Best practice uses both. CTT reliability for overall summaries and comparisons across tests. The TIF when designing tests, setting cut scores, or evaluating precision at specific trait levels.
+:::
+
+::: {.notes}
+The TIF is not strictly better than reliability — it is more informative but harder to summarize. Alpha is still perfectly appropriate for reporting scale-level reliability. The TIF adds information CTT cannot provide. The question is whether you need that information for your purpose.
+:::
+
+# *Break (~10 minutes)* {.section-slide background-color="#555555"}
+
+# Part 6: Polytomous Models {.section-slide background-color="#2E4057"}
+
+## Why Polytomous Models Exist
+
+Most psychological scales do not use binary items.
+
+Likert-type rating scales, symptom severity ratings, and behavioral frequency scales all produce **ordered polytomous responses**: 0, 1, 2, 3, 4.
+
+. . .
+
+The binary ICC — one threshold at $b$ — cannot model multiple ordered categories.
+
+Polytomous IRT models replace the single threshold with **multiple ordered thresholds**, one for each category transition.
+
+. . .
+
+::: {.columns}
+::: {.column width="48%"}
+**Graded Response Model (GRM)**
+
+Samejima (1969)
+
+Models the probability of responding *at or above* each category
+
+Uses cumulative boundary curves
+
+Each item has a single $a$ and multiple $b$ thresholds ($b_1, b_2, \ldots, b_{k-1}$)
+:::
+::: {.column width="48%"}
+**Partial Credit Model (PCM) / GPCM**
+
+Masters (1982); Muraki (1992)
+
+Models the probability of responding in *adjacent* categories
+
+Uses category response curves directly
+
+GPCM adds a discrimination parameter to the PCM
+:::
+:::
+
+::: {.notes}
+The distinction between cumulative and adjacent-category models is the key conceptual difference. GRM: each threshold is the point where P(at or above category k) = 0.50. PCM: each transition describes the relative probability of one category vs. the adjacent one. For most clinical/I-O/educational psychology applications with Likert scales, GRM is the default choice.
+:::
+
+## GRM: Boundary Curves
+
+The GRM defines $k-1$ boundary curves for a $k$-category item.
+
+Each boundary curve is a 2PL ICC for the probability of responding **at or above** category $j$.
+
+```{r fig-grm-boundary, fig.height=4.0, fig.width=9.5}
+# 5-category GRM: a = 1.5, thresholds at -2, -0.5, 0.8, 2
+a_grm <- 1.5
+bs <- c(-2.0, -0.5, 0.8, 2.0)
+labels <- c("P(≥ 1)", "P(≥ 2)", "P(≥ 3)", "P(≥ 4)")
+colors <- c(col_green, col_primary, col_accent, col_warn)
+
+df_boundary <- purrr::map2_dfr(bs, seq_along(bs), function(b, j) {
+  tibble(theta = theta_seq,
+         prob  = p_2pl(theta_seq, a_grm, b),
+         curve = labels[j])
+})
+
+ggplot(df_boundary, aes(x = theta, y = prob, color = curve)) +
+  geom_line(linewidth = 1.3) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "#aaaaaa", linewidth = 0.5) +
+  scale_color_manual(values = colors) +
+  scale_x_continuous(breaks = -4:4) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1)) +
+  labs(x = expression(theta), y = "P(at or above category)",
+       color = NULL,
+       title = "GRM Boundary (Cumulative) Curves — 5-Category Item",
+       subtitle = "a = 1.5; thresholds at b = -2.0, -0.5, 0.8, 2.0") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.notes}
+Each curve is a 2PL ICC. The leftmost curve (P ≥ 1) crosses 0.50 at b = -2.0 — meaning someone at theta = -2 has a 50% chance of scoring at least 1. The rightmost curve (P ≥ 4) crosses 0.50 at b = 2.0 — you need to be at theta = 2.0 to have a 50% chance of endorsing the highest category. The curves cannot cross — that is what makes the model "graded."
+:::
+
+## GRM: Category Response Curves
+
+The boundary curves combine to produce **category response curves** — the probability of responding in *each specific category* as a function of $\theta$.
+
+```{r fig-grm-crc, fig.height=4.0, fig.width=9.5}
+a_grm <- 1.5
+bs <- c(-2.0, -0.5, 0.8, 2.0)
+
+# Boundary probabilities
+P_star <- sapply(bs, function(b) p_2pl(theta_seq, a_grm, b))
+# P(X = 0) = 1 - P*(1)
+# P(X = j) = P*(j) - P*(j+1)  for j = 1,...,k-2
+# P(X = k-1) = P*(k-1)
+n_cat <- length(bs) + 1
+cat_probs <- matrix(NA, nrow = length(theta_seq), ncol = n_cat)
+cat_probs[, 1] <- 1 - P_star[, 1]
+for (j in 2:(n_cat - 1)) cat_probs[, j] <- P_star[, j-1] - P_star[, j]
+cat_probs[, n_cat] <- P_star[, n_cat - 1]
+
+cat_labels <- paste0("Category ", 0:4)
+cat_colors <- c("#8B0000", col_accent, col_warn, col_green, col_primary)
+
+df_crc <- as.data.frame(cat_probs)
+colnames(df_crc) <- cat_labels
+df_crc$theta <- theta_seq
+df_crc_long <- tidyr::pivot_longer(df_crc, -theta, names_to = "category", values_to = "prob")
+df_crc_long$category <- factor(df_crc_long$category, levels = cat_labels)
+
+ggplot(df_crc_long, aes(x = theta, y = prob, color = category)) +
+  geom_line(linewidth = 1.3) +
+  scale_color_manual(values = cat_colors) +
+  scale_x_continuous(breaks = -4:4) +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1)) +
+  labs(x = expression(theta), y = "P(category)",
+       color = NULL,
+       title = "GRM Category Response Curves — 5-Category Item",
+       subtitle = "a = 1.5; thresholds at b = -2.0, -0.5, 0.8, 2.0") +
+  theme_w13() +
+  theme(legend.position = "bottom")
+```
+
+::: {.notes}
+This is the key GRM visualization. At very low theta, Category 0 dominates — most people endorse the lowest response. As theta increases, higher categories successively dominate. Notice the curves tile the theta continuum: at any theta value, the category probabilities sum to 1.0. Point out the modal category at theta = 0: Categories 1 and 2 are most likely near the center of the continuum. This is how you'd read the output when evaluating a scale.
+:::
+
+## Reading GRM Parameters
+
+For a GRM item, the key parameters are:
+
+- **$a$** (discrimination): same interpretation as in the 2PL — steeper boundary curves, more information
+- **$b_1, b_2, \ldots, b_{k-1}$** (thresholds): the $\theta$ values where adjacent boundary curves cross .50
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+**What the thresholds tell you:**
+
+$b_1$ = the trait level where a person is equally likely to respond 0 vs. at-or-above-1
+
+$b_2$ = the trait level where a person is equally likely to respond below-2 vs. at-or-above-2
+
+Widely spread thresholds = the item uses all categories well across the trait range
+
+Clustered thresholds = some categories are rarely used; consider collapsing
+:::
+::: {.column width="42%"}
+::: {.callout-tip appearance="minimal"}
+**The diagnostic payoff**
+
+If two thresholds are very close together (or reversed), the corresponding category is rarely the modal response.
+
+This is a signal that the response scale may have too many options, or that category labels are poorly differentiated.
+:::
+:::
+:::
+
+::: {.notes}
+Reversed thresholds (also called disordered thresholds) are a common finding with Likert scales. They indicate that respondents are not using adjacent categories consistently — the "agree" and "strongly agree" categories may be functionally indistinguishable. The GRM detects this; CTT does not.
+:::
+
+## GRM vs. PCM: A Brief Comparison
+
+```{r fig-grm-pcm, fig.height=3.8, fig.width=9.5}
+# PCM: adjacent category logits (simplified 3-category example)
+# P(X=j | theta) proportional to exp(sum of (theta - delta_k) for k=1 to j)
+pcm_probs <- function(theta, deltas) {
+  k <- length(deltas) + 1
+  mat <- matrix(NA, nrow = length(theta), ncol = k)
+  for (i in seq_along(theta)) {
+    numerators <- numeric(k)
+    numerators[1] <- 1
+    for (j in 2:k) numerators[j] <- exp(sum(theta[i] - deltas[1:(j-1)]))
+    mat[i, ] <- numerators / sum(numerators)
+  }
+  mat
+}
+
+deltas_pcm <- c(-1.0, 0.5, 1.8)
+pcm_mat <- pcm_probs(theta_seq, deltas_pcm)
+grm_a2 <- 1.2; grm_b2 <- c(-1.0, 0.5, 1.8)
+P_star2 <- sapply(grm_b2, function(b) p_2pl(theta_seq, grm_a2, b))
+grm_mat <- matrix(NA, nrow = length(theta_seq), ncol = 4)
+grm_mat[, 1] <- 1 - P_star2[, 1]
+grm_mat[, 2] <- P_star2[, 1] - P_star2[, 2]
+grm_mat[, 3] <- P_star2[, 2] - P_star2[, 3]
+grm_mat[, 4] <- P_star2[, 3]
+
+cat_cols <- c("#8B0000", col_accent, col_green, col_primary)
+cat_labs <- paste0("Cat. ", 0:3)
+
+df_pcm <- as.data.frame(pcm_mat); colnames(df_pcm) <- cat_labs
+df_pcm$theta <- theta_seq; df_pcm$model <- "PCM"
+df_grm2 <- as.data.frame(grm_mat); colnames(df_grm2) <- cat_labs
+df_grm2$theta <- theta_seq; df_grm2$model <- "GRM"
+
+df_both <- bind_rows(
+  tidyr::pivot_longer(df_pcm, -c(theta, model)),
+  tidyr::pivot_longer(df_grm2, -c(theta, model))
+)
+df_both$name <- factor(df_both$name, levels = cat_labs)
+
+ggplot(df_both, aes(x = theta, y = value, color = name)) +
+  geom_line(linewidth = 1.1) +
+  scale_color_manual(values = cat_cols) +
+  scale_x_continuous(breaks = seq(-4, 4, 2)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  facet_wrap(~model) +
+  labs(x = expression(theta), y = "P(category)", color = NULL,
+       title = "GRM vs. PCM Category Response Curves — 4-Category Item",
+       subtitle = "Same threshold locations; different model assumptions") +
+  theme_w13() +
+  theme(legend.position = "bottom", strip.text = element_text(face = "bold", color = col_primary))
+```
+
+::: {.callout-note appearance="minimal"}
+**GRM** (cumulative): use when categories are ordered and you want a single discrimination parameter per item. Default for Likert scales. **PCM/GPCM** (adjacent): use when the response process involves sequential steps (e.g., partial credit in an ability test). GPCM adds discrimination to the PCM.
+:::
+
+::: {.notes}
+For most students' work — personality scales, attitude surveys, symptom checklists — GRM is the right model. PCM/GPCM is more common in ability testing and educational measurement where items award partial credit. The visual difference is subtle: PCM curves tend to be more symmetric; GRM curves can vary more in shape depending on discrimination.
+:::
+
+## PROMIS: GRM in Action
+
+The NIH's **Patient-Reported Outcomes Measurement Information System** (PROMIS) is the most prominent real-world application of GRM and computerized adaptive testing.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+**What PROMIS is:**
+
+- GRM-calibrated item banks covering depression, anxiety, pain, fatigue, physical function, and more
+- Items calibrated on large nationally representative samples
+- Scores reported as T-scores: mean = 50, SD = 10, referenced to the US general population
+- CAT versions: 4–6 items deliver the same precision as 10–20 static items
+
+**Why it matters for clinical students:**
+
+PROMIS is increasingly integrated into electronic health records for routine outcome monitoring. A T-score of 60 on PROMIS Depression = 1 SD above the population mean = clinically meaningful elevation.
+:::
+::: {.column width="42%"}
+::: {.callout-tip appearance="minimal"}
+**The IRT payoff in practice**
+
+Because PROMIS is IRT-calibrated, scores from a 4-item CAT are on the same scale as scores from the full item bank.
+
+A patient assessed in one clinic can be directly compared to a patient assessed with different items in another clinic.
+
+This is the invariance property CTT cannot provide.
+:::
+:::
+:::
+
+::: {.notes}
+This is the applied anchor for clinical and school psychology students. They will encounter PROMIS in clinical training. The key message: PROMIS is not just a questionnaire — it is an IRT-calibrated system where score comparability is built into the measurement model. T-score interpretation is downstream of that model.
+:::
+
+# Part 7: IRT and DIF {.section-slide background-color="#2E4057"}
+
+## Closing the Loop
+
+In Week 11 we said:
+
+> *Classical DIF uses the total score as a proxy for ability. IRT estimates ability directly. The conceptual question is identical — condition on ability, compare item functioning across groups.*
+
+. . .
+
+We can now make that precise.
+
+**IRT-based DIF is item-level measurement non-invariance**: an item shows DIF when its ICC differs across groups for examinees at the same $\theta$ level.
+
+. . .
+
+::: {.columns}
+::: {.column width="48%"}
+**Uniform DIF**
+
+The ICC is shifted horizontally for one group
+
+Same discrimination ($a$), different difficulty ($b$)
+
+One group finds the item consistently harder across all trait levels
+:::
+::: {.column width="48%"}
+**Non-uniform DIF**
+
+The ICCs cross
+
+Different discrimination ($a$) and/or different difficulty ($b$)
+
+The advantage reverses at some trait level
+
+Cannot be detected by the Mantel-Haenszel statistic
+:::
+:::
+
+::: {.notes}
+Connect explicitly back to Week 11. Students learned MH detects uniform DIF; logistic regression detects both. Now they see the IRT version: uniform DIF = shifted b; non-uniform DIF = different a, producing crossing curves. The conceptual question is the same; the model is more precise.
+:::
+
+## Visualizing IRT-Based DIF
+
+```{r fig-dif-irt, fig.height=4.0, fig.width=9.5}
+df_dif <- bind_rows(
+  # Uniform DIF: same a, different b
+  tibble(theta = theta_seq,
+         prob  = p_2pl(theta_seq, 1.4,  0.0),
+         group = "Reference", type = "Uniform DIF"),
+  tibble(theta = theta_seq,
+         prob  = p_2pl(theta_seq, 1.4,  0.8),
+         group = "Focal", type = "Uniform DIF"),
+  # Non-uniform DIF: different a and b
+  tibble(theta = theta_seq,
+         prob  = p_2pl(theta_seq, 1.8, -0.3),
+         group = "Reference", type = "Non-Uniform DIF"),
+  tibble(theta = theta_seq,
+         prob  = p_2pl(theta_seq, 0.7,  0.5),
+         group = "Focal", type = "Non-Uniform DIF")
+)
+
+ggplot(df_dif, aes(x = theta, y = prob, color = group, linetype = group)) +
+  geom_line(linewidth = 1.3) +
+  scale_color_manual(values = c(col_primary, col_accent),
+                     labels = c("Reference group", "Focal group")) +
+  scale_linetype_manual(values = c("solid", "dashed"),
+                        labels = c("Reference group", "Focal group")) +
+  scale_x_continuous(breaks = seq(-4, 4, 2)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  facet_wrap(~type) +
+  labs(x = expression(theta), y = "P(correct)",
+       color = NULL, linetype = NULL,
+       title = "IRT-Based DIF: Uniform vs. Non-Uniform",
+       subtitle = "Both groups at the same θ — different item response probabilities") +
+  theme_w13() +
+  theme(legend.position = "bottom", strip.text = element_text(face = "bold", color = col_primary))
+```
+
+::: {.notes}
+Left panel: the curves have the same slope (same a) but the focal group's curve is shifted right — they need a higher theta to have the same probability of a correct response. This is uniform DIF; MH would detect it. Right panel: the curves cross. At low theta, the focal group actually performs better; at high theta, the reference group does. MH misses this entirely. Only logistic regression (interaction term) or IRT detects it.
+:::
+
+## IRT-Based DIF and the SEM Connection
+
+This is the conceptual bridge to next semester.
+
+. . .
+
+| Level | Question | Method |
+|-------|----------|--------|
+| **Item** | Does this item function the same across groups at the same trait level? | IRT-based DIF; Mantel-Haenszel |
+| **Factor** | Does the factor structure hold across groups? Are loadings and intercepts invariant? | Multi-group CFA; measurement invariance |
+
+. . .
+
+Both ask the same underlying question: **does the measurement model hold equally across groups?**
+
+IRT-based DIF is the item-level version. Multi-group CFA is the factor-level version. The 2PL and the one-factor probit model are mathematically equivalent.
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+When you test measurement invariance in SEM next semester, you are doing the same thing IRT-based DIF does — at a different level of the measurement hierarchy.
+:::
+
+::: {.notes}
+This is the most important forward-pointer in the course. Measurement invariance testing in CFA asks: are the factor loadings and item intercepts equal across groups? IRT-based DIF asks: are the a and b parameters equal across groups? Same question, different parameterization, different level of analysis. Students who understand both are well prepared.
+:::
+
+# Part 8: IRT in Practice {.section-slide background-color="#2E4057"}
+
+## Where You Will Encounter IRT
+
+::: {.columns}
+::: {.column width="48%"}
+**Clinical and school psychology**
+
+PROMIS outcome monitoring (depression, anxiety, pain, function)
+
+Intelligence and achievement batteries: many major tests (WISC, WJ) now use IRT calibration
+
+Diagnostic instruments and symptom checklists in clinical trials
+
+**I/O psychology**
+
+Selection and credentialing exams: NCLEX, bar examinations, professional certifications all use IRT-calibrated item banks
+
+Pre-employment cognitive and personality assessments from major vendors
+:::
+::: {.column width="48%"}
+**Educational psychology and research**
+
+NAEP, PISA, TIMSS — all use IRT for score reporting and trend estimation
+
+Reading and math progress monitoring tools
+
+Adaptive screeners used in MTSS and RTI frameworks
+
+**Scale development (all subfields)**
+
+After establishing factor structure via CFA, IRT characterizes item-level precision
+
+GRM identifies items with disordered thresholds
+
+Item information guides item selection and bank construction
+:::
+:::
+
+::: {.notes}
+Connect explicitly to students' subfields. Clinical students: you will use PROMIS. School psychology students: NAEP and progress monitoring. I/O students: licensure exams. Everyone doing scale development: CFA + IRT is the current standard for serious test development.
+:::
+
+## What IRT Cannot Do
+
+IRT is a powerful measurement framework. It is not a validity machine.
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+A well-fitting IRT model on a poorly defined construct is still a poorly defined construct.
+
+IRT describes the measurement properties of items that tap a latent trait. It does not tell you whether the latent trait is worth measuring, whether the construct is theoretically sound, or whether the scores support the intended interpretations and uses.
+:::
+
+. . .
+
+IRT assumes:
+
+- The construct exists and is unidimensional
+- The items actually measure it
+
+Neither assumption is tested by the IRT model itself. CFA addresses the first. Validity evidence addresses the second.
+
+. . .
+
+IRT is best understood as a **complement to construct validation**, not a substitute for it.
+
+::: {.notes}
+End the applied section on this note. The whole course has been about validity. IRT is a sophisticated tool within that framework, not a way around it. A student who walks away thinking "if my IRT model fits, my scale is valid" has missed the point.
+:::
+
+# Synthesis {.section-slide background-color="#2E4057"}
+
+## CTT, CFA, and IRT: The Full Picture
+
+```{r tbl-synthesis}
+syn <- tibble::tribble(
+  ~Feature,               ~CTT,                        ~`CFA / Latent Variable`,      ~IRT,
+  "Latent variable?",     "No",                        "Yes (linear factor)",         "Yes (logistic/probit)",
+  "Precision estimate",   "Single coefficient (α, ω)", "Global (factor-level)",       "Conditional on θ",
+  "Item diagnostics",     "p, r_pb, α-if-deleted",     "Loadings, residuals",         "a, b, c; IIF; item fit",
+  "Group invariance",     "Not modeled",               "MG-CFA; loading/intercept equality", "IRT-based DIF; parameter equality",
+  "Adaptive testing",     "No",                        "No",                          "Yes (via item information)",
+  "Sample size needed",   "Small–moderate",            "Moderate (200+)",             "Moderate–large (200–1000+)",
+  "Key assumption",       "Random error",              "Unidimensionality; linearity","Unidimensionality; local independence"
+)
+
+kable(syn, format = "html", col.names = c("", "CTT", "CFA / Latent Variable", "IRT")) |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 12) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE)
+```
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+These are complementary tools. Real test development uses all three: CTT for item screening, CFA to establish and test factor structure, IRT to characterize item-level precision and enable score comparability.
+:::
+
+::: {.notes}
+Final synthesis. Return to the three-framework distinction from the opening. Students should leave knowing: CTT is a scoring model, not a causal model. CFA and IRT both posit a latent variable. IRT extends the CFA framework with a nonlinear link function appropriate for categorical items and adds item-level precision and adaptive testing capabilities. None of these frameworks validates a construct — that requires a validity argument.
+:::
+
+## Key Takeaways
+
+- **CTT's true score ≠ a latent variable.** The true score is a statistical artifact. Treating it as a theoretical entity is a common and consequential conflation.
+
+- **IRT belongs to the latent variable tradition**, alongside CFA — not to CTT. The 2PL and the one-factor probit model are mathematically equivalent.
+
+- **The ICC describes probability, not performance.** At every $\theta$ level, IRT gives a probability of endorsement — not a predicted score.
+
+- **Item parameters** ($a$, $b$, $c$) describe the location, slope, and floor of the ICC. They are sample-independent in a way p-values and item-total correlations are not.
+
+- **The TIF reveals where the test measures well** — and where it does not. This is information α cannot provide.
+
+- **GRM extends IRT to Likert-type scales.** Threshold parameters identify poorly functioning categories. PROMIS is the applied standard.
+
+- **IRT-based DIF is item-level measurement non-invariance.** It is conceptually the same question CFA measurement invariance testing asks — one level down.
+
+- **A well-fitting IRT model is not a valid scale.** IRT characterizes measurement precision. Validity requires a broader argument.
+
+::: {.notes}
+Final slide. Walk through each point. Connect back to the semester: students now have a complete picture from CTT through CFA through IRT. The SEM course next semester picks up the latent variable thread and extends it to structural models. Everything they have learned this semester lives inside that framework.
+:::
