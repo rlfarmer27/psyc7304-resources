@@ -129,7 +129,6 @@
     overflow: hidden;
   }
 
-  /* The clickable header row */
   .module-header {
     display: grid;
     grid-template-columns: 52px 1fr auto;
@@ -196,7 +195,6 @@
   }
   .module-item.open .chevron { transform: rotate(180deg); }
 
-  /* The expandable content panel */
   .module-body {
     display: none;
     background: #f7f5f2;
@@ -213,7 +211,6 @@
     padding: 12px 16px 12px 68px;
   }
 
-  /* File link rows inside expanded panel */
   .file-group { margin-bottom: 14px; }
   .file-group:last-child { margin-bottom: 0; }
 
@@ -478,31 +475,31 @@
             <div class="module-desc">Model fit, modification indices, hierarchical and bifactor models</div>
           </div>
           <div class="module-toggle">
-           <span class="badge badge-available">available</span>
+            <span class="badge badge-available">available</span>
             <span class="chevron">▼</span>
           </div>
         </div>
         <div class="module-body">
-  <div class="file-group">
-    <div class="file-group-label">Slides</div>
-    <a href="08_cfa-part2/cfa_slides.html" class="file-link" target="_blank">
-      <span class="file-icon">📊</span>
-      <span class="file-name">Lecture Slides — CFA Part 2</span>
-      <span class="file-type">HTML</span>
-    </a>
-  </div>
-  <div class="file-group">
-    <div class="file-group-label">Guides</div>
-    <a href="08_cfa-part2/cfa_script.html" class="file-link" target="_blank">
-      <span class="file-icon">📄</span>
-      <span class="file-name">CFA Script Reference</span>
-      <span class="file-type">HTML</span>
-    </a>
-  </div>
-</div>
+          <div class="file-group">
+            <div class="file-group-label">Slides</div>
+            <a href="08_cfa-part2/cfa_slides.html" class="file-link" target="_blank">
+              <span class="file-icon">📊</span>
+              <span class="file-name">Lecture Slides — CFA Part 2</span>
+              <span class="file-type">HTML</span>
+            </a>
+          </div>
+          <div class="file-group">
+            <div class="file-group-label">Guides</div>
+            <a href="08_cfa-part2/cfa_script.html" class="file-link" target="_blank">
+              <span class="file-icon">📄</span>
+              <span class="file-name">CFA Script Reference</span>
+              <span class="file-type">HTML</span>
+            </a>
+          </div>
+        </div>
       </div>
 
-      <!-- 09 Bias / DIF — has real content -->
+      <!-- 09 Bias / DIF -->
       <div class="module-item" data-module="09">
         <div class="module-header">
           <div class="module-num">09</div>
@@ -568,29 +565,38 @@
         </div>
       </div>
 
-      <!-- 11 Scale Development -->
+      <!-- 11 IRT -->
       <div class="module-item" data-module="11">
         <div class="module-header">
           <div class="module-num">11</div>
           <div class="module-info">
-            <div class="module-title">Scale Development</div>
-            <div class="module-desc">Theory to items, content validity, CVR/CVI, pilot testing, item analysis</div>
+            <div class="module-title">Item Response Theory</div>
+            <div class="module-desc">CTT vs. IRT, item characteristic curves, item parameters, model families, test information, polytomous models, IRT-based DIF</div>
           </div>
           <div class="module-toggle">
-            <span class="badge badge-soon">coming soon</span>
+            <span class="badge badge-available">available</span>
             <span class="chevron">▼</span>
           </div>
         </div>
-        <div class="module-body empty">No materials available yet.</div>
+        <div class="module-body">
+          <div class="file-group">
+            <div class="file-group-label">Slides</div>
+            <a href="11_irt/week13_slides.html" class="file-link" target="_blank">
+              <span class="file-icon">📊</span>
+              <span class="file-name">Lecture Slides — Item Response Theory</span>
+              <span class="file-type">HTML</span>
+            </a>
+          </div>
+        </div>
       </div>
 
-      <!-- 12 QMP -->
+      <!-- 12 Scale Development, Test Evaluation & QMP -->
       <div class="module-item" data-module="12">
         <div class="module-header">
           <div class="module-num">12</div>
           <div class="module-info">
-            <div class="module-title">Questionable Measurement Practices &amp; Test Evaluation</div>
-            <div class="module-desc">Flake &amp; Fried framework, Buros review standards, comprehensive test evaluation</div>
+            <div class="module-title">Scale Development, Test Evaluation, &amp; Questionable Measurement Practices</div>
+            <div class="module-desc">Theory to items, content validity, CVR/CVI, item analysis, Buros review standards, Flake &amp; Fried framework</div>
           </div>
           <div class="module-toggle">
             <span class="badge badge-soon">coming soon</span>
@@ -600,13 +606,13 @@
         <div class="module-body empty">No materials available yet.</div>
       </div>
 
-      <!-- 13 Integration -->
-      <div class="module-item" data-module="13">
+      <!-- 13 Course Integration & Review -->
+      <div class="module-item special" data-module="13">
         <div class="module-header">
           <div class="module-num">13</div>
           <div class="module-info">
-            <div class="module-title">Course Integration &amp; Professional Psychometrics</div>
-            <div class="module-desc">Synthesizing course concepts, IRT overview, future directions in measurement</div>
+            <div class="module-title">Course Integration &amp; Review</div>
+            <div class="module-desc">Synthesizing course concepts, test review presentations, open lab</div>
           </div>
           <div class="module-toggle">
             <span class="badge badge-soon">coming soon</span>
@@ -664,16 +670,13 @@
 </footer>
 
 <script>
-  // Accordion toggle
   document.querySelectorAll('.module-header').forEach(function(header) {
     header.addEventListener('click', function() {
       var item = this.closest('.module-item');
       var isOpen = item.classList.contains('open');
-      // Close all
       document.querySelectorAll('.module-item.open').forEach(function(el) {
         el.classList.remove('open');
       });
-      // Toggle clicked
       if (!isOpen) {
         item.classList.add('open');
       }
