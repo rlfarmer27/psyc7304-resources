@@ -1,0 +1,1314 @@
+---
+title: "Building a Measure from Scratch"
+subtitle: "PSYC 7304/8304 · Week 12"
+author: "Ryan Farmer, PhD"
+format:
+  revealjs:
+    theme: [default, week12_custom.scss]
+    slide-number: true
+    progress: true
+    history: false
+    transition: fade
+    transition-speed: fast
+    background-transition: fade
+    code-fold: false
+    toc: false
+    center: false
+    width: 1200
+    height: 700
+    margin: 0.06
+    smaller: false
+    highlight-style: github
+    embed-resources: true
+    preview-links: false
+    chalkboard: false
+    mouse-wheel: false
+    controls: true
+    controls-layout: bottom-right
+    fragments: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{=html}
+<style>
+.reveal,
+.reveal .slides,
+.reveal .slides section,
+.reveal .slides section > * {
+  font-size: 22px !important;
+}
+.reveal h1 { font-size: 1.75em !important; }
+.reveal h2 { font-size: 1.15em !important; }
+.reveal h3 { font-size: 1.0em  !important; }
+.reveal .callout { font-size: 0.82em !important; }
+.reveal table   { font-size: 0.78em !important; }
+.reveal blockquote { font-size: 0.88em !important; }
+</style>
+```
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+theme_slides <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.background   = element_rect(fill = "transparent", color = NA),
+      panel.background  = element_rect(fill = "transparent", color = NA),
+      panel.grid.minor  = element_blank(),
+      panel.grid.major  = element_line(color = "#e0e0e0"),
+      axis.title        = element_text(color = "#2E4057", size = 13),
+      axis.text         = element_text(color = "#444444", size = 11),
+      plot.title        = element_text(color = "#2E4057", size = 14, face = "bold"),
+      plot.subtitle     = element_text(color = "#666666", size = 12),
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.text       = element_text(size = 11)
+    )
+}
+
+pal_primary <- "#2E4057"
+pal_accent  <- "#E07B39"
+pal_success <- "#3A7D44"
+pal_warn    <- "#C7A020"
+pal_light   <- "#F5F5F5"
+```
+
+# Where We Are {.section-slide background-color="#2E4057"}
+
+## The Arc of the Course
+
+Everything in this course has been about interpreting scores from existing tests.
+
+We asked: what does a score mean? How reliable is it? Does the factor structure hold? Does it function the same way across groups?
+
+. . .
+
+This week we ask a different question:
+
+::: {.callout-note appearance="minimal"}
+**How does a measure get built in the first place?**
+:::
+
+. . .
+
+Scale development is where all of those concepts get applied at once, before there are any scores to interpret.
+
+::: {.notes}
+Framing slide. Students have spent 11 weeks on analysis and interpretation. Scale development is the synthesis. Every concept they have learned — reliability, validity, factor analysis, bias, content coverage — is a tool that gets applied during construction. This week is backward integration.
+:::
+
+## Our Running Example
+
+This week we follow the development of a single scale from start to finish.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**The Curmudgeonness Scale**
+
+A measure of stable dispositional tendency characterized by:
+
+- Low tolerance for the actions and preferences of others
+- Persistent irritability in social and environmental contexts
+- Generalized resistance to change
+
+A **trait-level** measure. Not mood, not state anxiety, not situational frustration.
+
+:::
+::: {.column width="45%"}
+
+::: {.callout-warning appearance="minimal"}
+**Why this construct?**
+
+Curmudgeonness is useful precisely because it is unfamiliar. There is no existing scale to lean on. Every decision has to be justified on its own terms.
+
+The process is the point. The same steps apply to measuring depression, burnout, job satisfaction, or attachment anxiety.
+:::
+
+:::
+:::
+
+::: {.notes}
+Introduce the running example. Acknowledge its absurdity briefly and move on. The point is that an unfamiliar construct forces students to engage with the process rather than relying on prior knowledge of how the construct "should" behave. Every decision today will apply directly to whatever construct they work with in their own research.
+:::
+
+# Stage 1: Defining the Construct {.section-slide background-color="#2E4057"}
+
+## Start Here, Not With Items
+
+The single most common mistake in scale development is starting with item writing.
+
+. . .
+
+Before writing a single item, you need a written construct definition that answers three questions:
+
+::: {.columns}
+::: {.column width="33%"}
+
+**What is it?**
+
+What are the defining features of this construct? What would a prototypical high scorer look like?
+
+:::
+::: {.column width="33%"}
+
+**What is it not?**
+
+What adjacent constructs does this resemble but is distinct from? Where does the boundary lie?
+
+:::
+::: {.column width="33%"}
+
+**Where does it live?**
+
+What is its expected relationship to other constructs? What should it predict? What should it not predict?
+
+:::
+:::
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+Without a construct definition, every subsequent decision is arbitrary. There is no standard to evaluate items against, no way to determine what the scale covers or misses, and no foundation for any validity claim.
+:::
+
+::: {.notes}
+Students will resist this step because it feels like delay. Resist their resistance. The construct definition is the blueprint anchor. Everything downstream is evaluated against it.
+:::
+
+## The Curmudgeonness Definition
+
+::: {.callout-note appearance="minimal"}
+**Curmudgeonness** is a stable dispositional tendency characterized by low tolerance for the actions and preferences of others, persistent irritability in social and environmental contexts, and generalized resistance to change. It is a trait-level orientation expressed across situations, not a transient mood or a reaction to specific triggers.
+:::
+
+. . .
+
+This definition establishes several things immediately:
+
+- **Trait, not state:** rules out items that ask how someone feels right now
+- **Three content features:** low tolerance, irritability, resistance to change
+- **Cross-situational:** expressed generally, not situation-dependent
+
+. . .
+
+It also establishes what curmudgeonness is **not:**
+
+| Adjacent construct | Relationship to curmudgeonness |
+|--------------------|-------------------------------|
+| Neuroticism | Broader; includes emotional instability and anxiety |
+| Disagreeableness | Related but more interpersonally focused |
+| Dispositional pessimism | Cognitive rather than behavioral/affective |
+| Rigidity | Narrower; primarily cognitive inflexibility |
+
+::: {.notes}
+Walk through each row of the table. The goal is for students to see that construct definition automatically generates discriminant validity expectations. These become testable predictions at Stage 7.
+:::
+
+## Dimensionality: The First Big Decision
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Unidimensional hypothesis**
+
+One latent factor explains the covariation among all items.
+
+Low tolerance, irritability, and resistance to change go together. Someone high on one is likely high on the others.
+
+Total score is the primary summary.
+
+:::
+::: {.column width="50%"}
+
+**Multidimensional alternative**
+
+Three distinguishable facets that may not vary in lockstep.
+
+A person could be highly resistant to change without being particularly irritable interpersonally.
+
+Subscale scores may be needed.
+
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+**The working hypothesis for the Curmudgeonness Scale is unidimensional.**
+
+But the item pool will be designed to cover all three facets adequately. If the data support multidimensionality, the pool will be positioned to accommodate it. If they support unidimensionality, nothing is lost.
+:::
+
+. . .
+
+This decision is a hypothesis, not a commitment. Factor analysis will arbitrate.
+
+::: {.notes}
+Dimensionality decisions are irreversible if the item pool does not cover all facets. Writing for all three but hypothesizing unidimensionality is the safe strategy. The EFA will reveal the structure — your job is to give it enough to work with.
+:::
+
+# Stage 2: The Blueprint {.section-slide background-color="#2E4057"}
+
+## Why a Blueprint?
+
+The blueprint is a table that maps planned items to construct facets and content contexts.
+
+. . .
+
+It prevents two common failures:
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Oversampling easy content**
+
+Irritability items are easy to write. Resistance-to-change items require more thought. Without a blueprint, the pool ends up 70% irritability items and the scale is no longer measuring what it claims.
+
+:::
+::: {.column width="50%"}
+
+**Content drift**
+
+Without a written plan, items drift toward what the developer finds interesting or familiar rather than what the construct requires. The blueprint is the standard against which the pool is later evaluated.
+
+:::
+:::
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+The blueprint is also a communication tool. When the expert panel reviews the items, they receive the blueprint alongside the pool. Their job is to evaluate whether the items cover the blueprint, not just whether the items look good in isolation.
+:::
+
+::: {.notes}
+Students tend to underestimate this step. The blueprint enforces construct representation. Without it, there is no defense against cherry-picking items that happen to have good statistics but leave entire facets of the construct unrepresented.
+:::
+
+## The Curmudgeonness Blueprint
+
+```{r blueprint-table}
+blueprint <- tribble(
+  ~Facet,                       ~`Interpersonal`,  ~`Environmental`,  ~`Total planned`,
+  "Irritability",                "4",                "3",                "7",
+  "Resistance to change",        "3",                "4",                "7",
+  "Low tolerance for others",    "5",                "2",                "7",
+  "Total",                       "12",               "9",                "21"
+)
+
+kable(blueprint, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 15) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  row_spec(4, bold = TRUE, background = "#f0f0f0") |>
+  column_spec(1, width = "30em")
+```
+
+. . .
+
+Three things to notice:
+
+- All three facets receive equal planned coverage
+- Interpersonal and environmental contexts are both represented
+- 21 planned items for a target final length of 8–10
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+**Overinclusion is not inefficiency. It is a requirement.**
+
+In a typical development study, roughly half the items written will not survive to the final version. Starting with too few items means finishing with an incomplete scale.
+:::
+
+::: {.notes}
+The 21-item starting pool for a 10-item target scale feels excessive to students. Walk through the math: expert review removes some, cognitive interviewing revises others, item analysis drops the poor performers, factor analysis may remove cross-loaders. At each stage you lose items. You need the redundancy.
+:::
+
+# Stage 3: Writing the Item Pool {.section-slide background-color="#2E4057"}
+
+## What Good Items Look Like
+
+For a non-ability scale, items ask respondents to indicate how well each statement describes them.
+
+Response format: 1 (*Not at all like me*) through 5 (*Exactly like me*)
+
+. . .
+
+Good items share these properties:
+
+- **Short:** under 20 words where possible
+- **Single-barreled:** one thought per item
+- **Concrete:** specific behaviors or feelings, not abstractions
+- **Positively framed:** direct statements, not negations
+
+. . .
+
+```{r items-sample}
+items_df <- tribble(
+  ~`Item`,                                                                          ~`Facet`,
+  "I find myself irritated by things that most people seem to take in stride.",      "Irritability",
+  "When plans change at the last minute, I find it genuinely difficult to adjust.",  "Resistance to change",
+  "I notice other people's habits more than I probably should.",                     "Low tolerance",
+  "Loud or crowded environments leave me feeling irritable.",                        "Irritability",
+  "I have little patience for people who do not follow unspoken social rules.",      "Low tolerance",
+  "Small inconveniences tend to bother me more than they bother other people.",      "Irritability"
+)
+
+kable(items_df, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 14) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, width = "45em")
+```
+
+::: {.notes}
+Walk through a couple of items and explain what makes them work. Then contrast with bad versions of the same items.
+:::
+
+## What Bad Items Look Like
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Double-barreled**
+
+> "I get irritated by loud environments and by people who talk too much."
+
+A respondent who finds noise irritating but does not mind talkers has no accurate response.
+
+**Fix:** split into two separate items.
+
+:::
+::: {.column width="50%"}
+
+**Absolute quantifier**
+
+> "I am always irritated by unexpected change."
+
+*Always* is almost never true. Even a highly curmudgeonly person adapts sometimes.
+
+**Fix:** remove the quantifier or replace with *usually* or *often*.
+
+:::
+:::
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Negated stem**
+
+> "I am not the kind of person who tolerates disruption well."
+
+Awkward to read. Ambiguous in meaning. Generates more error than a direct alternative.
+
+**Fix:** "Disruptions to my routine are genuinely difficult for me."
+
+:::
+::: {.column width="50%"}
+
+**Leading/loaded**
+
+> "Like most reasonable people, I find rudeness annoying."
+
+The phrase "most reasonable people" pressures endorsement and conflates curmudgeonness with normative standards.
+
+**Fix:** "I find rude behavior genuinely irritating."
+
+:::
+:::
+
+::: {.notes}
+Students often write double-barreled items without noticing. The test: can you identify two distinct sub-questions inside the item? If yes, it is double-barreled. Negated items are the other common error. They feel like they are controlling for acquiescence, but the evidence says they create more problems than they solve.
+:::
+
+## The Reverse Scoring Debate
+
+The traditional recommendation is to mix positively- and negatively-keyed items to prevent **acquiescence**: the tendency to agree with statements regardless of content.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**The classic argument**
+
+A true curmudgeon should agree with "I get irritated by small things" and **disagree** with "Minor setbacks rarely bother me."
+
+Mixing keying forces careful reading and disrupts response sets.
+
+:::
+::: {.column width="50%"}
+
+**What the evidence shows**
+
+Reversed items consistently show:
+
+- Lower item-total correlations
+- More missing data
+- A spurious separate factor in EFA
+
+That last point is the real problem. What looks like multidimensionality is often a **keying artifact**, not a structural reality.
+
+:::
+:::
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+**For the Curmudgeonness Scale: no reversed items.**
+
+All items are positively keyed. If acquiescence is a concern, it can be modeled statistically — it cannot be reliably fixed by reversing item wording.
+
+This is not the textbook default. It reflects the current evidence.
+:::
+
+::: {.notes}
+This is an active methodological debate and students should know it. The textbook default (always balance keying) is no longer consensus. Weijters & Baumgartner (2012), Suárez-Álvarez et al. (2018), and others document the problems. The practical recommendation: avoid reversal, model acquiescence as a method factor if it is a concern.
+:::
+
+# Stage 4: Expert Review {.section-slide background-color="#2E4057"}
+
+## What Expert Review Accomplishes
+
+Expert review evaluates whether the item pool covers the intended construct domain.
+
+This is **content validity**: does the scale measure what it claims to measure, in terms of coverage and relevance?
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+Content validity is a **rational, qualitative, judgment-based** evaluation. It cannot be established by statistics, because no data have been collected yet. It requires people who know the construct to verify that the items represent it.
+:::
+
+. . .
+
+Content validity is **not** face validity.
+
+| | Face validity | Content validity |
+|---|---|---|
+| **Who evaluates** | Anyone — respondents, lay observers | Domain experts |
+| **What is evaluated** | Does this look like it measures X? | Does this cover the domain of X? |
+| **How formalized** | Impression | Quantified with CVR/CVI |
+| **Psychometric status** | Not a psychometric property | Necessary but not sufficient for construct validity |
+
+::: {.notes}
+The face validity vs. content validity distinction is one students frequently blur. The MMPI example is useful here: many MMPI items have very low face validity but excellent empirical performance. For some applications — integrity testing, malingering detection — low face validity is an asset because it prevents faking. Content validity is about coverage, not appearance.
+:::
+
+## The Panel and the Rating Task
+
+**Panel composition:** 6–10 content experts, 2–3 methodological reviewers
+
+Each reviewer receives: the construct definition, the blueprint, and the randomized item pool (no facet labels).
+
+. . .
+
+**The rating task:** for each item, each reviewer indicates whether it is:
+
+- **Essential** — the scale cannot adequately measure the construct without this item
+- **Useful but not essential** — relevant but not indispensable
+- **Not necessary** — does not belong in this scale
+
+. . .
+
+**Content Validity Ratio (CVR):**
+
+$$CVR = \frac{n_e - N/2}{N/2}$$
+
+where $n_e$ is the number rating the item essential and $N$ is the panel size.
+
+With 8 reviewers, the threshold for retention is **CVR ≥ .75**.
+
+::: {.notes}
+Explain the CVR formula conceptually before showing it. CVR asks: how many more than chance would you need rating "essential" before you conclude the item is genuinely essential? The formula formalizes that. With 8 reviewers, you need at least 7 of 8 rating essential to clear the threshold.
+:::
+
+## CVR in Practice
+
+```{r cvr-table}
+cvr_df <- tribble(
+  ~`Item (abbreviated)`,                                      ~`Essential (n)`, ~`CVR`,   ~`Decision`,
+  "Irritated by things others take in stride",                 8,                "1.00",   "Retain",
+  "Plans change: difficult to adjust",                         7,                 ".75",   "Retain",
+  "Notice others' habits more than I should",                  6,                 ".50",   "Revise",
+  "Loud environments leave me irritable",                      8,                "1.00",   "Retain",
+  "Prefer things stay the same even when change is better",    5,                 ".25",   "Revise",
+  "Little patience for social rule violators",                 7,                 ".75",   "Retain",
+  "Small inconveniences bother me more than others",           8,                "1.00",   "Retain"
+)
+
+kable(cvr_df, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 14) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  row_spec(3, background = "#fff3cd") |>
+  row_spec(5, background = "#f8d7da") |>
+  column_spec(1, width = "36em")
+```
+
+. . .
+
+**Why did item 3 and item 5 struggle?**
+
+- Item 3: reviewers disagreed on whether "noticing others' habits" reflects curmudgeonness or something closer to anxiety/rumination. Construct boundary problem.
+- Item 5: the phrase "even when change is better" asks respondents to acknowledge their own irrationality. That is a different and harder construct. Revise to remove the self-aware framing.
+
+::: {.notes}
+Walk through the two flagged items in detail. These are the most instructive cases. Item 3 is a construct boundary problem — the item could belong in more than one construct. Item 5 is a wording problem — the self-awareness frame changes what is being measured. Both survive as candidates if revised, but only if the revision addresses the specific problem the reviewers identified.
+:::
+
+## Scale-Level CVI
+
+Beyond individual item CVRs, compute a scale-level summary.
+
+. . .
+
+**Item-level CVI (I-CVI):** proportion of reviewers rating the item 3 or 4 on a 4-point relevance scale (1 = not relevant; 4 = highly relevant)
+
+**Scale-level CVI (S-CVI/Ave):** mean of I-CVIs across all items
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Decision thresholds (≥ 6 experts)**
+
+- I-CVI ≥ .78: retain item
+- I-CVI .70–.77: revise and re-rate
+- I-CVI < .70: drop or major revision
+- S-CVI/Ave ≥ .90: scale is content-valid as a whole
+
+:::
+::: {.column width="50%"}
+
+::: {.callout-tip appearance="minimal"}
+**Two rounds are standard.**
+
+After the first round of review, revise flagged items and re-submit. Items that fail a second round are dropped. Items that newly fail in round 2 (after revision) may indicate that the revision introduced new problems.
+:::
+
+:::
+:::
+
+::: {.notes}
+The two-round process is important. First-round failures often have identifiable, fixable problems. Second-round failures usually indicate that the content is genuinely at the boundary of the construct, and the better decision is to drop the item and ensure the facet is covered by something else.
+:::
+
+# Stage 5: Cognitive Interviewing {.section-slide background-color="#2E4057"}
+
+## Two Different Questions
+
+Expert review and cognitive interviewing address different problems.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Expert review asks:**
+
+Does this item belong in the construct domain? Is it relevant? Does it cover the right content?
+
+Evaluated by people who know the construct well.
+
+:::
+::: {.column width="50%"}
+
+**Cognitive interviewing asks:**
+
+Do respondents understand this item the way the developer intends? Do they interpret it consistently?
+
+Evaluated by people from the target population.
+
+:::
+:::
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+You need both. An item can be judged essential by experts and still be interpreted in three different ways by respondents. Expert agreement on relevance does not guarantee that respondents understand what is being asked.
+:::
+
+. . .
+
+This is **response-process validity evidence** — the second source of evidence in the *Standards for Educational and Psychological Testing*.
+
+::: {.notes}
+Connect to the validity framework students already know. The Standards organize evidence into five sources: test content, response processes, internal structure, relations to other variables, and consequences. Cognitive interviewing is the primary method for generating response-process evidence.
+:::
+
+## How Cognitive Interviewing Works
+
+**Sample:** 5–15 people from the target population, purposively selected
+
+**Technique:** concurrent think-aloud or verbal probing
+
+Respondents complete items while verbalizing their thinking. The interviewer follows with probes:
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+- "Can you put that question in your own words?"
+- "What does 'frequently' mean to you here?"
+- "How confident are you in that answer?"
+- "What were you thinking about when you chose that response?"
+
+:::
+::: {.column width="50%"}
+
+::: {.callout-note appearance="minimal"}
+**An example from the Curmudgeonness Scale**
+
+Item: "I find myself irritated by things that most people seem to take in stride."
+
+Three respondents interpret "most people" differently: their social circle, an abstract average person, and no referent at all because they cannot assess what most people feel.
+
+The item is doing more cognitive work than it appears to be doing. That extra work is error.
+:::
+
+:::
+:::
+
+. . .
+
+**Revision:** "Minor inconveniences bother me more than they seem to bother others." Removes the abstract comparison. Easier to process, more consistent interpretation.
+
+::: {.notes}
+The example is concrete and tells the story well. Students often think items are self-evidently clear — cognitive interviewing documents the ways they are not. "Most people" is a common culprit. It sounds specific but requires a social comparison process that different respondents execute differently.
+:::
+
+## When to Stop
+
+Cognitive interviewing runs in **2–3 rounds** of testing and revision, continuing until:
+
+- Items are interpreted consistently across respondents
+- No new confusion emerges in a round
+- Revised wording does not introduce new problems
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+**What you are documenting**
+
+The record from cognitive interviews — what questions were asked, what confusion emerged, what revisions were made and why — is validity evidence. It belongs in a scale development paper's methods section.
+
+A paper that says "items were refined based on pilot feedback" has not documented response-process validity. A paper that describes the interview protocol, the sample, the findings, and the specific revisions made has.
+:::
+
+::: {.notes}
+Documentation matters. Students who do scale development work as part of dissertations or early-career projects often treat cognitive interviewing as a casual pretest rather than a formal validity study. It is the latter. The record of interpretation problems and revisions is part of the validity argument.
+:::
+
+# Stage 6: Pilot Testing and Item Analysis {.section-slide background-color="#2E4057"}
+
+## The Pilot Sample
+
+After expert review and cognitive interviewing, administer the revised pool to a pilot sample.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**Who**
+
+The target population for the scale. For curmudgeonness: community adults, not undergraduates. The construct is plausibly age-related. An undergraduate sample may show range restriction on the high end.
+
+**How many**
+
+Minimum 150–200 for stable item statistics. If EFA will be conducted on this sample, aim for 300+.
+
+:::
+::: {.column width="45%"}
+
+::: {.callout-warning appearance="minimal"}
+**Sample matters for what you learn**
+
+A clinical symptom item might show near-zero endorsement in a community sample. That is not a reason to drop the item.
+
+It is a reason to ensure your pilot sample is drawn from the population where the construct is expected to vary.
+:::
+
+:::
+:::
+
+. . .
+
+The pilot sample is separate from the validation sample. Items are selected using the pilot data. The factor structure and external validity are tested on different data.
+
+::: {.notes}
+The sample warning is important for clinical students especially. Low endorsement of a symptom item in a community sample can look like a bad item when it is actually a well-targeted clinical item. Representativeness is not just a reliability concern — it is a validity concern.
+:::
+
+## Examining Item Distributions
+
+Before any discrimination statistics: look at how respondents are using the response scale.
+
+. . .
+
+**What to check for each item:**
+
+- **Mean:** near the midpoint (2.5–3.5 on a 5-point scale) maximizes variance
+- **SD:** at least 1.0; items with SD < 0.8 are not discriminating
+- **Floor effects:** > 20% at scale minimum (most people chose 1 or 2)
+- **Ceiling effects:** > 20% at scale maximum (most people chose 4 or 5)
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+**An example of a failing item**
+
+"I have asked a neighbor to lower their music at least three times this week."
+
+Mean = 1.1, SD = 0.3. Nearly everyone chose 1.
+
+The item is behavior-dependent, not trait-dependent. A highly curmudgeonly person who lives in a quiet building scores the same as someone with no curmudgeonly tendencies. The item is confounded with circumstance.
+:::
+
+::: {.notes}
+The neighbor example illustrates a common item-writing error: confusing behavioral frequency (which depends on opportunity) with trait disposition (which should express itself regardless of opportunity). Trait items should be written to reflect the person's tendency or orientation, not their recent behavioral history.
+:::
+
+## Item Discrimination
+
+The primary statistic: **corrected item-total correlation** (item-rest *r*)
+
+The correlation between an individual item and the total score on the remaining items.
+
+. . .
+
+```{r discrimination-benchmarks}
+bench <- tribble(
+  ~`Value`,      ~`Interpretation`,         ~`Action`,
+  "≥ .40",        "Strong",                  "Retain",
+  ".30 – .39",    "Acceptable",              "Retain; consider revising",
+  ".20 – .29",    "Marginal",                "Revise or drop; check blueprint",
+  "< .20",        "Poor",                    "Drop unless content-critical"
+)
+
+kable(bench, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 15) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  row_spec(1, background = "#e8f5e9") |>
+  row_spec(4, background = "#f8d7da")
+```
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+**"Alpha if item deleted" is not the primary guide for item decisions.**
+
+Dropping items to maximize alpha narrows content coverage. A trivial gain (.87 → .88) rarely justifies losing a facet of the construct. Blueprint fidelity takes priority over marginal psychometric improvement.
+:::
+
+::: {.notes}
+Alpha-if-deleted is seductive because it is printed automatically by every software package and has a clear direction to improve. The problem is that maximizing alpha produces bloated specifics — tightly intercorrelated items that over-represent the easiest-to-measure facet. Deliberately resist alpha-maximization in favor of blueprint coverage.
+:::
+
+## Item Statistics: Curmudgeonness Scale
+
+```{r item-stats-table}
+item_stats <- tribble(
+  ~`Item (abbreviated)`,                                          ~`M`,   ~`SD`,  ~`r(it)`,
+  "Irritated by things others take in stride",                    3.6,    1.1,     .61,
+  "Plans change: difficult to adjust",                            3.2,    1.0,     .54,
+  "Notice others' habits more than I should (revised)",           2.8,    1.1,     .38,
+  "Loud environments leave me irritable",                         3.5,    1.2,     .44,
+  "Prefer things stay the same",                                  3.1,    1.0,     .56,
+  "Little patience for social rule violators",                    3.3,    1.1,     .58,
+  "Small inconveniences bother me more than others",              3.7,    1.0,     .63,
+  "New routines are disorienting even when minor",                2.6,    1.0,     .47,
+  "I am often the first to notice when something is wrong",       2.9,    1.2,     .19,
+  "Others' inefficiency is a source of genuine frustration",      3.4,    1.1,     .55,
+  "I resist changes to plans even when the new plan is better",   2.7,    1.0,     .51,
+  "Unexpected visitors make me tense",                            2.5,    1.1,     .42
+)
+
+kable(item_stats, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  row_spec(3, background = "#fff3cd") |>
+  row_spec(9, background = "#f8d7da") |>
+  column_spec(1, width = "38em")
+```
+
+Item 9 (*r* = .19): "noticing something is wrong" reflects vigilance or conscientiousness more than curmudgeonness. **Drop.**
+
+Item 3 (*r* = .38): borderline; retain provisionally pending factor analysis.
+
+::: {.notes}
+Walk through the logic for items 9 and 3. Item 9 is a construct boundary failure — it ended up in the pool because "noticing problems" feels curmudgeonly but is not the same as being irritated, resistant, or intolerant. Item 3 is a content-boundary item that survived expert review with reservations and is marginal here. It stays in the pool for now because dropping it might leave one facet underrepresented.
+:::
+
+# Stage 7: Evaluating the Structure {.section-slide background-color="#2E4057"}
+
+## EFA First, CFA Second
+
+With items trimmed by content and discrimination criteria, examine the factor structure.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Exploratory Factor Analysis**
+
+Lets the structure emerge from the data. Tests the dimensionality hypothesis.
+
+Does a single factor explain the covariation? Or do multiple factors emerge?
+
+Conducted on the **pilot sample**.
+
+:::
+::: {.column width="50%"}
+
+**Confirmatory Factor Analysis**
+
+Imposes the structure specified from EFA. Tests how well a pre-specified model fits new data.
+
+Requires a **separate, independent sample**. Running CFA on the same data used for EFA capitalizes on chance and is not a test.
+
+:::
+:::
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+**The EFA-on-one-sample, CFA-on-another rule is not optional.**
+
+If you run both on the same sample, the CFA results are not confirmatory. They are a re-description of the same data under a new label. The field has known this for decades; it remains one of the most common methodological errors in published scale development work.
+:::
+
+::: {.notes}
+This point is worth spending time on. Students will find published papers that run EFA and CFA on the same sample and call the result "validated." They need to know that is wrong and why. MacCallum, Roznowski, and Necowitz (1992) documented the capitalization-on-chance problem formally. It is not a minor technical concern; it is a fundamental violation of the logic of confirmatory testing.
+:::
+
+## What the EFA Might Show
+
+For the Curmudgeonness Scale, suppose EFA reveals:
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**Factor loadings (abbreviated)**
+
+| Item | F1 | F2 |
+|------|----|----|
+| Irritated by things others take in stride | .68 | .12 |
+| Plans change: difficult to adjust | .57 | .41 |
+| Loud environments leave me irritable | .61 | .08 |
+| Prefer things stay the same | .59 | .48 |
+| Little patience for social rule violators | .64 | .10 |
+| Small inconveniences bother me more | .70 | .05 |
+| I resist changes even when new plan is better | .54 | .52 |
+
+:::
+::: {.column width="45%"}
+
+**What this tells us**
+
+A dominant first factor with strong loadings across most items.
+
+A weak second factor with modest secondary loadings on the resistance-to-change items only.
+
+The scale is **mostly unidimensional** with a hint of substructure that does not rise to the level of requiring separate subscales.
+
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+Conclusion: retain unidimensional scoring. Note the resistance-to-change cluster as a potential bifactor structure worth investigating with a larger sample. Ensure those items are represented in the final item set.
+:::
+
+::: {.notes}
+This is a realistic pattern for a narrow personality construct. One strong general factor with mild secondary groupings among related items is extremely common. The decision rule: if the second factor has fewer than 3 items loading saliently on it (and only it), it does not warrant a subscale. The items stay, the factor structure is reported as essentially unidimensional.
+:::
+
+## A Note on Multidimensional Scales
+
+If EFA had clearly supported three distinguishable factors, the scoring decision would be more complex.
+
+. . .
+
+::: {.columns}
+::: {.column width="33%"}
+
+**Three subscale scores**
+
+If facets have different predictive implications — resistance to change predicts occupational fit, irritability predicts relationship quality — subscores serve a distinct purpose.
+
+:::
+::: {.column width="33%"}
+
+**Total score only**
+
+If facets are expected to have equivalent implications, or the use is a general severity index, the total score may be sufficient.
+
+:::
+::: {.column width="33%"}
+
+**Bifactor model**
+
+Estimates a general factor plus orthogonal facet-specific factors simultaneously. Supports both a total score and subscores. Requires a larger sample and theoretical justification.
+
+:::
+:::
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+The scoring model follows the construct theory, not just the statistics. If the theory says the facets dissociate meaningfully, preserve them. If the theory says they reflect one underlying disposition, the total score is the primary summary.
+:::
+
+::: {.notes}
+The bifactor option is increasingly common in clinical measurement (e.g., PHQ-9 general distress + somatic/cognitive facets). Students will encounter it in the literature. The key message is that scoring decisions are theory-driven, not data-driven. The data tell you what structure is present; the theory tells you what to do about it.
+:::
+
+# Stage 8: Reliability {.section-slide background-color="#2E4057"}
+
+## Two Things Reliability Asks
+
+Reliability is not a single number. It answers two different questions, and both are needed for a trait measure.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Internal consistency**
+
+Do respondents answer items consistently relative to each other *at one point in time*?
+
+Indexed by Cronbach's alpha and McDonald's omega.
+
+Addresses: how much measurement error affects the score at a single administration.
+
+:::
+::: {.column width="50%"}
+
+**Test-retest stability**
+
+Do scores remain stable over time when nothing has changed?
+
+Indexed by ICC (intraclass correlation coefficient).
+
+Addresses: whether the scale is measuring a trait (stable) or a state (fluctuating).
+
+:::
+:::
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+A scale can have excellent internal consistency and poor test-retest stability. High alpha means the items cohere; it says nothing about whether scores vary across occasions. For a trait measure like curmudgeonness, both are required.
+:::
+
+::: {.notes}
+Students conflate alpha with reliability in general. Alpha is one reliability estimate for one aspect of measurement precision. It does not address stability over time. The distinction between trait reliability (test-retest) and occasion reliability (internal consistency) maps directly onto the trait vs. state distinction from the construct definition.
+:::
+
+## Interpreting Reliability Estimates
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Alpha and omega**
+
+- Report both; omega relaxes assumptions alpha requires
+- .80+ acceptable for research use
+- .90+ required for individual clinical decisions
+- Above .95: probable redundancy, not superiority
+
+**For the Curmudgeonness Scale (hypothetical):**
+alpha = .82, omega = .85
+
+These are acceptable for a research-use scale.
+
+:::
+::: {.column width="50%"}
+
+**Test-retest ICC**
+
+- Interval: 2–4 weeks for trait scales
+- ICC ≥ .75: acceptable; ≥ .90: required for clinical decisions
+- Interpret the 95% CI, not just the point estimate
+
+**For the Curmudgeonness Scale:**
+ICC at 3 weeks = .81 [.74, .87]
+
+Consistent with trait interpretation. Lower bound above the minimum threshold.
+
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+Nunnally's (.70/.80/.90) thresholds are conventions, not laws. They were explicitly arbitrary when proposed. Interpret them in the context of the decision: how consequential are errors at this level of reliability for this intended use?
+:::
+
+::: {.notes}
+The Nunnally caveat is worth making explicitly. Students treat .70, .80, and .90 as cut scores with legal authority. They were proposed as rough heuristics in 1978 and have been repeated so many times they have acquired false precision. The decision-stakes frame is more principled: for screening, .80 is defensible; for diagnosis-informing decisions, .90 is the minimum.
+:::
+
+# Stage 9: Validity Evidence {.section-slide background-color="#2E4057"}
+
+## Validity Is Not One Study
+
+A scale's validity is not established by any single analysis. It is built across studies, each adding evidence from a different angle.
+
+. . .
+
+For the Curmudgeonness Scale, an initial validation program addresses three questions:
+
+. . .
+
+```{r validity-table}
+val_df <- tribble(
+  ~`Question`,                          ~`Evidence type`,           ~`What you expect`,
+  "Does it relate to what it should?",   "Convergent/discriminant",  "r > .50 with neuroticism, disagreeableness; r ≈ 0 with unrelated constructs",
+  "Does it differentiate the right groups?", "Known-groups",         "Higher scores in groups theoretically expected to be more curmudgeonly",
+  "Does it predict what it should?",     "Criterion/incremental",    "Predicts relevant outcomes beyond established competitors"
+)
+
+kable(val_df, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 14) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, width = "20em") |>
+  column_spec(2, width = "16em") |>
+  column_spec(3, width = "28em")
+```
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+These predictions come from the construct definition. The nomological network you sketched before writing a single item is now a set of testable hypotheses.
+:::
+
+::: {.notes}
+Connect back to Stage 1. The construct definition established expected convergent relations (neuroticism, disagreeableness), expected discriminant relations (cognitive ability, physical health), and expected criteria (relationship quality, work conflict). Each of those is now a validity study waiting to happen.
+:::
+
+## Convergent and Discriminant Validity
+
+::: {.columns}
+::: {.column width="55%"}
+
+A well-interpreted validity table for the Curmudgeonness Scale:
+
+```{r convergent-table}
+conv_df <- tribble(
+  ~`Measure`,                   ~`r with Curmudgeonness`, ~`Expected direction`,
+  "Neuroticism (NEO)",           ".61",                    "Strong positive ✓",
+  "Disagreeableness (NEO)",      ".54",                    "Strong positive ✓",
+  "Dispositional pessimism",     ".47",                    "Moderate positive ✓",
+  "Trait anger (STAXI)",         ".43",                    "Moderate positive ✓",
+  "Openness to experience",      "-.38",                   "Moderate negative ✓",
+  "Verbal working memory",       ".04",                    "Near zero ✓",
+  "Physical health status",      "-.07",                   "Near zero ✓"
+)
+
+kable(conv_df, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  row_spec(6:7, background = "#f0f0f0")
+```
+
+:::
+::: {.column width="45%"}
+
+**What makes this table persuasive**
+
+Convergent targets correlate more strongly with curmudgeonness than discriminant targets.
+
+The pattern is consistent with the construct theory.
+
+No discriminant correlation approaches the convergent correlations in magnitude.
+
+::: {.callout-tip appearance="minimal"}
+Note that curmudgeonness is **not** redundant with any single convergent target. It is related but distinct — which is the claim the construct definition made.
+:::
+
+:::
+:::
+
+::: {.notes}
+Walk through the table row by row and connect each prediction to the construct definition. The key discriminant evidence is the near-zero correlations with cognitive and health variables. These are not adjacent to the construct at all. If these correlated substantially with curmudgeonness, it would raise questions about what the scale is actually measuring.
+:::
+
+## Incremental Validity
+
+Convergent correlations are necessary but not sufficient. A new scale should also predict relevant outcomes **beyond what existing measures already predict**.
+
+. . .
+
+**The incremental validity test:** hierarchical regression with established predictors entered first, the new measure entered second.
+
+*Does the Curmudgeonness Scale predict interpersonal conflict frequency at work beyond neuroticism and disagreeableness?*
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+| Step | Predictors | R² | ΔR² | p |
+|------|-----------|-----|-----|---|
+| 1 | Neuroticism, Disagreeableness | .19 | — | — |
+| 2 | + Curmudgeonness | .26 | .07 | < .001 |
+
+:::
+::: {.column width="50%"}
+
+::: {.callout-note appearance="minimal"}
+ΔR² = .07: curmudgeonness explains 7% of additional variance in conflict frequency beyond two well-established personality predictors.
+
+This is the justification for building the scale. If ΔR² were near zero, the scale would offer no improvement over measures that already exist.
+:::
+
+:::
+:::
+
+::: {.notes}
+Incremental validity is the strongest argument for a new scale's existence. Students often stop at convergent validity. The question to push further is: so what? If curmudgeonness just predicts the same things as neuroticism, to the same degree, why build a new scale? The incremental test forces that question.
+:::
+
+# Pulling It Together {.section-slide background-color="#2E4057"}
+
+## The Full Pipeline
+
+```{r pipeline-table}
+pipeline <- tribble(
+  ~`Stage`,  ~`What happens`,                         ~`What can go wrong`,
+  "1",        "Construct definition",                  "Vague or boundary-free definition",
+  "2",        "Blueprint",                             "Oversampling easy content; no facet coverage check",
+  "3",        "Item writing",                          "Double-barreled, negated, or loaded items",
+  "4",        "Expert review (CVR/CVI)",               "Skipping review; using face validity as a substitute",
+  "5",        "Cognitive interviewing",                "Skipping; treating pilot stats as a substitute",
+  "6",        "Pilot item analysis",                   "Dropping items for alpha gain at cost of coverage",
+  "7",        "EFA → CFA (independent samples)",       "Running both on the same sample",
+  "8",        "Reliability (alpha, omega, ICC)",       "Reporting only alpha; skipping test-retest",
+  "9",        "Validity evidence (convergent, known-groups, criterion, incremental)", "Internal consistency as the only validity evidence"
+)
+
+kable(pipeline, format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "3em") |>
+  column_spec(2, width = "20em") |>
+  column_spec(3, width = "24em")
+```
+
+::: {.notes}
+Use this as a synthesis table. Every row maps to a week of course content. The "what can go wrong" column previews next week's QMP discussion. Students will encounter published scales that violated multiple rows in this table and were nevertheless published, cited, and used in clinical practice. That is the problem next week addresses.
+:::
+
+## Six Principles That Run Through Everything
+
+. . .
+
+**1. Overinclusion at the front end is not optional.**
+Write 2–4× the needed items. Sample the full construct space. Statistical trimming requires redundancy to work with.
+
+. . .
+
+**2. Content drives psychometrics, not the reverse.**
+A scale optimized for alpha by stripping content coverage produces a narrow over-specific measure, not a construct measure.
+
+. . .
+
+**3. Unidimensionality is a hypothesis. Alpha is not the test.**
+High alpha can mask multidimensionality. Factor analysis, not reliability, establishes structure.
+
+. . .
+
+**4. Separate samples for separate purposes.**
+EFA on one sample. CFA on another. Development data and validation data cannot be the same data.
+
+. . .
+
+**5. Thresholds are heuristics, not laws.**
+Alpha cutoffs, CVR thresholds, ICC benchmarks — all were arbitrary conventions when proposed. Interpret them in context.
+
+. . .
+
+**6. Construct validation is cumulative.**
+No single study establishes validity. It accrues across replications, new populations, and new criteria.
+
+::: {.notes}
+These are the take-home principles from the entire chapter. Walk through each one slowly. These apply not just to scale development but to every validity evaluation students will do in the test review assignment and in their careers.
+:::
+
+## Connecting to the Test Review Assignment
+
+When you read a scale development paper as part of your test review:
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Construction questions**
+
+- Is there a written construct definition?
+- Was a blueprint documented?
+- Was content validity evaluated formally, or just assumed?
+- Were cognitive interviews conducted?
+
+:::
+::: {.column width="50%"}
+
+**Analysis questions**
+
+- Were EFA and CFA on independent samples?
+- Is reliability reported as more than alpha?
+- Is there convergent and discriminant evidence, or only internal consistency?
+- Did the authors test incremental validity?
+
+:::
+:::
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+Flake and Fried (2020) found that most published scale development work cannot answer most of these questions. The scale you are evaluating for your test review was almost certainly developed before these standards were widely applied. Your job is to identify what evidence exists, what is missing, and what that means for confidence in score interpretation.
+:::
+
+::: {.notes}
+Direct connection to the test review assignment. Students are evaluating published tests — which means they are evaluating the quality of the evidence behind those tests. This checklist gives them the vocabulary and framework to do that evaluation systematically.
+:::
+
+## Key Takeaways
+
+- **Construct definition comes first.** Without it, no subsequent decision has a standard to be evaluated against.
+- **The blueprint enforces coverage.** It prevents oversampling of easy content and provides the standard for expert review.
+- **Item writing has rules.** Double-barreled, negated, and loaded items introduce systematic error. Reversed items solve less than they promise.
+- **Expert review is not face validity.** CVR and CVI are formal indices of content coverage; impressions are not.
+- **Cognitive interviewing generates validity evidence.** It documents response processes that statistics cannot capture.
+- **Item analysis is a selection process, not optimization.** Blueprint fidelity takes priority over alpha maximization.
+- **EFA and CFA require independent samples.** Same-sample confirmatory analysis is not a test; it is a redescription.
+- **Reliability is two things:** internal consistency and test-retest stability. Both are required for a trait measure.
+- **Validity accrues across studies.** Convergent, discriminant, known-groups, criterion, and incremental evidence are all needed. Internal consistency alone is not validity.
+
+::: {.notes}
+Final synthesis. Connect back to the running example: what did we learn about curmudgeonness? We learned that defining it carefully upfront forced every decision that followed. The construct definition ruled out state items, established facet coverage, generated discriminant predictions, and gave expert reviewers a standard. Scale development is measurement theory made concrete.
+:::
