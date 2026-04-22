@@ -1,0 +1,363 @@
+# Was This Measure Worth Using? {#qmp-test-evaluation}
+
+## Questionable Measurement Practices and Test Evaluation
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                      fig.align = "center", out.width = "85%")
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+## Why Measurement Deserves Scrutiny
+
+Every empirical claim in psychology rests on at least one act of measurement. Before you can test whether a treatment reduces anxiety, whether cognitive ability predicts job performance, or whether a child qualifies for services, you need scores that actually represent the constructs you intend to study. Statistics cannot repair a broken construct-to-score link. Large samples cannot either. Neither can pre-registration, open data, or any other methodological safeguard.
+
+This chapter has two goals. The first is to name the practices that undermine measurement validity, understand why they persist, and develop the habits of scrutiny that prevent them in your own work. The second is to build the practical skills for evaluating whether a specific measure is adequate for a specific purpose, whether that purpose is a dissertation study, a research collaboration, or clinical assessment of an individual client.
+
+By the end of this chapter you should be able to distinguish questionable measurement practices from ordinary researcher decisions; apply a structured framework for evaluating measurement transparency in published work; identify the criteria that matter most when selecting a measure for research versus clinical use; and use established review resources to locate and interpret psychometric evidence for a test of interest.
+
+---
+
+## Part 1: Questionable Measurement Practices
+
+### What Are QMPs and Why Do They Matter?
+
+Flake and Fried (2020) define **questionable measurement practices** (QMPs) as decisions researchers make that raise doubts about the validity of the measures and, by extension, the validity of study conclusions. The label is intentional: QMPs occupy the same structural position in the measurement pipeline that questionable research practices (QRPs) occupy in the analysis pipeline. Both are often invisible in published reports, and both are frequently the product of convention and time pressure rather than deliberate misconduct.
+
+The core argument is that validity is about the relationship between a construct and the scores used to represent it. That relationship is not guaranteed by the name of a scale, how often it has been cited, or whether a previous study used it. It has to be established through evidence, in the population and context of intended use. QMPs are practices that skip, obscure, or misrepresent that evidence.
+
+::: callout-important
+Neither rigorous research design, nor advanced statistics, nor large samples can correct false inferences produced by invalid measurement [@flake2020].
+:::
+
+### The Empirical Record
+
+The evidence on how common QMPs are is not reassuring. Flake, Pek, and Hehman (2017) audited 35 articles from a flagship social-personality journal and found that 40% of scales had no cited source, just one paper mentioned measurement invariance, and 61% of cited scales reported only reliability as prior psychometric evidence. Weidman, Steckler, and Tracy (2017) examined nearly 500 papers in an emotion research journal and found that 77% of studies used improvised scale construction and about 90% of measurement instances involved undisclosed modifications.
+
+The most striking evidence comes from Hussey and Hughes (2020), who evaluated 15 commonly used social-personality scales on four criteria: internal consistency, test-retest reliability, factor structure, and measurement invariance.
+
+::: callout-note
+When judged on internal consistency alone, 88% of commonly used scales appeared adequate. When judged comprehensively across all four criteria, 4% did [@hussey2020].
+:::
+
+That gap between what is reported and what is actually adequate is not a gap in statistical knowledge. It is a gap in measurement culture: a widespread norm of treating psychometric evidence as a methods-section formality. The consequences extend beyond individual studies. Shaw and colleagues (2020) found that 79% of item-based scales used across a large multi-site replication project were ad hoc, connecting measurement quality directly to replication failure.
+
+A single clinical example anchors the problem concretely. Fried (2017) catalogued items across seven commonly used depression scales and found they collectively operationalize 52 distinct symptoms, with item overlap between any two scales ranging from 0% to 52%. Studies that conclude "antidepressant X reduces depression" may be comparing outcomes measured against very different symptom profiles. Replication failure in that context is not surprising.
+
+### Common QMPs
+
+The practices documented in the audit literature fall into three clusters. @tbl-qmps summarizes them; each is worth understanding before you encounter them in the literature you review or commit them inadvertently in your own work.
+
+```{r tbl-qmps, echo=FALSE}
+#| tbl-cap: "Common questionable measurement practices organized by cluster. Each represents a decision point where measurement validity can be undermined — often without the researcher's awareness."
+
+qmp_tbl <- tibble(
+  Cluster = c(
+    "Scale selection",
+    "Scale selection",
+    "Scale selection",
+    "Modification and creation",
+    "Modification and creation",
+    "Reporting and scoring",
+    "Reporting and scoring",
+    "Reporting and scoring",
+    "Reporting and scoring",
+    "Reporting and scoring"
+  ),
+  Practice = c(
+    "Using a measure without evaluating validity evidence for the intended use",
+    "Jingle fallacy: treating scales with the same name as interchangeable",
+    "Jangle fallacy: treating differently named scales measuring the same content as distinct",
+    "Silently modifying items, wording, or response options without revalidating",
+    "Creating ad hoc scales without validation",
+    "Reporting only coefficient alpha as 'the psychometrics'",
+    "Failing to report reliability for the current sample",
+    "Ignoring measurement invariance before comparing groups or time points",
+    "Accepting poor CFA model fit without acknowledgment",
+    "Using sum scores when the measurement model does not support them"
+  ),
+  `Why it matters` = c(
+    "Borrowed psychometric evidence does not transfer automatically across populations or purposes",
+    "Seven depression scales measure 52 different symptoms; same label does not mean same construct",
+    "Operationally identical items measuring the same construct obscure what is actually being studied",
+    "A 10-item version of a 20-item scale is not psychometrically equivalent to the original",
+    "Without structural validation, reliability estimation, and construct validity evidence, what you have are numbers, not scores",
+    "Alpha is not a measure of unidimensionality or validity; reliability is necessary but not sufficient",
+    "Reliability is a property of scores in a specific sample, not of the test in the abstract",
+    "Group comparisons and change scores assume the construct is measured equivalently; that assumption is testable",
+    "Poor fit means the model does not adequately represent the data; claiming adequacy without evidence is misrepresentation",
+    "Sum scores require essentially parallel items or demonstrated unidimensionality; they are not a default"
+  )
+)
+
+kable(qmp_tbl,
+      col.names = c("Cluster", "Practice", "Why it matters"),
+      align = c("l", "l", "l")) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) |>
+  column_spec(1, width = "18%", bold = TRUE) |>
+  column_spec(2, width = "42%") |>
+  column_spec(3, width = "40%") |>
+  collapse_rows(columns = 1, valign = "top")
+```
+
+### Avoiding QMPs: The Six Questions
+
+Flake and Fried (2020) propose six transparent questions that researchers should answer about every measure they use. These questions apply in two directions: as a checklist when writing your own methods section, and as a diagnostic when evaluating someone else's.
+
+**Question 1: What is your construct?** Provide a conceptual definition grounded in theory and prior research. Researchers often skip this and move directly to the measure, treating the scale name as the construct definition.
+
+**Question 2: Why and how did you select this measure?** Justify the selection. What psychometric evidence supports its use for this purpose in this population? If multiple measures were available, why this one?
+
+**Question 3: What measure did you use?** Describe it fully: number of items, response format, scoring, subscales, administration context. A reader should be able to replicate the measurement procedure without consulting the original source.
+
+**Question 4: How did you quantify scores?** Describe the scoring procedure and the psychometric analyses conducted in this sample. Report reliability estimates from the current data, not from prior studies.
+
+**Question 5: Did you modify the scale?** If anything was changed from the original, describe what, why, and what steps were taken to evaluate the psychometric consequences.
+
+**Question 6: Did you create a measure on the fly?** If so, justify why existing measures were inadequate, describe the development process, and report validation evidence.
+
+These questions do not require expensive data collection or months of additional work. They require transparency about decisions that were already made. The same questions that protect against QMPs in your own work protect against accepting them uncritically in the literature you review.
+
+---
+
+## Part 2: Evaluating Tests for Research and Clinical Use
+
+### Purpose Shapes Criteria
+
+The criteria that matter most when evaluating a measure depend on how you intend to use it. A test that is excellent for one purpose may be inadequate for another. The first question is never "Is this a good test?" It is "Is this test adequate for this purpose, with this population, for this decision?"
+
+For **research use**, the central priorities are construct validity for the specific inference being drawn, structural validity evidence that is internally consistent and replicable, measurement invariance across the groups being compared or the time points being contrasted, and documentation sufficient for replication. Research applications rarely require population norms. Invariance is often the most consequential criterion and the most often neglected.
+
+For **clinical use**, priorities shift in meaningful ways. Representative norms for the client's demographic and cultural group are often essential because clinical interpretation is fundamentally comparative. Diagnostic accuracy evidence — sensitivity, specificity, positive and negative predictive values, and likelihood ratios at clinically relevant cutoffs — is necessary whenever the measure guides referral, diagnosis, or treatment decisions (see Chapter 10). Clinical utility encompasses actionability, incremental validity over other available information, and feasibility in typical practice. For progress monitoring, responsiveness to change and the minimum clinically important difference are required. Qualification requirements and legal defensibility may also apply.
+
+```{r tbl-criteria-comparison, echo=FALSE}
+#| tbl-cap: "Priority evaluation criteria by intended use. Where criteria differ, the distinction reflects what each context requires for defensible score-based decisions."
+
+criteria_tbl <- tibble(
+  Criterion = c(
+    "Internal structure (factor model fit, loadings)",
+    "Reliability for current sample",
+    "Construct validity (convergent, discriminant)",
+    "Measurement invariance across groups or time",
+    "Content validity",
+    "Representative norms",
+    "Diagnostic accuracy (sensitivity, specificity, LRs)",
+    "Responsiveness to change / MCID",
+    "Criterion validity for specific outcome"
+  ),
+  Research = c(
+    "Required",
+    "Required",
+    "Required",
+    "Required when comparing groups or time points",
+    "Required",
+    "Rarely required",
+    "Not applicable",
+    "Conditional on study design",
+    "Required when criterion prediction is the aim"
+  ),
+  Clinical = c(
+    "Required",
+    "Required",
+    "Required",
+    "Required when comparing across groups",
+    "Required",
+    "Usually required",
+    "Required when used for diagnosis or referral",
+    "Required for progress monitoring",
+    "Required when used for prediction"
+  )
+)
+
+kable(criteria_tbl,
+      col.names = c("Criterion", "Research Use", "Clinical Use"),
+      align = c("l", "l", "l")) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) |>
+  column_spec(1, width = "30%", bold = TRUE) |>
+  column_spec(2, width = "35%") |>
+  column_spec(3, width = "35%")
+```
+
+### What "Good Enough" Means
+
+One of the most useful frameworks for applied test evaluation comes from evidence-based assessment. Hunsley and Mash (2018) argue that psychometric adequacy is not a fixed threshold but a judgment calibrated to the stakes and purposes of assessment. Their "good enough" principle holds that the evidentiary bar for a screening measure used to flag individuals for further evaluation is lower than the bar for a measure used to make a diagnostic or placement decision. The bar for a research measure used to compare groups is different again from the bar for a measure used to monitor treatment response in individual clients.
+
+This principle has two practical implications for your evaluations. First, you cannot assess adequacy without first stating the intended use. A measure that is "good enough" for a low-stakes research context may not be "good enough" for clinical decision-making, even if its reliability and validity statistics look similar. Second, the evaluation of evidence gaps should be proportional to the stakes of the decision. Absent measurement invariance evidence is more consequential when you are comparing clinical groups on a construct that drives treatment recommendations than when you are using the measure as one covariate among several.
+
+::: callout-note
+The question is not whether a test is good or bad in the abstract. The question is whether the evidence is sufficient for the specific decision you are making, in the specific population you are assessing, at the stakes this decision carries.
+:::
+
+When you find thin or absent evidence for a criterion, apply a three-way distinction: does this gap *prevent* defensible score interpretation for my intended use, *limit* it in ways I must acknowledge and address, or represent a *minor* limitation that does not affect my core inference? That distinction is more useful than a simple pass/fail judgment, and it is the substance of the Commentary and Summary sections of your review.
+
+### Commercial Tests and Research Scales: What Changes, What Does Not
+
+The evaluation logic described in this chapter applies to both commercially published tests and research-only scales, but the evidence you will find, and the resources available to evaluate it, differ substantially between the two.
+
+**Commercially published tests** come with technical manuals that consolidate validity, reliability, norming, and fairness evidence. Buros reviews provide independent expert evaluation of that manual. The evidence base is typically broader and better documented, norming samples are larger and more carefully described, and publishers have professional incentives to accumulate evidence across multiple studies. When evaluating a commercial test, read the Buros review and the relevant manual sections together: the review tells you whether the manual's claims are supported; the manual provides the primary evidence.
+
+**Research-only scales** — instruments developed and published in journal articles, available free with permission but without a commercial publisher — typically have thinner evidence bases. The original article is the primary documentation. Subsequent validation studies may exist but are not consolidated anywhere, and Buros does not review them. Your evaluation depends more heavily on your ability to search and synthesize validation evidence across multiple publications. Gaps you identify are not always the developer's oversight: the evidence may simply not exist yet because the scale has not been through an extended validation program.
+
+The evaluative logic is identical for both: state your intended use, assess the available evidence against the criteria that matter for that use, identify gaps, and interpret what those gaps mean for confidence in score-based decisions. What changes is where you look, how much documentation you should expect to find, and what level of evidence base is realistic given the type of instrument.
+
+One distinction that matters specifically for research scales: evidence gathered in the original development article may reflect the construct and sample context of that study but not yours. A scale developed and validated with college undergraduates may not have been evaluated for reliability or structural validity in clinical or community samples. Noting this generalization limit and assessing whether it affects your intended use is part of a thorough evaluation.
+
+### Where to Look: Review Resources and Frameworks
+
+No single resource answers every evaluation question. The frameworks described here serve different functions.
+
+**AERA/APA/NCME Standards for Educational and Psychological Testing (2014)** are the authoritative conceptual reference for what constitutes adequate validation evidence in the United States. The *Standards* define what validity evidence means and assign responsibilities to test developers, users, and score interpreters; they do not review specific tests. Use the *Standards* as the principled framework for deciding whether available evidence is sufficient for the intended use. A revision was announced in 2024 and is in progress; the 2014 edition remains current.
+
+**Buros Mental Measurements Yearbook** is the most widely used resource for evaluating specific commercially available English-language tests. Each test receives two independent expert reviews covering Description, Development, Technical, Commentary, and Summary. Reviews are evaluative: they reach conclusions about adequacy, not merely describe content. Key limitations: covers only commercially published tests; two to three year publication lag; narrative rather than scored. Access through university library subscriptions (EBSCO, Ovid) or individual review purchase at buros.org.
+
+**ITC Guidelines** from the International Test Commission define professional practice standards for responsible testing, not reviews of specific tests. Most relevant for this course: *Guidelines on Test Use* (2013), defining competencies expected of a responsible test user; *Guidelines for Translating and Adapting Tests* (2nd ed., 2017), required reading for any dissertation using a translated or adapted scale; and *Guidelines for Technology-Based Assessment* (ITC/ATP, 2022), increasingly relevant for app-delivered screening measures.
+
+**COSMIN** is a specialist methodology for evaluating patient-reported outcome measures (PROMs) in health research. Most relevant for clinical and health psychology students selecting outcome measures for clinical trials or systematic reviews; less applicable to personality assessments, cognitive tests, or neuropsychological instruments. The COSMIN database at cosmin.nl catalogs systematic reviews of PROMs by construct.
+
+In practice: use the *Standards* for principles, Buros for commercial test reviews, ITC for adaptation and technology contexts, and COSMIN for health-outcome PROMs.
+
+### What to Evaluate: Five Domains
+
+The following five domains provide the organizing structure for test evaluation. They draw directly on course content from previous chapters and map onto the rubric in Part 3.
+
+**Domain 1: Test Description and Documentation.** What does the test claim to measure, for whom, and in what context? Are administration and scoring procedures fully specified? Is documentation available and complete? Documentation gaps are a warning sign: a scale with no manual and no consolidated validation studies has no evidentiary basis for use regardless of citation count.
+
+**Domain 2: Test Development.** How were items generated? Was the item pool developed through a systematic process grounded in the construct definition? Was content validity established through expert review, target population input, or cognitive interviewing? Was the initial factor structure determined through an appropriate analytic process (EFA, then confirmatory replication in an independent sample)? *Domain 2 evaluates what was done during construction of the test. Domain 4 evaluates the accumulated validity evidence for the scores it produces. These are different questions: a test can have a well-documented development process but limited accumulated validity evidence, or vice versa. Do not use the same evidence to answer both.*
+
+**Domain 3: Reliability.** What forms of reliability evidence are reported, for what types of scores, in what samples? Internal consistency evidence should specify coefficient type, value, and the sample from which it was obtained. Test-retest evidence should specify the interval and population. SEM should be reported and interpreted for the score ranges most relevant to the intended use. Reliability should be reported for demographic subgroups relevant to the intended application.
+
+**Domain 4: Validity.** Content evidence documents that items comprehensively represent the intended construct. Structural evidence includes CFA with reported fit indices (CFI, RMSEA, SRMR) and factor loadings in samples relevant to the intended population. Convergent and discriminant evidence documents relationships with theoretically related and theoretically distinct constructs. Criterion evidence — concurrent or predictive — anchors scores to external outcomes. *Domain 4 evaluates accumulated evidence, not development procedures (see Domain 2).* The most important evaluative question is whether the available validity evidence is relevant to the specific intended use: evidence gathered in a different population for a different purpose does not automatically transfer.
+
+**Domain 5: Norms, Fairness, and Special Populations.** Norms are the reference frame for clinical score interpretation. The evaluative questions are whether the norming sample is representative of and current for the population to whom scores will be compared, and whether subgroup norms are available for the demographic groups most relevant to the intended use. Fairness evidence connects to Chapter 9: DIF analyses document item-level differential functioning; measurement invariance testing documents whether the factor structure holds across groups; predictive bias analysis documents whether the test predicts criterion outcomes with equal accuracy across groups. A test that has never been evaluated for DIF, has not tested measurement invariance across relevant demographic groups, and has no predictive validity evidence for the populations it will be used with does not have an adequate fairness evidence base, regardless of how well-established it is in the literature.
+
+#### Finding Domain 5 Evidence
+
+Domain 5 is where many students struggle because the evidence is not always easy to locate.
+
+In a **technical manual**, check the chapters or sections on standardization and norms (for norming sample information), fairness or bias (for DIF results), and validity (for measurement invariance and predictive bias). Terminology is inconsistent across manuals: DIF may be called "differential item functioning," "item bias analysis," or appear within a fairness or equity section. Measurement invariance may be reported as "factorial invariance," "configural analysis," or "multiple-group CFA." Predictive bias may appear as "differential prediction" or "subgroup validity."
+
+For **research scales**, search the original development article for any structural validity analysis by group (often a brief note in a supplementary section). Then search the literature using the scale name combined with terms such as "measurement invariance," "factorial invariance," "DIF," or "differential item functioning." Subsequent validation studies sometimes include fairness analyses the original article did not.
+
+When you find nothing, that absence is itself the evidence to report. A thorough review names the gap and explains what it means: "No DIF analysis was identified for this scale across the demographic groups most relevant to my intended application. Given the scale will be used in a sample that is [X], this represents a meaningful limitation on confidence in item-level fairness." Under the Hunsley and Mash good-enough standard, assess whether this gap prevents defensible use, limits it in ways that must be disclosed, or is genuinely minor given the stakes and purpose.
+
+### A Note on Domain 6: Diagnostic Accuracy and Clinical Utility
+
+Domain 6 covers diagnostic accuracy and clinical utility and should be completed only when the test is being evaluated for clinical diagnostic or monitoring purposes. Within Domain 6, responsiveness to change and the minimum clinically important difference (MCID) apply only to instruments designed for repeated administration to detect progress over time. For instruments designed for initial diagnostic assessment or screening — not repeated monitoring — the absence of responsiveness evidence is not a limitation; the criterion simply does not apply. Note this explicitly in your review rather than treating it as a gap.
+
+---
+
+## Part 3: Test Review Rubric
+
+### Using the Rubric
+
+The rubric operationalizes the five evaluation domains into specific criteria with defined scoring anchors. It applies to both commercially published tests and research-only scales.
+
+Each criterion is scored on a three-point scale that evaluates **what the reviewer does**, not what the test provides. A student who examines a criterion thoroughly and finds nothing earns full credit. A student who skips a criterion earns a zero regardless of whether evidence exists.
+
+- **0** — The reviewer does not address the criterion. Its absence from the review earns the 0, not the absence of evidence in the test.
+- **1** — The reviewer addresses the criterion but incompletely: for example, reporting what the test provides without evaluating its adequacy, or noting a gap without discussing its implications.
+- **2** — The reviewer engages fully with the criterion: describing available evidence, evaluating its adequacy for the intended use, and — when evidence is absent or limited — identifying that gap explicitly and explaining what it means for confidence in the test under the Hunsley and Mash good-enough standard.
+
+For research scales that do not use or claim normative interpretation, Criteria 5.1 and 5.2 should be marked **N/A** and excluded from the denominator when computing a percentage score.
+
+The numeric total is a useful summary, but the profile across domains is more informative. A reviewer can earn an acceptable total while failing to engage with a critical domain. A 0 on any Domain 5 criterion is a significant finding regardless of the overall score and should be addressed explicitly in the Commentary. Identifying and interpreting an absence of evidence is itself a demonstration of evaluative skill.
+
+#### Writing the Review
+
+A structured test review follows the five-section format used in Buros: Description, Development, Technical, Commentary, and Summary. The rubric guides the Technical section. The Commentary and Summary require integrating the technical evaluation into a clear recommendation: not "the test has some strengths and some limitations" but "for my stated purpose, the evidence is sufficient / insufficient / adequate with the following reservations, for the following reasons." A review that describes evidence without reaching a judgment is not complete.
+
+The full rubric with detailed scoring anchors for each criterion is available as a separate printable document. @tbl-rubric-summary provides an overview of the domain structure.
+
+```{r tbl-rubric-summary, echo=FALSE}
+#| tbl-cap: "Test Review Rubric: Domain summary. Each criterion is scored 0 (not addressed by reviewer), 1 (addressed partially), or 2 (addressed thoroughly, including interpretation of gaps). Full anchor descriptions are in the separate rubric handout."
+
+rubric_summary <- tibble(
+  Domain = c(
+    "1. Description and Documentation",
+    "2. Test Development",
+    "3. Reliability",
+    "4. Validity",
+    "5. Norms, Fairness, and Special Populations",
+    "6. Diagnostic Accuracy and Clinical Utility (conditional)"
+  ),
+  Criteria = c("4", "4", "5", "6", "5", "3"),
+  `Max points` = c("8", "8", "10", "12", "10 (or 6 if norms N/A)", "6 if applicable"),
+  `Key evaluative focus` = c(
+    "Construct definition and theoretical grounding; intended population clarity; documentation completeness",
+    "Item generation process; content validity procedures; structural validation sequence; development sample representativeness. Evaluates how the test was built, not the accumulated validity evidence (see Domain 4).",
+    "Coefficient type and adequacy for intended use; test-retest interval and sample appropriateness; SEM interpretation at relevant score ranges; subgroup reliability for intended populations",
+    "Content, structural, convergent, discriminant, and criterion evidence; relevance of all evidence to the reviewer's specific intended use. Evaluates accumulated validity evidence, not development procedures (see Domain 2).",
+    "Norming sample representativeness and currency; subgroup norms for intended populations; DIF analysis across relevant groups; measurement invariance; predictive bias. See 'Finding Domain 5 Evidence' in the chapter for search guidance.",
+    "Complete only for clinical diagnostic or monitoring use. Within this domain, responsiveness criteria apply only to instruments designed for repeated administration; note inapplicability rather than marking as a gap when the instrument is not designed for progress monitoring."
+  ),
+  `N/A conditions` = c(
+    "None",
+    "None",
+    "Criterion 3.3 (inter-rater): N/A if scoring is fully objective",
+    "None",
+    "Criteria 5.1 and 5.2 (norms): N/A for research scales not designed for normative interpretation",
+    "Entire domain: N/A if test is not evaluated for clinical diagnostic or monitoring use. Within domain, Criterion 6.3 (responsiveness): N/A if test is not designed for repeated progress monitoring."
+  )
+)
+
+kable(rubric_summary,
+      col.names = c("Domain", "Criteria", "Max points", "Key evaluative focus", "N/A conditions"),
+      align = c("l", "c", "c", "l", "l")) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) |>
+  column_spec(1, width = "18%", bold = TRUE) |>
+  column_spec(2, width = "7%") |>
+  column_spec(3, width = "11%") |>
+  column_spec(4, width = "42%") |>
+  column_spec(5, width = "22%")
+```
+
+### Applying the Rubric: A Worked Example
+
+To illustrate how the rubric works in practice, consider a fictional but plausible scenario. A student selects the **Adaptive Functioning Inventory — Revised (AFI-R)**, a 36-item self-report scale measuring adaptive behavioral competence across three domains (social engagement, daily task management, and self-regulation), developed for adults aged 18 to 65 in clinical and community settings. The student is evaluating it for a dissertation examining adaptive functioning in an outpatient sample that is racially and ethnically diverse.
+
+For Criterion 1.1, the student writes: "The AFI-R manual grounds the construct in adaptive functioning theory, distinguishing it from related constructs such as life skills and functional impairment. The theoretical basis is adequately specified for the intended use." That earns a 2. For Criterion 1.2, the student notes that the manual specifies adults 18–65 but restricts the stated population to English-speaking, US-based participants and does not address what that restriction means for a clinically and culturally diverse sample. That earns a 1 — the limitation is noted but its implications for the specific dissertation sample are not developed.
+
+For Domain 2, the student identifies that item development followed a documented content specification process with expert review (Criteria 2.1 and 2.2: 2 each), that EFA and CFA were conducted in separate samples with adequate fit (Criterion 2.3: 2), and that the development sample was predominantly White and college-educated. On Criterion 2.4 the student writes: "The development sample does not represent the clinical and ethnically diverse population for which this dissertation intends to use the AFI-R. This is a meaningful limitation on the generalizability of the developmental evidence to my context." That earns a 2: the gap was identified and its implications were articulated.
+
+The Domain 5 evaluation is where the profile becomes most consequential. The student notes that norming is nationally representative by age and gender but underrepresents racial and ethnic minority adults (Criterion 5.1: 1), that subgroup norms exist for age and gender only (Criterion 5.2: 1), that DIF was analyzed across gender and age but not race/ethnicity (Criterion 5.3: 1), that measurement invariance was established for gender at the scalar level but not tested across racial/ethnic groups (Criterion 5.4: 1), and on Criterion 5.5 writes: "No predictive bias analysis is reported by race or ethnicity, and the manual does not acknowledge this gap. For a dissertation comparing outcomes across a racially diverse clinical sample, this absence means I cannot assume that scores carry the same predictive meaning across groups. Under the Hunsley and Mash good-enough standard, this gap is not minor: it directly limits the defensibility of group comparisons that are central to the dissertation aims." That is a 2 — the criterion was addressed thoroughly, the gap was named, its implications for the specific use were evaluated against the stakes involved.
+
+The resulting profile shows a test with a solid developmental and internal validity foundation but a systematic fairness evidence gap across all five Domain 5 criteria for this specific intended use. The overall numeric score would be acceptable; the profile is not, for a dissertation comparing outcomes across a racially diverse outpatient sample. The student's Summary would recommend the AFI-R with significant reservations, name the fairness evidence gaps explicitly, and explain what additional validation evidence would be needed before the instrument could be used without qualification in the intended context.
+
+The rubric is working as intended. The student did not earn scores by finding favorable evidence; they earned them by engaging thoroughly with every criterion, applying the good-enough standard to evaluate the stakes of each gap, and communicating clearly what the evidence means for the specific use being planned.
+
+---
+
+## Conclusion
+
+Measurement is not a methods-section formality. It is a theoretical commitment: a claim that the numbers you collect represent the construct you intend to study, in the population you are studying, for the purpose you have in mind. That claim requires evidence, and the evidence has to be evaluated against the specific inference being drawn, not assumed on the basis of how often a scale has been cited.
+
+The QMP literature documents, with some consistency, that this commitment is frequently not honored. The six questions and the evaluation framework developed in this chapter are practical tools for doing better. Neither requires capabilities beyond what any competent researcher already has. What they require is the discipline to apply them: to treat measurement as a scientific question rather than a logistical one, and to evaluate evidence against the stakes of the decision at hand.
+
+The test review assignment gives you a first opportunity to practice that discipline on a measure you have chosen because it is relevant to the work you intend to do. The standard you are holding it to is the standard your dissertation, your publications, and your clinical practice will eventually be held to.
+
+---
+
+## References
+
+::: {#refs}
+:::
+
+---
+
+## Further Reading
+
+American Educational Research Association, American Psychological Association, & National Council on Measurement in Education. (2014). *Standards for educational and psychological testing*. AERA. https://www.testingstandards.net
+
+Flake, J. K., & Fried, E. I. (2020). Measurement schmeasurement: Questionable measurement practices and how to avoid them. *Advances in Methods and Practices in Psychological Science*, *3*(4), 456–465. https://doi.org/10.1177/2515245920952393
+
+Flake, J. K., Pek, J., & Hehman, E. (2017). Construct validation in social and personality research: Current practice and recommendations. *Social Psychological and Personality Science*, *8*(4), 370–378. https://doi.org/10.1177/1948550617693063
+
+Hussey, I., & Hughes, S. (2020). Hidden invalidity among 15 commonly used measures in social and personality psychology. *Advances in Methods and Practices in Psychological Science*, *3*(2), 166–184. https://doi.org/10.1177/2515245919882903
+
+Hunsley, J., & Mash, E. J. (Eds.). (2018). *A guide to assessments that work* (2nd ed.). Oxford University Press.
+
+International Test Commission. (2017). *ITC guidelines for translating and adapting tests* (2nd ed.). https://www.intestcom.org
+
+Buros Center for Testing. *Mental Measurements Yearbook* (most recent edition). University of Nebraska–Lincoln. https://buros.org

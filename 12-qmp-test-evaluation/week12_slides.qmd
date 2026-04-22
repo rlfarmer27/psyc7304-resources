@@ -1,0 +1,1122 @@
+---
+title: "Questionable Measurement Practices and Test Evaluation"
+subtitle: "PSYC 7304/8304 · Week 12"
+author: "Ryan Farmer, PhD"
+format:
+  revealjs:
+    theme: [default, week12_custom.scss]
+    slide-number: true
+    progress: true
+    history: false
+    transition: fade
+    transition-speed: fast
+    background-transition: fade
+    code-fold: false
+    toc: false
+    center: false
+    width: 1200
+    height: 700
+    margin: 0.06
+    smaller: false
+    highlight-style: github
+    embed-resources: true
+    preview-links: false
+    chalkboard: false
+    mouse-wheel: false
+    controls: true
+    controls-layout: bottom-right
+    fragments: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{=html}
+<style>
+.reveal,
+.reveal .slides,
+.reveal .slides section,
+.reveal .slides section > * {
+  font-size: 22px !important;
+}
+.reveal h1 { font-size: 1.75em !important; }
+.reveal h2 { font-size: 1.15em !important; }
+.reveal h3 { font-size: 1.0em  !important; }
+.reveal .callout { font-size: 0.82em !important; }
+.reveal table   { font-size: 0.78em !important; }
+.reveal blockquote { font-size: 0.88em !important; }
+</style>
+```
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+theme_week12 <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.background  = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "#e0e0e0"),
+      axis.title       = element_text(color = "#2E4057", size = 13),
+      axis.text        = element_text(color = "#444444", size = 11),
+      plot.title       = element_text(color = "#2E4057", size = 14, face = "bold"),
+      plot.subtitle    = element_text(color = "#666666", size = 12),
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.text      = element_text(size = 11)
+    )
+}
+
+pal_primary <- "#2E4057"
+pal_accent  <- "#E07B39"
+pal_green   <- "#3A7D44"
+pal_warn    <- "#C7A020"
+```
+
+# Where We Are {.section-slide background-color="#2E4057"}
+
+## The Course in One Picture
+
+We have built a complete psychometric toolkit.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Foundations**
+
+- Measurement philosophy and CTT
+- Reliability: internal consistency, stability, agreement
+- Validity: argument-based, construct, criterion
+
+**Structure**
+
+- EFA: exploring latent structure
+- CFA: testing and evaluating models
+- Measurement invariance: comparing across groups
+
+:::
+::: {.column width="50%"}
+
+**Applications**
+
+- Bias, fairness, and DIF
+- Diagnostic accuracy and ROC analysis
+- Scale development
+
+**Today**
+
+- What goes wrong with measurement in practice
+- How to evaluate whether a measure is adequate for a specific use
+- Your test review assignment as professional practice
+
+:::
+:::
+
+::: {.notes}
+This is the synthesis week. Students have covered the full toolkit. Today is about applying that toolkit critically — both to evaluate others' work and to protect their own.
+:::
+
+## The Central Problem
+
+Statistics cannot rescue a broken measurement foundation.
+
+. . .
+
+::: {.columns}
+::: {.column width="60%"}
+
+Rigorous design, large samples, pre-registration, open data — none of these protect you if the scores do not represent the construct you intend to study.
+
+The validity argument, developed over the past several weeks, depends on one thing above all: that the scores actually mean what you claim they mean.
+
+:::
+::: {.column width="40%"}
+
+::: {.callout-important appearance="minimal"}
+**Flake & Fried (2020)**
+
+Neither rigorous research design, nor advanced statistics, nor large samples can correct false inferences produced by invalid measurement.
+:::
+
+:::
+:::
+
+. . .
+
+Today's question: in practice, how often is that foundation solid — and how do you evaluate it?
+
+::: {.notes}
+Set the stakes early. This is not a minor methods point. The whole course has built toward this.
+:::
+
+---
+
+# Part 1: Questionable Measurement Practices {.section-slide background-color="#2E4057"}
+
+## What Are QMPs?
+
+Flake and Fried (2020) coined the term **questionable measurement practices** to name a category of decisions that had been happening for decades without a label.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**Definition:** Decisions researchers make that raise doubts about the validity of the measures, and ultimately the validity of study conclusions.
+
+Like QRPs — questionable research practices — these are often:
+
+- invisible in published reports
+- the product of convention and time pressure
+- not deliberate misconduct
+
+:::
+::: {.column width="45%"}
+
+::: {.callout-note appearance="minimal"}
+**The structural parallel**
+
+QRPs: degrees of freedom in the analysis pipeline
+
+QMPs: degrees of freedom in the measurement pipeline
+
+Both inflate false positives. Both are underreported.
+:::
+
+:::
+:::
+
+::: {.notes}
+The QRP parallel is a useful anchor. Students have heard about QRPs. QMPs are the upstream version of the same problem.
+:::
+
+## How Common Are QMPs?
+
+Flake, Pek, & Hehman (2017) audited 35 articles from a flagship social-personality journal.
+
+```{r prevalence-table}
+prev_df <- tibble::tribble(
+  ~Finding,                                                          ~`%`,
+  "Scales with no cited source (presumed ad hoc)",                   "40%",
+  "Cited scales reporting only reliability as validity evidence",     "61%",
+  "Papers mentioning measurement invariance",                        "3%  (1 of 35)"
+)
+
+kable(prev_df, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped"), full_width = TRUE, font_size = 15) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, width = "75%") |>
+  column_spec(2, bold = TRUE, width = "25%", color = "#C0392B")
+```
+
+. . .
+
+This is a flagship journal. These are not outlier studies. This is the norm.
+
+::: {.notes}
+Let the numbers land. These are not obscure journals or student papers. The 3% for invariance is the most striking given how many of those studies compared groups.
+:::
+
+## The 88% vs. 4% Problem
+
+Hussey & Hughes (2020) evaluated 15 commonly used social-personality scales on four criteria: internal consistency, test-retest reliability, factor structure, and measurement invariance.
+
+. . .
+
+```{r bar-chart-hussey, fig.height=3.2, fig.width=8}
+df_hussey <- tibble(
+  criterion = c(
+    "Internal consistency\n(what almost everyone reports)",
+    "All four criteria\n(what a comprehensive evaluation requires)"
+  ),
+  pct = c(88, 4),
+  label = c("88%", "4%"),
+  fill  = c(pal_green, "#C0392B")
+) |>
+  mutate(criterion = factor(criterion, levels = criterion))
+
+ggplot(df_hussey, aes(x = criterion, y = pct, fill = fill)) +
+  geom_col(width = 0.55) +
+  geom_text(aes(label = label), vjust = -0.4, size = 6, fontface = "bold",
+            color = c(pal_green, "#C0392B")) +
+  scale_fill_identity() +
+  scale_y_continuous(limits = c(0, 100), labels = function(x) paste0(x, "%")) +
+  labs(x = NULL, y = "Scales rated adequate") +
+  theme_week12() +
+  theme(axis.text.x = element_text(size = 13, color = "#333333"))
+```
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+The gap between 88% and 4% is not a statistical curiosity. It is a measurement culture problem: a widespread norm of treating alpha as the only psychometric question worth asking.
+:::
+
+::: {.notes}
+This is the single most memorable number in the QMP literature. Give it a moment. What changed between the two bars? Three questions that almost no one asks.
+:::
+
+## Why This Connects to Replication
+
+Shaw and colleagues (2020) examined the scales used in a large multi-site replication project. **79% of item-based scales were ad hoc** — created by the original authors with no validation evidence.
+
+. . .
+
+Fried (2017) catalogued items across seven commonly used depression scales.
+
+::: {.columns}
+::: {.column width="55%"}
+
+::: {.callout-warning appearance="minimal"}
+**52 distinct symptoms**
+
+Seven depression scales collectively operationalize 52 different symptoms.
+
+Item content overlap between any two scales: **0% to 52%.**
+
+Three studies that all conclude "antidepressant X reduces depression" may be measuring completely different things.
+:::
+
+:::
+::: {.column width="45%"}
+
+This is not a replication problem. It is a measurement problem that looks like a replication problem.
+
+Poor measurement does not just introduce noise. It introduces **systematic construct-level ambiguity** that no statistical method resolves.
+
+:::
+:::
+
+::: {.notes}
+The depression example lands well with clinical students. Connect explicitly: if you are reviewing a paper that failed to replicate, the first question is not "what went wrong statistically" but "what was actually measured?"
+:::
+
+## Ten Common QMPs
+
+```{r qmp-table}
+qmp_df <- tibble::tribble(
+  ~Cluster,                    ~Practice,
+  "Scale selection",           "Using a measure without evaluating validity evidence for the intended use",
+  "Scale selection",           "Jingle fallacy: same label, different constructs",
+  "Scale selection",           "Jangle fallacy: different labels, same construct",
+  "Scale selection",           "Using a culturally adapted scale without revalidation",
+  "Modification & creation",   "Silently modifying items or response options without revalidating",
+  "Modification & creation",   "Creating ad hoc scales without validation",
+  "Reporting & scoring",       "Reporting only coefficient alpha as 'the psychometrics'",
+  "Reporting & scoring",       "Failing to report reliability for the current sample",
+  "Reporting & scoring",       "Ignoring measurement invariance before comparing groups or time points",
+  "Reporting & scoring",       "Accepting poor CFA model fit without acknowledgment"
+)
+
+kable(qmp_df, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "22%", color = pal_primary) |>
+  column_spec(2, width = "78%") |>
+  row_spec(c(1:4), background = "#EEF2F7") |>
+  row_spec(c(5:6), background = "#FFF8E1") |>
+  row_spec(c(7:10), background = "#F4FAF5")
+```
+
+::: {.notes}
+Walk through these fairly quickly; students have the chapter. Pause on jingle/jangle (clinically very relevant) and invariance (most often skipped).
+:::
+
+## The Jingle and Jangle Fallacies
+
+These two errors deserve special attention because they are common in clinical research and often invisible without careful reading.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Jingle fallacy**
+
+*Same label, different content*
+
+Seven depression scales. 52 symptoms. Minimal overlap.
+
+Researchers assume "depression scale" = "depression scale." They may be studying nearly non-overlapping symptom profiles.
+
+:::
+::: {.column width="50%"}
+
+**Jangle fallacy**
+
+*Different labels, same content*
+
+"Self-efficacy," "confidence," "perceived competence" — often operationally identical item sets, treated as distinct constructs in the same model.
+
+The theoretical architecture built on these distinctions may be built on a naming convention, not a real empirical difference.
+
+:::
+:::
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+**Practical check:** Before selecting a measure, read the items. Not just the scale name. Not just the abstract. The items.
+:::
+
+::: {.notes}
+Clinically relevant: students in clinical tracks will inherit a literature full of jingle fallacies. The depression example is a good anchor.
+:::
+
+---
+
+# The Six Questions {.section-slide background-color="#2E4057"}
+
+## A Checklist for QMP Prevention
+
+Flake and Fried (2020) propose six questions every researcher should answer about every measure. These work in two directions: as a writing checklist and as a diagnostic for reading others' work.
+
+```{r six-questions-table}
+six_q <- tibble::tribble(
+  ~`#`, ~Question,                               ~`The QMP it prevents`,
+  "1",  "What is your construct?",                "Using a measure without defining what it should represent",
+  "2",  "Why and how did you select this measure?", "Selecting a measure because it was convenient",
+  "3",  "What measure did you use?",              "Insufficient documentation for replication",
+  "4",  "How did you quantify scores?",           "Failing to report reliability for the current sample",
+  "5",  "Did you modify the scale?",              "Silent modification without revalidation",
+  "6",  "Did you create a measure on the fly?",   "Ad hoc scale creation without validation"
+)
+
+kable(six_q, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped"), full_width = TRUE, font_size = 14) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "4%") |>
+  column_spec(2, bold = TRUE, width = "38%", color = pal_primary) |>
+  column_spec(3, width = "58%")
+```
+
+::: {.notes}
+Walk through quickly. Emphasize that these are not a high bar: they require transparency about decisions already made. The same checklist works as a rubric for reading others' methods sections.
+:::
+
+## The Six Questions in Practice
+
+These questions require transparency, not additional data collection.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**When writing your methods section:**
+
+Answer all six before submitting. If you cannot answer one, that is a signal: either the decision needs to be made, or it was made poorly and needs to be reconsidered.
+
+Question 4 is where most students need the most work: *report reliability from your own data*, not from the original development study.
+
+:::
+::: {.column width="50%"}
+
+**When reading a methods section:**
+
+Use the six questions as a checklist. If a paper cannot answer question 1 (what is the construct?), the validity of every downstream inference is in question.
+
+If it cannot answer question 5 (were items modified?), you do not know which instrument you are reading about.
+
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+The same discipline that protects your dissertation from QMPs makes you a more rigorous reviewer of others' work — including the literature you will use in your test review paper.
+:::
+
+::: {.notes}
+Connect explicitly to the test review assignment. When students read a test manual, they are essentially answering these questions about the test developer's work.
+:::
+
+---
+
+# Evaluating Measures {.section-slide background-color="#2E4057"}
+
+## The First Question Is Not "Is This a Good Test?"
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+**The right question:**
+
+Is this test adequate for this purpose, with this population, for this decision?
+:::
+
+. . .
+
+A test that is excellent for one purpose may be inadequate for another. Some examples:
+
+| Instrument | Strong for... | Weaker for... |
+|---|---|---|
+| Short research scale, college sample | Theory testing in similar populations | Clinical interpretation, diverse samples |
+| Commercially normed clinical battery | Diagnostic comparison against norms | Research comparing latent means across groups |
+| Health PROM, validated in clinical trial | Treatment response monitoring | Screening in primary care |
+
+. . .
+
+Before you begin any evaluation, state your intended use. Adequacy is always relative to it.
+
+::: {.notes}
+This is the core reorientation of the chapter. Students have been trained to ask "is this a valid test?" — which is not the right question. The right question is about fit between evidence and use.
+:::
+
+## What "Good Enough" Means
+
+Hunsley & Mash (2018) argue that psychometric adequacy is not a fixed threshold — it is a judgment calibrated to the stakes and purposes of assessment.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**The stakes matter:**
+
+- A screening measure flagging individuals for further evaluation requires a lower evidentiary bar than a measure driving a placement decision
+- A research covariate requires less than a measure driving a treatment recommendation
+- A diagnostic tool for one-time use requires different evidence than a progress monitoring tool
+
+:::
+::: {.column width="45%"}
+
+**When you find a gap, ask:**
+
+::: {.callout-tip appearance="minimal"}
+Does this gap...
+
+**Prevent** defensible score interpretation for my use?
+
+**Limit** it in ways I must acknowledge?
+
+**Minor** — does not affect my core inference?
+
+:::
+
+:::
+:::
+
+. . .
+
+This prevents both over-reaction (rejecting every measure with any gap) and under-reaction (accepting any measure with a published alpha).
+
+::: {.notes}
+The Hunsley and Mash framing is important because it gives students permission to reach a nuanced judgment — which is what professional evaluation requires. The three-way distinction (prevent / limit / minor) is the key practical tool.
+:::
+
+## Research Use vs. Clinical Use
+
+The evidentiary priorities differ in important ways.
+
+```{r criteria-table}
+crit_df <- tibble::tribble(
+  ~Criterion,                                          ~`Research`,                             ~`Clinical`,
+  "Internal structure (factor model, loadings)",       "Required",                              "Required",
+  "Reliability for current sample",                    "Required",                              "Required",
+  "Construct validity (convergent, discriminant)",     "Required",                              "Required",
+  "Measurement invariance across groups / time",       "Required when comparing groups",        "Required when comparing groups",
+  "Content validity",                                  "Required",                              "Required",
+  "Representative norms",                              "Rarely required",                       "Usually required",
+  "Diagnostic accuracy (sensitivity, specificity, LRs)","Not applicable",                      "Required for diagnosis/referral",
+  "Responsiveness to change / MCID",                   "Conditional on study design",           "Required for progress monitoring",
+  "Criterion validity for specific outcome",           "Required when predicting criterion",    "Required when predicting criterion"
+)
+
+kable(crit_df, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "38%") |>
+  column_spec(2, width = "31%") |>
+  column_spec(3, width = "31%")
+```
+
+::: {.notes}
+Spend a moment on the rows that differ. Norms, diagnostic accuracy, and responsiveness are the main clinical-specific priorities. Invariance is required in both contexts when groups are compared — a point many researchers miss regardless of whether the work is applied or basic.
+:::
+
+---
+
+# Review Resources {.section-slide background-color="#2E4057"}
+
+## Commercial Tests vs. Research Scales
+
+Before evaluating a measure, know which type you are working with.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Commercially published tests**
+
+- Technical manual consolidates evidence
+- Buros MMY provides independent expert review
+- Broader evidence base, larger norming samples
+- Publisher has professional incentives to accumulate evidence
+
+*Evaluate by reading the Buros review alongside the relevant manual sections.*
+
+:::
+::: {.column width="50%"}
+
+**Research-only scales**
+
+- Original article is the primary documentation
+- No Buros review exists
+- Validation evidence may be spread across multiple publications — or may not exist yet
+- Gaps are not always developer negligence; the scale may not have been through extended validation
+
+*Evaluate by reading the original article and searching for subsequent validation studies.*
+
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+The evaluative **logic** is identical for both. What changes is where you look, how much documentation to expect, and what evidentiary bar is realistic.
+:::
+
+::: {.notes}
+Many students will select research scales for their test review papers. They need to understand that finding thin evidence is not a failure to search — it may be the accurate finding.
+:::
+
+## The Four Frameworks
+
+| Framework | What it does | Best for |
+|---|---|---|
+| **AERA/APA/NCME Standards (2014)** | Defines what validity evidence means; assigns responsibilities to developers, users, interpreters | Principled framework for all evaluations; cite for what adequacy requires |
+| **Buros MMY** | Independent expert reviews of specific commercially published tests; evaluative, not just descriptive | Commercial test evaluation; identifies whether manual claims are supported |
+| **ITC Guidelines** | Professional practice standards for how testing is conducted | Test Use (2013); Adapting Tests (2017) for any translated/adapted scale; Technology (2022) for app-based measures |
+| **COSMIN** | Systematic review methodology for patient-reported outcome measures | Clinical/health psychology; selecting PROMs for trials or systematic reviews; cosmin.nl database |
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+Use the **Standards** for principles, **Buros** for commercial test reviews, **ITC** for adaptation and technology contexts, **COSMIN** for health-outcome PROMs.
+:::
+
+::: {.notes}
+Students often ask "which one do I use?" — the answer is that they serve different functions and most thorough evaluations draw on more than one.
+:::
+
+---
+
+# Five Evaluation Domains {.section-slide background-color="#2E4057"}
+
+## Overview: What to Evaluate
+
+Every test evaluation — whether for a dissertation measure or a clinical instrument — addresses five domains.
+
+```{r domains-overview}
+dom_df <- tibble::tribble(
+  ~Domain,                                             ~`Key questions`,                                          ~`Points`,
+  "1. Description and Documentation",                  "What does it claim to measure? For whom? Is documentation complete?",         "8",
+  "2. Test Development",                               "How were items built? Was structure validated? Was the development sample appropriate?",  "8",
+  "3. Reliability",                                    "What types? In what samples? SEM interpreted for relevant score ranges?",      "10",
+  "4. Validity",                                       "Content, structural, convergent, discriminant, criterion — relevant to your use?", "12",
+  "5. Norms, Fairness, and Special Populations",       "Norming sample representative? DIF? Invariance? Predictive bias?",            "10",
+  "6. Diagnostic Accuracy and Clinical Utility (conditional)", "Sensitivity, specificity, LRs? Clinical utility? Responsiveness?",   "6 (if applicable)"
+)
+
+kable(dom_df, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "30%", color = pal_primary) |>
+  column_spec(2, width = "55%") |>
+  column_spec(3, width = "15%", bold = TRUE)
+```
+
+::: {.notes}
+Overview slide — go through quickly, then dive into each domain. The points structure maps directly to the rubric handout they have.
+:::
+
+## Domain 1: Description and Documentation
+
+**What does the test claim to measure, for whom, and in what context?**
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+Four criteria:
+
+- **Construct definition** — is it grounded in theory, or is the scale title the only definition? Either is acceptable; the question is whether the reviewer engages with this.
+- **Intended population** — age, language, clinical status, cultural scope, restrictions
+- **Administration and scoring** — complete enough to replicate?
+- **Documentation availability** — manual, technical report, or peer-reviewed validation?
+
+:::
+::: {.column width="45%"}
+
+::: {.callout-warning appearance="minimal"}
+A scale with no manual and no consolidated validation studies has **no evidentiary basis** for use regardless of citation count.
+
+Citation count is not validity evidence. It is evidence of popularity.
+:::
+
+:::
+:::
+
+::: {.notes}
+The citation count point is worth a moment. Students will encounter scales cited in hundreds of papers with thin underlying evidence. That is the jingle fallacy operating at scale.
+:::
+
+## Domain 2: Test Development
+
+**Was the test built in a way that supports confidence in what the scores represent?**
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+Four criteria:
+
+- **Item generation rationale** — systematic process tied to construct model, or informal?
+- **Content validity process** — expert review, cognitive interviewing, target population input?
+- **Factor structure determination** — EFA in development sample, CFA in independent sample?
+- **Development sample appropriateness** — representative of the populations for whom the test will be used?
+
+:::
+::: {.column width="45%"}
+
+::: {.callout-note appearance="minimal"}
+**Domain 2 vs. Domain 4**
+
+Domain 2 evaluates **how the test was built.**
+
+Domain 4 evaluates **the accumulated validity evidence** for the scores it produces.
+
+A well-built test may have limited accumulated evidence (Domain 2 strong, Domain 4 weak). An empirically derived scale may lack a development rationale but have extensive validity evidence (Domain 2 weak, Domain 4 strong).
+
+Do not use the same evidence to answer both.
+:::
+
+:::
+:::
+
+::: {.notes}
+The Domain 2 vs 4 distinction is one of the places students get confused. Be explicit. Development = construction. Validity = accumulated evidence.
+:::
+
+## Domain 3: Reliability
+
+**Are scores sufficiently consistent for the intended use?**
+
+. . .
+
+Five criteria — with two that students often miss:
+
+| Criterion | What to look for | Common gap |
+|---|---|---|
+| Internal consistency | Coefficient type, value, sample | Alpha reported without noting type or subgroup |
+| Test-retest reliability | Interval specified, sample described | Interval too short or sample too different |
+| Inter-rater reliability | Method (ICC, kappa), CI reported | Absent when scoring requires judgment |
+| Standard error of measurement | Reported and *interpreted* at relevant score ranges | Reported but not interpreted for the decision |
+| **Subgroup reliability** | Reported for demographic groups relevant to your use | Almost always absent |
+
+. . .
+
+::: {.callout-important appearance="minimal"}
+Reliability is a property of **scores in a specific sample**, not of the test in the abstract. Reliability generalization studies find fewer than 10% of researchers report reliability for their own sample.
+:::
+
+::: {.notes}
+The subgroup reliability row is the one to emphasize. Students almost never find subgroup reliability in test documentation, but they need to note its absence and evaluate whether that matters for their specific use.
+:::
+
+## Domain 4: Validity
+
+**Does the accumulated evidence support score interpretation for the intended use?**
+
+. . .
+
+Six criteria:
+
+::: {.columns}
+::: {.column width="50%"}
+
+- **Content validity** — items comprehensively represent the construct without excess construct-irrelevant content
+- **Structural validity** — CFA with fit indices (CFI, RMSEA, SRMR) in a relevant sample
+- **Convergent validity** — expected positive correlations with related constructs
+
+:::
+::: {.column width="50%"}
+
+- **Discriminant validity** — expected low correlations with distinct constructs
+- **Criterion validity** — concurrent and/or predictive, with a relevant criterion
+- **Relevance to intended use** — evidence from comparable populations and contexts, not just any study that used the scale
+
+:::
+:::
+
+. . .
+
+::: {.callout-warning appearance="minimal"}
+Evidence gathered in a different population for a different purpose does not automatically transfer. This is a QMP in its own right — using validity evidence from one context to justify use in another without acknowledging the gap.
+:::
+
+::: {.notes}
+The relevance-to-intended-use criterion is the one most students skip. They find validity evidence and treat it as sufficient. The question is whether *this evidence* supports *this use*.
+:::
+
+---
+
+# Domain 5: Fairness {.section-slide background-color="#2E4057"}
+
+## Why Domain 5 Can Override Everything Else
+
+A test can score well across Domains 1–4 and still be inadequate for a specific use if the fairness evidence base is insufficient.
+
+. . .
+
+::: {.columns}
+::: {.column width="60%"}
+
+Domain 5 evaluates five criteria we covered in detail in Week 9:
+
+- **Norm sample representativeness and currency** — is the norming sample the right reference for your population?
+- **Subgroup norms** — available for the groups most relevant to your use?
+- **DIF analysis** — item-level differential functioning across relevant groups?
+- **Measurement invariance** — does the factor structure hold across groups you will compare?
+- **Predictive bias** — does the test predict outcomes with equal accuracy across groups?
+
+:::
+::: {.column width="40%"}
+
+::: {.callout-important appearance="minimal"}
+A test with no DIF analysis, no invariance testing, and no predictive bias evidence for the populations you will assess does **not** have an adequate fairness evidence base — regardless of how established it is in the literature.
+:::
+
+:::
+:::
+
+::: {.notes}
+Connect to Week 9 explicitly. Students have the conceptual vocabulary. Today is about finding and evaluating the evidence.
+:::
+
+## Where to Find Domain 5 Evidence
+
+This is where students get stuck — not because they don't understand the criteria, but because they don't know where to look.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**In a technical manual:**
+
+| What you want | Where to look | What it may be called |
+|---|---|---|
+| Norming sample | Standardization chapter | Demographics, normative sample |
+| DIF | Fairness / bias chapter | Differential item functioning, item bias analysis |
+| Invariance | Validity or technical chapter | Factorial invariance, multi-group CFA |
+| Predictive bias | Validity chapter | Differential prediction, subgroup validity |
+
+:::
+::: {.column width="50%"}
+
+**For research scales:**
+
+1. Read the original article — look for supplementary analyses by group
+2. Search: *[scale name]* + "measurement invariance" or "factorial invariance" or "DIF"
+3. Subsequent validation studies sometimes include fairness analyses the original did not
+
+**When you find nothing:**
+
+That is the finding. Report it explicitly: 
+
+> *"No DIF analysis was identified for this scale across [groups]. Given the intended use with [population], this is a meaningful limitation on confidence in item-level fairness."*
+
+:::
+:::
+
+::: {.notes}
+The "when you find nothing" guidance is critical. Students freeze when they can't find evidence. The absence is the data point. Walk through this explicitly.
+:::
+
+## Interpreting Domain 5 Gaps: The Good Enough Standard
+
+Not all fairness gaps are equally consequential. Apply the Hunsley & Mash three-way distinction.
+
+. . .
+
+```{r fairness-gap-table}
+gap_df <- tibble::tribble(
+  ~`Gap type`,              ~`Example`,                                                                ~`Good-enough judgment`,
+  "Prevents defensible use","No invariance testing; your dissertation compares group means on this construct across two clinical groups", "Do not use without additional evidence; or select an alternative",
+  "Limits — must acknowledge","No DIF analysis; your use is within a single group, not comparing groups on this construct", "Use with explicit acknowledgment; note in limitations; consider supplementary analysis",
+  "Minor — does not affect inference","Norming sample slightly underrepresents rural adults; your sample is urban", "Note as a limitation; does not affect your core use"
+)
+
+kable(gap_df, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE, font_size = 13) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "22%", color = pal_primary) |>
+  column_spec(2, width = "48%") |>
+  column_spec(3, width = "30%")
+```
+
+. . .
+
+::: {.callout-tip appearance="minimal"}
+The three-way judgment — prevents, limits, or minor — is the substance of your Commentary section. State which it is and explain why.
+:::
+
+::: {.notes}
+Walk through each row. The prevents-vs-limits distinction is often where students need help. The key variable is whether the gap is directly relevant to the specific use being evaluated.
+:::
+
+---
+
+# The Rubric and Your Assignment {.section-slide background-color="#2E4057"}
+
+## The Rubric Is About What You Do
+
+::: {.callout-important appearance="minimal"}
+**The rubric scores the reviewer, not the test.**
+
+A student who examines a criterion thoroughly and finds nothing earns full credit.
+
+A student who skips a criterion earns a zero — regardless of whether evidence exists.
+:::
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+Three scores per criterion:
+
+**0** — Reviewer does not address it. The absence is what earns the zero.
+
+**1** — Reviewer addresses it but incompletely: reports what exists without evaluating adequacy, or notes a gap without discussing implications.
+
+**2** — Reviewer engages fully: describes evidence, evaluates its adequacy for the intended use, and when evidence is absent, names the gap and explains what it means.
+
+:::
+::: {.column width="45%"}
+
+**The worked example from the chapter:**
+
+A student reviewing the AFI-R for a diverse clinical dissertation sample:
+
+- Finds no predictive bias analysis
+- Earns a **2** on that criterion by writing: *"No predictive bias analysis is reported by race/ethnicity. For a dissertation comparing outcomes across a racially diverse sample, this means I cannot assume scores carry the same predictive meaning across groups."*
+
+The skill is the interpretation, not the finding.
+
+:::
+:::
+
+::: {.notes}
+This reframe is where students need the most orientation. Most rubrics they have seen reward finding good evidence. This one rewards engagement and judgment.
+:::
+
+## Writing the Review: The Five Sections
+
+Your written review follows the Buros structure.
+
+```{r review-sections}
+sec_df <- tibble::tribble(
+  ~Section,       ~`What it contains`,                                       ~`Rubric connection`,
+  "Description",  "What the test is: purpose, format, population, administration, scoring", "Domain 1",
+  "Development",  "How it was built: item generation, content validity, structure, development sample", "Domain 2",
+  "Technical",    "Evaluative assessment of reliability, validity, and fairness evidence against your intended use", "Domains 3, 4, 5 (+ 6 if clinical)",
+  "Commentary",   "Integration: strengths, significant limitations, what gaps mean for the intended use under the good-enough standard", "All domains, synthesized",
+  "Summary",      "Clear recommendation: adequate / adequate with reservations / inadequate — with stated reasons tied to the intended use", "All domains, synthesized"
+)
+
+kable(sec_df, format = "html", escape = FALSE) |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE, font_size = 14) |>
+  row_spec(0, bold = TRUE, background = "#2E4057", color = "white") |>
+  column_spec(1, bold = TRUE, width = "14%", color = pal_primary) |>
+  column_spec(2, width = "56%") |>
+  column_spec(3, width = "30%")
+```
+
+. . .
+
+::: {.callout-warning appearance="minimal"}
+A review that describes evidence without reaching a judgment is not complete. The Commentary and Summary require evaluation, not summary. "The test has some strengths and some limitations" is not a recommendation.
+:::
+
+::: {.notes}
+Students who are uncomfortable with evaluative writing will default to description. Push back on this explicitly. A Buros reviewer does not merely list what a manual contains.
+:::
+
+## A Note on Domain 6
+
+Complete Domain 6 only when the test is evaluated for **clinical diagnostic or monitoring** purposes.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**Criterion 6.3: Responsiveness to change and MCID**
+
+This criterion applies only to instruments **designed for repeated administration** to detect progress over time.
+
+If the instrument is designed for initial diagnostic assessment or screening:
+
+- The absence of responsiveness evidence is **not a limitation**
+- Note explicitly: "This instrument is not designed for progress monitoring; responsiveness criteria are not applicable."
+- Do not mark as a gap.
+
+:::
+::: {.column width="45%"}
+
+::: {.callout-tip appearance="minimal"}
+**Quick checklist for Domain 6:**
+
+Is this test used for:
+
+- Screening or initial diagnosis? → 6.1 and 6.2 only
+- Progress monitoring or treatment response? → 6.1, 6.2, and 6.3
+
+When in doubt, check whether the manual describes a recommended re-administration protocol.
+:::
+
+:::
+:::
+
+::: {.notes}
+This is a common source of confusion. Students see "responsiveness to change" and either skip it entirely or mark it as absent when it simply doesn't apply. Being explicit about inapplicability is the right move.
+:::
+
+---
+
+# Bringing It Together {.section-slide background-color="#2E4057"}
+
+## Measurement Is a Theoretical Commitment
+
+Not a methods-section formality.
+
+. . .
+
+When you select a measure, you are making a claim: that these scores represent this construct, in this population, for this purpose.
+
+That claim requires evidence. And the evidence has to be evaluated against the specific inference, not assumed on the basis of citation count, journal prestige, or convention.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**The QMP literature documents:**
+
+- 40% of scales in flagship journals have no cited source
+- 88% of commonly used scales pass internal consistency; 4% pass a comprehensive evaluation
+- 79% of scales in a major replication project were ad hoc
+
+:::
+::: {.column width="50%"}
+
+**The professional standard:**
+
+- State the intended use before evaluating
+- Apply the Hunsley & Mash good-enough standard: prevents, limits, or minor
+- Identify gaps and interpret their implications — not just note their existence
+- Reach a judgment; hedging is not evaluation
+
+:::
+:::
+
+::: {.notes}
+Synthesis slide. Circle back to the opening claim: no amount of statistical sophistication rescues a broken measurement foundation. This is the lesson of the whole chapter.
+:::
+
+## Your Test Review Paper
+
+The assignment is a professional-practice exercise, not an academic exercise.
+
+. . .
+
+::: {.columns}
+::: {.column width="55%"}
+
+**What you are doing:**
+
+Evaluating a published measure against the standards that would apply in your field — whether that is clinical assessment, research, I/O selection, or educational testing.
+
+The standard is not "does this test have any validity evidence?" It is "is the evidence adequate for the specific use I have in mind?"
+
+:::
+::: {.column width="45%"}
+
+**What earns credit:**
+
+Engagement with every criterion, including ones where you find nothing.
+
+Clear statements of what gaps mean for your specific intended use.
+
+A recommendation — positive, qualified, or negative — with stated reasons tied to the evidence and the stakes.
+
+The rubric is in your handout. The full anchor descriptions are in the printable document.
+
+:::
+:::
+
+. . .
+
+::: {.callout-note appearance="minimal"}
+The standard you are holding your selected measure to is the standard your dissertation, publications, and clinical practice will eventually be held to. This is a first opportunity to practice it on a measure you chose.
+:::
+
+::: {.notes}
+End on this framing. The assignment is not busywork — it is the professional skill they will use for the rest of their careers.
+:::
+
+## Looking Back at the Course
+
+This module closes the content sequence. Here is where measurement goes wrong and how to catch it.
+
+. . .
+
+::: {.columns}
+::: {.column width="50%"}
+
+**What we built:**
+
+Reliability theory → what scores are and are not
+
+Validity framework → what evidence means
+
+Factor analysis (EFA + CFA) → structural evidence
+
+Measurement invariance → when group comparisons are valid
+
+Bias and DIF → item-level and group-level fairness
+
+Diagnostic accuracy → clinical decision-making evidence
+
+Scale development → what rigorous construction looks like
+
+:::
+::: {.column width="50%"}
+
+**What today added:**
+
+A critical lens for applying everything above to real measures in the real world.
+
+The ability to evaluate a measure not just as a psychometrician would — technically — but as a practicing scientist and clinician should: against the specific evidence needed for the specific decision at hand.
+
+The Hunsley & Mash good-enough standard anchors that judgment in the stakes that matter.
+
+:::
+:::
+
+::: {.notes}
+This is a good moment to pause and let students absorb the course arc. Everything they have covered is a tool for this: evaluating measures critically and using that evaluation to make better research and clinical decisions.
+:::
